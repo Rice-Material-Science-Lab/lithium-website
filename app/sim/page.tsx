@@ -42,9 +42,23 @@ interface CustomWasmModule {
   _cleanup_simulation(): void
 }
 
+function generateStartingLattice(w: number, h: number) {
+  const arr = []
+
+  for (let i = 0; i < w*2; i++) {
+    arr.push(3)
+  }
+
+  for (let i = 0; i < (h-2)*w; i++) {
+    arr.push(0)
+  }
+
+  return arr
+}
+
 export default function SimPage() {
    
-  const [simState, setSimState] = useState<number[]>([])
+  const [simState, setSimState] = useState<number[]>(generateStartingLattice(40, 25))
   const [wasmModule, setWasmModule] = useState<CustomWasmModule | null>(null)
   const [stepsRan, setStepsRan] = useState(0)
   const [runTime, setRunTime] = useState(0)
