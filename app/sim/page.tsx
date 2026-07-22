@@ -1,11 +1,17 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
+import { Card, CardFooter, CardHeader } from "@/components/ui/card"
 import { useState, useEffect, useRef } from "react"
 import DisplayHexGrid from "@/components/ui/hex-grid"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import { CircleQuestionMarkIcon } from "lucide-react"
 
 interface CustomWasmModule {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -240,23 +246,38 @@ export default function SimPage() {
   return (
     <div className="flex h-full w-full flex-col overflow-hidden p-5">
       <div className="flex shrink-0 items-center gap-4 px-4">
-        <h1 className="text-2xl text-primary dark:text-cyan-500">
+        <h1 className="text-2xl text-primary dark:text-cyan-500 font-bold">
           LKMC Electrodeposition Simulator
         </h1>
         <h2>Lattice Kinetic Monte Carlo - 2d Electrodeposition</h2>
       </div>
       <div className="flex min-h-0 flex-1 gap-4 p-4">
-        <Card className="flex w-[30%] shrink-0 flex-col justify-between p-4">
-          <form
-            onSubmit={handleSubmit}
-            className="flex h-full flex-col justify-between gap-6"
-          >
-            <div className="flex flex-col gap-4 overflow-y-auto px-2">
+        <form
+          onSubmit={handleSubmit}
+          className="flex h-full shrink-0 flex-col justify-between gap-6 w-[30%]"
+        >
+          <Card className="flex   flex-col justify-between p-4">
+            <CardHeader className="pl-2">
               <h3 className="text-2xl font-bold">Parameters</h3>
+            </CardHeader>
 
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="width-input" className="text-sm font-medium">
+            <div className="flex flex-col gap-4 overflow-y-auto px-2">
+              <div className="flex flex-col gap-2">
+                <label
+                  htmlFor="width-input"
+                  className="flex items-center text-sm font-medium"
+                >
                   Width
+                  <Tooltip>
+                    <TooltipTrigger className="ml-2">
+                      <CircleQuestionMarkIcon
+                        size={17}
+                      ></CircleQuestionMarkIcon>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      The width of the simulation lattice
+                    </TooltipContent>
+                  </Tooltip>
                 </label>
                 <Input
                   id="width-input"
@@ -265,11 +286,21 @@ export default function SimPage() {
                   value={width}
                   onChange={(e) => setWidth(Number(e.target.value))}
                 />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="height-input" className="text-sm font-medium">
+                <label
+                  htmlFor="height-input"
+                  className="flex items-center text-sm font-medium"
+                >
                   Height
+                  <Tooltip>
+                    <TooltipTrigger className="ml-2">
+                      <CircleQuestionMarkIcon
+                        size={17}
+                      ></CircleQuestionMarkIcon>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      The height of the simulation lattice
+                    </TooltipContent>
+                  </Tooltip>
                 </label>
                 <Input
                   id="height-input"
@@ -281,8 +312,21 @@ export default function SimPage() {
 
                 <Separator className="my-4" />
 
-                <label htmlFor="temp-input" className="text-sm font-medium">
+                <label
+                  htmlFor="temp-input"
+                  className="flex items-center text-sm font-medium"
+                >
                   Temperature (K)
+                  <Tooltip>
+                    <TooltipTrigger className="ml-2">
+                      <CircleQuestionMarkIcon
+                        size={17}
+                      ></CircleQuestionMarkIcon>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      The temperature being simulated
+                    </TooltipContent>
+                  </Tooltip>
                 </label>
                 <Input
                   id="temp-input"
@@ -293,9 +337,19 @@ export default function SimPage() {
                 />
                 <label
                   htmlFor="drop-rate-input"
-                  className="text-sm font-medium"
+                  className="flex items-center text-sm font-medium"
                 >
                   Drop Rate (d<sub>0</sub>)
+                  <Tooltip>
+                    <TooltipTrigger className="ml-2">
+                      <CircleQuestionMarkIcon
+                        size={17}
+                      ></CircleQuestionMarkIcon>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      The rate at which atoms spawn
+                    </TooltipContent>
+                  </Tooltip>
                 </label>
                 <Input
                   id="drop-rate-input"
@@ -306,33 +360,73 @@ export default function SimPage() {
                 />
                 <label
                   htmlFor="bonded-energy-input"
-                  className="text-sm font-medium"
+                  className="flex items-center text-sm font-medium"
                 >
-                  Bonded Energy e<sub>0</sub> (eV)
+                  <span>
+                    Bonded Energy e<sub>0</sub> (eV)
+                  </span>
+                  <Tooltip>
+                    <TooltipTrigger className="ml-2">
+                      <CircleQuestionMarkIcon
+                        size={17}
+                      ></CircleQuestionMarkIcon>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      The energy stored in bonds between atoms; Farther negative
+                      values make bonds atoms&apos; bonds stronger
+                    </TooltipContent>
+                  </Tooltip>
                 </label>
                 <Input
                   id="bonded-energy-input"
+                  max={0}
                   type="number"
                   value={bondedEnergy}
                   onChange={(e) => setBondedEnergy(Number(e.target.value))}
                 />
                 <label
                   htmlFor="atom-substrate-input"
-                  className="text-sm font-medium"
+                  className="flex items-center text-sm font-medium"
                 >
-                  Atom-substrate e<sub>1</sub> (eV)
+                  <span>
+                    Atom-substrate e<sub>1</sub> (eV)
+                  </span>
+                  <Tooltip>
+                    <TooltipTrigger className="ml-2">
+                      <CircleQuestionMarkIcon
+                        size={17}
+                      ></CircleQuestionMarkIcon>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      The energy stored in bonds between atoms and the
+                      substrate; Being more negative than the bonded energy
+                      promotes vertical growth
+                    </TooltipContent>
+                  </Tooltip>
                 </label>
                 <Input
                   id="atom-substrate-input"
                   type="number"
+                  max={0}
                   value={atomSubstrate}
                   onChange={(e) => setAtomSubstrate(Number(e.target.value))}
                 />
                 <label
                   htmlFor="free-att-freq-input"
-                  className="text-sm font-medium"
+                  className="flex items-center text-sm font-medium"
                 >
                   Free Attempt Freq. (v_f)
+                  <Tooltip>
+                    <TooltipTrigger className="ml-2">
+                      <CircleQuestionMarkIcon
+                        size={17}
+                      ></CircleQuestionMarkIcon>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      Vibrational frequency of isolated surface atoms that may
+                      attempt displacement
+                    </TooltipContent>
+                  </Tooltip>
                 </label>
                 <Input
                   id="free-att-freq-input"
@@ -342,9 +436,20 @@ export default function SimPage() {
                 />
                 <label
                   htmlFor="dep-att-freq-input"
-                  className="text-sm font-medium"
+                  className="flex items-center text-sm font-medium"
                 >
                   Dep. Attempt Freq. (v_d)
+                  <Tooltip>
+                    <TooltipTrigger className="ml-2">
+                      <CircleQuestionMarkIcon
+                        size={17}
+                      ></CircleQuestionMarkIcon>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      Vibrational frequency of bonded surface atoms that may
+                      attempt displacement
+                    </TooltipContent>
+                  </Tooltip>
                 </label>
                 <Input
                   id="dep-att-freq-input"
@@ -354,12 +459,13 @@ export default function SimPage() {
                 />
               </div>
             </div>
-
-            <Button type="submit" className="w-full" disabled={!wasmModule}>
-              {wasmModule ? "Run 1,000,000 Steps" : "Loading Wasm..."}
-            </Button>
-          </form>
-        </Card>
+            <CardFooter>
+              <Button type="submit" className="w-full" disabled={!wasmModule}>
+                {wasmModule ? "Run 1,000,000 Steps" : "Loading Wasm..."}
+              </Button>
+            </CardFooter>
+          </Card>
+        </form>
         <div className="flex min-h-0 flex-1 flex-col gap-4">
           <Card className="flex min-h-0 flex-1 flex-col items-center justify-center gap-0 p-4">
             <p className="text-md shrink-0">
