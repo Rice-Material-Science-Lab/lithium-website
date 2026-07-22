@@ -45,11 +45,11 @@ interface CustomWasmModule {
 function generateStartingLattice(w: number, h: number) {
   const arr = []
 
-  for (let i = 0; i < w*2; i++) {
+  for (let i = 0; i < w * 2; i++) {
     arr.push(3)
   }
 
-  for (let i = 0; i < (h-2)*w; i++) {
+  for (let i = 0; i < (h - 2) * w; i++) {
     arr.push(0)
   }
 
@@ -57,11 +57,29 @@ function generateStartingLattice(w: number, h: number) {
 }
 
 export default function SimPage() {
-   
-  const [simState, setSimState] = useState<number[]>(generateStartingLattice(40, 25))
+  const [simState, setSimState] = useState<number[]>(
+    generateStartingLattice(40, 25)
+  )
   const [wasmModule, setWasmModule] = useState<CustomWasmModule | null>(null)
   const [stepsRan, setStepsRan] = useState(0)
   const [runTime, setRunTime] = useState(0)
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function getWasmBuffer(mod: any): ArrayBuffer | null {
+    if (mod?.HEAP8?.buffer && mod.HEAP8.buffer.byteLength > 0) {
+      return mod.HEAP8.buffer
+    }
+    if (mod?.wasmMemory?.buffer && mod.wasmMemory.buffer.byteLength > 0) {
+      return mod.wasmMemory.buffer
+    }
+    if (mod?.buffer instanceof ArrayBuffer && mod.buffer.byteLength > 0) {
+      return mod.buffer
+    }
+    if (mod?.asm?.memory?.buffer) {
+      return mod.asm.memory.buffer
+    }
+    return null
+  }
 
   useEffect(() => {
     let active = true
@@ -81,7 +99,7 @@ export default function SimPage() {
             setWasmModule(initializedModule)
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            ;(window as any).updateSimulation = (step: any) => {
+            ;(window as any).updateSimulation = (step: number) => {
               if (!active) return
 
               const pointer = initializedModule._get_lattice_data()
@@ -95,29 +113,22 @@ export default function SimPage() {
                 return
               }
 
-              const totalElements = width * height
+              const buffer = getWasmBuffer(initializedModule)
 
-              // Direct fallback check for Emscripten heap views
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              const heap = initializedModule.HEAP8 || (window as any).HEAP8
-
-              if (!heap || !heap.buffer) {
-                console.error("WebAssembly HEAP8 buffer is not available.")
+              if (!buffer) {
+                console.error("WebAssembly Memory buffer is not available.")
                 return
               }
 
-              const memoryView = new Int8Array(
-                heap.buffer,
-                pointer,
-                totalElements
-              )
-              const snapshotData = new Int8Array(memoryView)
+              const totalElements = width * height
 
+              const memoryView = new Int8Array(buffer, pointer, totalElements)
+
+              const snapshotData = Array.from(memoryView)
 
               setStepsRan(step)
-              console.log(initializedModule._get_time())
               setRunTime(initializedModule._get_time())
-              setSimState([...snapshotData])
+              setSimState(snapshotData)
             }
           }
         } else if (!moduleFactory) {
@@ -142,6 +153,8 @@ export default function SimPage() {
   const handleStartSim = () => {
     if (wasmModule) {
       const randomSeed = Math.floor(Math.random() * 1000000)
+
+      console.log(randomSeed)
 
       wasmModule.ccall(
         "set_params",
@@ -170,14 +183,14 @@ export default function SimPage() {
         ]
       )
 
-      wasmModule.ccall("init_simulation", null, [], [])
+      wasmModule._init_simulation()
 
       let remaining = 1000000
 
       function tick() {
         if (!wasmModule || remaining <= 0) return
 
-        wasmModule.ccall("run_steps", null, ["number"], [1000])
+        wasmModule._run_steps(1000)
         remaining -= 1000
 
         requestAnimationFrame(tick)
@@ -187,16 +200,20 @@ export default function SimPage() {
     }
   }
 
+  useEffect(() => {
+    console.log(runTime)
+  }, [runTime])
+
   return (
-    <div className="flex h-full w-full flex-col p-5 overflow-hidden">
-      <div className="flex items-center gap-4 px-4 shrink-0">
+    <div className="flex h-full w-full flex-col overflow-hidden p-5">
+      <div className="flex shrink-0 items-center gap-4 px-4">
         <h1 className="text-2xl text-primary dark:text-cyan-500">
           LKMC Electrodeposition Simulator
         </h1>
         <h2>Lattice Kinetic Monte Carlo - 2d Electrodeposition</h2>
       </div>
-      <div className="flex flex-1 min-h-0 gap-4 p-4">
-        <Card className="flex w-[20%] flex-col items-center justify-around p-4 shrink-0">
+      <div className="flex min-h-0 flex-1 gap-4 p-4">
+        <Card className="flex w-[20%] shrink-0 flex-col items-center justify-around p-4">
           <h3 className="text-4xl">PARAMS</h3>
           <Button
             className="w-full"
@@ -206,16 +223,16 @@ export default function SimPage() {
             {wasmModule ? "Run 1,000,000 Steps" : "Loading Wasm..."}
           </Button>
         </Card>
-        <div className="flex flex-1 min-h-0 flex-col gap-4">
-          <Card className="flex flex-1 min-h-0 flex-col items-center justify-center p-4">
-            <p className="shrink-0 text-md">
+        <div className="flex min-h-0 flex-1 flex-col gap-4">
+          <Card className="flex min-h-0 flex-1 flex-col items-center justify-center p-4">
+            <p className="text-md shrink-0">
               After {stepsRan} steps and {runTime.toFixed(2)}ms
             </p>
-            <div className="w-full flex-1 min-h-0">
+            <div className="min-h-0 w-full flex-1">
               <DisplayHexGrid width={40} height={25} data={simState} />
             </div>
           </Card>
-          <Card className="flex flex-1 min-h-0 items-center justify-center shrink-0">
+          <Card className="flex min-h-0 flex-1 shrink-0 items-center justify-center">
             <h3 className="text-6xl">ATOM COUNTS</h3>
           </Card>
         </div>
