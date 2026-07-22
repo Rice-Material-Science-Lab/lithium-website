@@ -54,7 +54,7 @@ export default function DisplayHexGrid({ data, width, height }: { data: number[]
   // clip path removing half of the side hexagons
 
   const clipX = -0.5 * hexWidth;
-  const clipY = -(height - 1) * (1.5 * hexSize) - hexSize;
+  const clipY = -(height - 1) * (1.5 * hexSize) - hexSize * 2;
   const clipWidth = (width + 0.5) * hexWidth;
   const clipHeight = (height - 1) * (1.5 * hexSize) + 2 * hexSize;
 
