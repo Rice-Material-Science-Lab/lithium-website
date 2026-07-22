@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card"
 import { useState, useEffect, useRef } from "react"
 import DisplayHexGrid from "@/components/ui/hex-grid"
 import { Input } from "@/components/ui/input"
+import { Separator } from "@/components/ui/separator"
 
 interface CustomWasmModule {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -46,7 +47,7 @@ interface CustomWasmModule {
 function generateStartingLattice(w: number, h: number) {
   const arr = []
 
-  for (let i = 0; i < w ; i++) {
+  for (let i = 0; i < w; i++) {
     arr.push(3)
   }
 
@@ -69,6 +70,8 @@ export default function SimPage() {
   const [runTime, setRunTime] = useState(0)
   const [width, setWidth] = useState(gridDimensions[0])
   const [height, setHeight] = useState(gridDimensions[1])
+  const [temp, setTemp] = useState(300)
+  const [dropRate, setDropRate] = useState(1000)
 
   const animFrameRef = useRef<number | null>(null)
 
@@ -188,8 +191,8 @@ export default function SimPage() {
       [
         nx, // width
         ny, // height
-        1.0e3, // d0
-        300.0, // T
+        dropRate, // d0
+        temp, // T
         -0.2, // e0
         -0.5, // e1
         5.0e9, // nu_f
@@ -221,7 +224,7 @@ export default function SimPage() {
     console.log(runTime)
   }, [runTime])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault()
 
     const newDimensions: [number, number] = [Number(width), Number(height)]
@@ -272,6 +275,27 @@ export default function SimPage() {
                   onChange={(e) => setHeight(Number(e.target.value))}
                 />
               </div>
+              <Separator />
+              <label htmlFor="temp-input" className="text-sm font-medium">
+                Temperature (K)
+              </label>
+              <Input
+                id="temp-input"
+                type="number"
+                min={1}
+                value={temp}
+                onChange={(e) => setTemp(Number(e.target.value))}
+              />
+              <label htmlFor="temp-input" className="text-sm font-medium">
+                Drop Rate (d<sub>0</sub>)
+              </label>
+              <Input
+                id="drop-rate-input"
+                type="number"
+                min={1}
+                value={dropRate}
+                onChange={(e) => setDropRate(Number(e.target.value))}
+              />
             </div>
 
             <Button type="submit" className="w-full" disabled={!wasmModule}>
@@ -280,7 +304,7 @@ export default function SimPage() {
           </form>
         </Card>
         <div className="flex min-h-0 flex-1 flex-col gap-4">
-          <Card className="flex min-h-0 flex-1 flex-col items-center justify-center p-4">
+          <Card className="flex min-h-0 flex-1 flex-col items-center justify-center p-4 gap-0">
             <p className="text-md shrink-0">
               After {stepsRan} steps and {runTime.toFixed(2)}ms
             </p>
