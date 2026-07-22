@@ -67,7 +67,7 @@ export default function SimPage() {
             setWasmModule(initializedModule)
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            ;(window as any).updateSimulation = (step: any, time: any) => {
+            ;(window as any).updateSimulation = (step: any) => {
               if (!active) return
 
               const pointer = initializedModule._get_lattice_data()
@@ -101,7 +101,8 @@ export default function SimPage() {
 
 
               setStepsRan(step)
-              setRunTime(time)
+              console.log(initializedModule._get_time())
+              setRunTime(initializedModule._get_time())
               setSimState([...snapshotData])
             }
           }
