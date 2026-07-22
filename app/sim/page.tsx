@@ -483,7 +483,7 @@ export default function SimPage() {
                 </Collapsible>
               </div>
             </div>
-            <CardFooter className="mt-auto!">
+            <CardFooter className="mt-auto! p-0">
               <Button type="submit" className="w-full" disabled={!wasmModule}>
                 {wasmModule ? "Run 1,000,000 Steps" : "Loading WASM..."}
               </Button>
