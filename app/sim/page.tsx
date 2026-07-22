@@ -45,7 +45,7 @@ interface CustomWasmModule {
   HEAPF32: Float32Array
   HEAPF64: Float64Array
 
-  _get_lattice_data(): number
+  _get_lattice(): number
   _get_width(): number
   _get_height(): number
 
@@ -129,7 +129,7 @@ export default function SimPage() {
             ;(window as any).updateSimulation = (step: number) => {
               if (!active) return
 
-              const pointer = initializedModule._get_lattice_data()
+              const pointer = initializedModule._get_lattice()
               const width = initializedModule._get_width()
               const height = initializedModule._get_height()
 
