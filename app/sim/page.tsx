@@ -72,6 +72,10 @@ export default function SimPage() {
   const [height, setHeight] = useState(gridDimensions[1])
   const [temp, setTemp] = useState(300)
   const [dropRate, setDropRate] = useState(1000)
+  const [bondedEnergy, setBondedEnergy] = useState(-0.28)
+  const [atomSubstrate, setAtomSubstrate] = useState(-0.5)
+  const [freeAttFreq, setFreeAttFreq] = useState(5000000000)
+  const [depAttFreq, setDepAttFreq] = useState(5000000000)
 
   const animFrameRef = useRef<number | null>(null)
 
@@ -193,10 +197,10 @@ export default function SimPage() {
         ny, // height
         dropRate, // d0
         temp, // T
-        -0.2, // e0
-        -0.5, // e1
-        5.0e9, // nu_f
-        1.0e9, // nu_d
+        bondedEnergy, // e0
+        atomSubstrate, // e1
+        freeAttFreq, // nu_f
+        depAttFreq, // nu_d
         randomSeed, // seed (randomized)
       ]
     )
@@ -242,12 +246,12 @@ export default function SimPage() {
         <h2>Lattice Kinetic Monte Carlo - 2d Electrodeposition</h2>
       </div>
       <div className="flex min-h-0 flex-1 gap-4 p-4">
-        <Card className="flex w-[20%] shrink-0 flex-col justify-between p-4">
+        <Card className="flex w-[30%] shrink-0 flex-col justify-between p-4">
           <form
             onSubmit={handleSubmit}
             className="flex h-full flex-col justify-between gap-6"
           >
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 overflow-y-auto px-2">
               <h3 className="text-2xl font-bold">Parameters</h3>
 
               <div className="flex flex-col gap-1.5">
@@ -274,28 +278,81 @@ export default function SimPage() {
                   value={height}
                   onChange={(e) => setHeight(Number(e.target.value))}
                 />
+
+                <Separator className="my-4" />
+
+                <label htmlFor="temp-input" className="text-sm font-medium">
+                  Temperature (K)
+                </label>
+                <Input
+                  id="temp-input"
+                  type="number"
+                  min={1}
+                  value={temp}
+                  onChange={(e) => setTemp(Number(e.target.value))}
+                />
+                <label
+                  htmlFor="drop-rate-input"
+                  className="text-sm font-medium"
+                >
+                  Drop Rate (d<sub>0</sub>)
+                </label>
+                <Input
+                  id="drop-rate-input"
+                  type="number"
+                  min={1}
+                  value={dropRate}
+                  onChange={(e) => setDropRate(Number(e.target.value))}
+                />
+                <label
+                  htmlFor="bonded-energy-input"
+                  className="text-sm font-medium"
+                >
+                  Bonded Energy e<sub>0</sub> (eV)
+                </label>
+                <Input
+                  id="bonded-energy-input"
+                  type="number"
+                  value={bondedEnergy}
+                  onChange={(e) => setBondedEnergy(Number(e.target.value))}
+                />
+                <label
+                  htmlFor="atom-substrate-input"
+                  className="text-sm font-medium"
+                >
+                  Atom-substrate e<sub>1</sub> (eV)
+                </label>
+                <Input
+                  id="atom-substrate-input"
+                  type="number"
+                  value={atomSubstrate}
+                  onChange={(e) => setAtomSubstrate(Number(e.target.value))}
+                />
+                <label
+                  htmlFor="free-att-freq-input"
+                  className="text-sm font-medium"
+                >
+                  Free Attempt Freq. (v_f)
+                </label>
+                <Input
+                  id="free-att-freq-input"
+                  type="number"
+                  value={freeAttFreq}
+                  onChange={(e) => setFreeAttFreq(Number(e.target.value))}
+                />
+                <label
+                  htmlFor="dep-att-freq-input"
+                  className="text-sm font-medium"
+                >
+                  Dep. Attempt Freq. (v_d)
+                </label>
+                <Input
+                  id="dep-att-freq-input"
+                  type="number"
+                  value={depAttFreq}
+                  onChange={(e) => setDepAttFreq(Number(e.target.value))}
+                />
               </div>
-              <Separator />
-              <label htmlFor="temp-input" className="text-sm font-medium">
-                Temperature (K)
-              </label>
-              <Input
-                id="temp-input"
-                type="number"
-                min={1}
-                value={temp}
-                onChange={(e) => setTemp(Number(e.target.value))}
-              />
-              <label htmlFor="temp-input" className="text-sm font-medium">
-                Drop Rate (d<sub>0</sub>)
-              </label>
-              <Input
-                id="drop-rate-input"
-                type="number"
-                min={1}
-                value={dropRate}
-                onChange={(e) => setDropRate(Number(e.target.value))}
-              />
             </div>
 
             <Button type="submit" className="w-full" disabled={!wasmModule}>
@@ -304,7 +361,7 @@ export default function SimPage() {
           </form>
         </Card>
         <div className="flex min-h-0 flex-1 flex-col gap-4">
-          <Card className="flex min-h-0 flex-1 flex-col items-center justify-center p-4 gap-0">
+          <Card className="flex min-h-0 flex-1 flex-col items-center justify-center gap-0 p-4">
             <p className="text-md shrink-0">
               After {stepsRan} steps and {runTime.toFixed(2)}ms
             </p>
