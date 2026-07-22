@@ -11,7 +11,13 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { CircleQuestionMarkIcon } from "lucide-react"
+import { ChevronDownIcon, CircleQuestionMarkIcon } from "lucide-react"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
+import { Marker, MarkerContent } from "@/components/ui/marker"
 
 interface CustomWasmModule {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -246,7 +252,7 @@ export default function SimPage() {
   return (
     <div className="flex h-full w-full flex-col overflow-hidden p-5">
       <div className="flex shrink-0 items-center gap-4 px-4">
-        <h1 className="text-2xl text-primary dark:text-cyan-500 font-bold">
+        <h1 className="text-2xl font-bold text-primary dark:text-cyan-500">
           LKMC Electrodeposition Simulator
         </h1>
         <h2>Lattice Kinetic Monte Carlo - 2d Electrodeposition</h2>
@@ -254,9 +260,9 @@ export default function SimPage() {
       <div className="flex min-h-0 flex-1 gap-4 p-4">
         <form
           onSubmit={handleSubmit}
-          className="flex h-full shrink-0 flex-col justify-between gap-6 w-[30%]"
+          className="flex h-full w-[30%] shrink-0 flex-col justify-between gap-6"
         >
-          <Card className="flex   flex-col justify-between p-4">
+          <Card className="flex h-full flex-col justify-start p-4">
             <CardHeader className="pl-2">
               <h3 className="text-2xl font-bold">Parameters</h3>
             </CardHeader>
@@ -358,108 +364,126 @@ export default function SimPage() {
                   value={dropRate}
                   onChange={(e) => setDropRate(Number(e.target.value))}
                 />
-                <label
-                  htmlFor="bonded-energy-input"
-                  className="flex items-center text-sm font-medium"
-                >
-                  <span>
-                    Bonded Energy e<sub>0</sub> (eV)
-                  </span>
-                  <Tooltip>
-                    <TooltipTrigger className="ml-2">
-                      <CircleQuestionMarkIcon
-                        size={17}
-                      ></CircleQuestionMarkIcon>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      The energy stored in bonds between atoms; Farther negative
-                      values make bonds atoms&apos; bonds stronger
-                    </TooltipContent>
-                  </Tooltip>
-                </label>
-                <Input
-                  id="bonded-energy-input"
-                  max={0}
-                  type="number"
-                  value={bondedEnergy}
-                  onChange={(e) => setBondedEnergy(Number(e.target.value))}
-                />
-                <label
-                  htmlFor="atom-substrate-input"
-                  className="flex items-center text-sm font-medium"
-                >
-                  <span>
-                    Atom-substrate e<sub>1</sub> (eV)
-                  </span>
-                  <Tooltip>
-                    <TooltipTrigger className="ml-2">
-                      <CircleQuestionMarkIcon
-                        size={17}
-                      ></CircleQuestionMarkIcon>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      The energy stored in bonds between atoms and the
-                      substrate; Being more negative than the bonded energy
-                      promotes vertical growth
-                    </TooltipContent>
-                  </Tooltip>
-                </label>
-                <Input
-                  id="atom-substrate-input"
-                  type="number"
-                  max={0}
-                  value={atomSubstrate}
-                  onChange={(e) => setAtomSubstrate(Number(e.target.value))}
-                />
-                <label
-                  htmlFor="free-att-freq-input"
-                  className="flex items-center text-sm font-medium"
-                >
-                  Free Attempt Freq. (v_f)
-                  <Tooltip>
-                    <TooltipTrigger className="ml-2">
-                      <CircleQuestionMarkIcon
-                        size={17}
-                      ></CircleQuestionMarkIcon>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      Vibrational frequency of isolated surface atoms that may
-                      attempt displacement
-                    </TooltipContent>
-                  </Tooltip>
-                </label>
-                <Input
-                  id="free-att-freq-input"
-                  type="number"
-                  value={freeAttFreq}
-                  onChange={(e) => setFreeAttFreq(Number(e.target.value))}
-                />
-                <label
-                  htmlFor="dep-att-freq-input"
-                  className="flex items-center text-sm font-medium"
-                >
-                  Dep. Attempt Freq. (v_d)
-                  <Tooltip>
-                    <TooltipTrigger className="ml-2">
-                      <CircleQuestionMarkIcon
-                        size={17}
-                      ></CircleQuestionMarkIcon>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      Vibrational frequency of bonded surface atoms that may
-                      attempt displacement
-                    </TooltipContent>
-                  </Tooltip>
-                </label>
-                <Input
-                  id="dep-att-freq-input"
-                  type="number"
-                  value={depAttFreq}
-                  onChange={(e) => setDepAttFreq(Number(e.target.value))}
-                />
+                <Collapsible className="w-full rounded-md">
+                  <CollapsibleTrigger className="w-full">
+                    <Marker variant="separator" className="w-full my-2">
+                      <MarkerContent className="flex items-center gap-2">
+                        Advanced <ChevronDownIcon />
+                      </MarkerContent>
+                    </Marker>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="gap-2 flex flex-col">
+                      <label
+                        htmlFor="bonded-energy-input"
+                        className="flex items-center text-sm font-medium"
+                      >
+                        <span>
+                          Bonded Energy e<sub>0</sub> (eV)
+                        </span>
+                        <Tooltip>
+                          <TooltipTrigger className="ml-2">
+                            <CircleQuestionMarkIcon
+                              size={17}
+                            ></CircleQuestionMarkIcon>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            The energy stored in bonds between atoms; Farther
+                            negative values make bonds atoms&apos; bonds
+                            stronger
+                          </TooltipContent>
+                        </Tooltip>
+                      </label>
+                      <Input
+                        id="bonded-energy-input"
+                        max={0}
+                        type="number"
+                        value={bondedEnergy}
+                        onChange={(e) =>
+                          setBondedEnergy(Number(e.target.value))
+                        }
+                      />
+                      <label
+                        htmlFor="atom-substrate-input"
+                        className="flex items-center text-sm font-medium"
+                      >
+                        <span>
+                          Atom-substrate e<sub>1</sub> (eV)
+                        </span>
+                        <Tooltip>
+                          <TooltipTrigger className="ml-2">
+                            <CircleQuestionMarkIcon
+                              size={17}
+                            ></CircleQuestionMarkIcon>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            The energy stored in bonds between atoms and the
+                            substrate; Being more negative than the bonded
+                            energy promotes vertical growth
+                          </TooltipContent>
+                        </Tooltip>
+                      </label>
+                      <Input
+                        id="atom-substrate-input"
+                        type="number"
+                        max={0}
+                        value={atomSubstrate}
+                        onChange={(e) =>
+                          setAtomSubstrate(Number(e.target.value))
+                        }
+                      />
+                      <label
+                        htmlFor="free-att-freq-input"
+                        className="flex items-center text-sm font-medium"
+                      >
+                        Free Attempt Freq. (v_f)
+                        <Tooltip>
+                          <TooltipTrigger className="ml-2">
+                            <CircleQuestionMarkIcon
+                              size={17}
+                            ></CircleQuestionMarkIcon>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            Vibrational frequency of isolated surface atoms that
+                            may attempt displacement
+                          </TooltipContent>
+                        </Tooltip>
+                      </label>
+                      <Input
+                        id="free-att-freq-input"
+                        type="number"
+                        value={freeAttFreq}
+                        onChange={(e) => setFreeAttFreq(Number(e.target.value))}
+                      />
+                      <label
+                        htmlFor="dep-att-freq-input"
+                        className="flex items-center text-sm font-medium"
+                      >
+                        Dep. Attempt Freq. (v_d)
+                        <Tooltip>
+                          <TooltipTrigger className="ml-2">
+                            <CircleQuestionMarkIcon
+                              size={17}
+                            ></CircleQuestionMarkIcon>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            Vibrational frequency of bonded surface atoms that
+                            may attempt displacement
+                          </TooltipContent>
+                        </Tooltip>
+                      </label>
+                      <Input
+                        id="dep-att-freq-input"
+                        type="number"
+                        value={depAttFreq}
+                        onChange={(e) => setDepAttFreq(Number(e.target.value))}
+                      />
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
               </div>
             </div>
-            <CardFooter>
+            <CardFooter className="mt-auto!">
               <Button type="submit" className="w-full" disabled={!wasmModule}>
                 {wasmModule ? "Run 1,000,000 Steps" : "Loading Wasm..."}
               </Button>
