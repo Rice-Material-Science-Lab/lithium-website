@@ -84,7 +84,7 @@ export default function DisplayHexGrid({
         case 2:
           return "#FF974D" // orange (deposited)
         case 3:
-          return "#616161" // dark gray (substrate)
+          return "#858585" // dark gray (substrate)
         case 4:
           return "#49E281" // green (passivated)
         default:
@@ -107,7 +107,7 @@ export default function DisplayHexGrid({
 
   return (
     mounted ? (
-      <div className="flex h-full w-full items-center justify-center">
+      <div className="flex h-full items-center">
         <HexGrid width="100%" height="100%" viewBox={viewBox}>
           <defs>
             <clipPath id="side-clip">

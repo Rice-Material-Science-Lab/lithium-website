@@ -18,6 +18,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 import { Marker, MarkerContent } from "@/components/ui/marker"
+import AtomColorKey from "@/components/ui/atom-color-key"
 
 interface CustomWasmModule {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -55,6 +56,8 @@ interface CustomWasmModule {
   _get_time(): number
   _cleanup_simulation(): void
   _force_update_frontend(): void
+
+  _get_stats_json(): number
 }
 
 function generateStartingLattice(w: number, h: number) {
@@ -73,7 +76,7 @@ function generateStartingLattice(w: number, h: number) {
 
 export default function SimPage() {
   const [gridDimensions, setGridDimensions] = useState<[number, number]>([
-    80, 25,
+    60, 25,
   ])
   const [simState, setSimState] = useState<number[]>(
     generateStartingLattice(...gridDimensions)
@@ -133,11 +136,13 @@ export default function SimPage() {
             ;(window as any).updateSimulation = (step: number) => {
               if (!active) return
 
-              const pointer = initializedModule._get_lattice()
+              const latticePointer = initializedModule._get_lattice()
               const width = initializedModule._get_width()
               const height = initializedModule._get_height()
 
-              if (!pointer || width === 0 || height === 0) {
+              const statsJsonPointer = initializedModule._get_stats_json()
+
+              if (!latticePointer || !statsJsonPointer || width === 0 || height === 0) {
                 console.error(
                   "Simulation not initialized or returned null pointer."
                 )
@@ -153,7 +158,7 @@ export default function SimPage() {
 
               const totalElements = width * height
 
-              const memoryView = new Int8Array(buffer, pointer, totalElements)
+              const memoryView = new Int8Array(buffer, latticePointer, totalElements)
 
               const snapshotData = Array.from(memoryView)
 
@@ -583,12 +588,13 @@ export default function SimPage() {
             <p className="text-md shrink-0">
               After {stepsRan} steps and {runTime.toFixed(2)}ms
             </p>
-            <div className="min-h-0 w-full flex-1">
+            <div className="min-h-0 w-full flex-1 flex justify-center gap-4">
               <DisplayHexGrid
                 width={gridDimensions[0]}
                 height={gridDimensions[1]}
                 data={simState}
               />
+              <AtomColorKey />
             </div>
           </Card>
           <Card className="flex min-h-0 flex-1 shrink-0 items-center justify-center">
