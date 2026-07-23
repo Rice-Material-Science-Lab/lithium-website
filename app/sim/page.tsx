@@ -90,6 +90,7 @@ export default function SimPage() {
   const [depAttFreq, setDepAttFreq] = useState(5000000000)
   const [passAttFreq, setPassAttFreq] = useState(200000000)
   const [ePass, setEPass] = useState(0.4)
+  const [stepsToRun, setStepsToRun] = useState(1000000)
 
   const animFrameRef = useRef<number | null>(null)
 
@@ -227,7 +228,7 @@ export default function SimPage() {
 
     wasmModule._init_simulation()
 
-    let remaining = 1000000
+    let remaining = stepsToRun
 
     function tick() {
       if (!wasmModule || remaining <= 0) return
@@ -370,16 +371,47 @@ export default function SimPage() {
                   value={dropRate}
                   onChange={(e) => setDropRate(Number(e.target.value))}
                 />
+
+                <Separator className="my-4" />
+
+                {/* play options */}
+
+                <label
+                  htmlFor="steps-to-run-input"
+                  className="flex items-center text-sm font-medium"
+                >
+                  Steps
+                  <Tooltip>
+                    <TooltipTrigger className="ml-2">
+                      <CircleQuestionMarkIcon
+                        size={17}
+                      ></CircleQuestionMarkIcon>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      The amount of steps that will be run upon starting the simulation
+                    </TooltipContent>
+                  </Tooltip>
+                </label>
+                <Input
+                  id="steps-to-run-input"
+                  type="number"
+                  min={1}
+                  value={stepsToRun}
+                  onChange={(e) => setStepsToRun(Number(e.target.value))}
+                />
+
+                {/* advanced options */}
+
                 <Collapsible className="w-full rounded-md">
                   <CollapsibleTrigger className="w-full">
-                    <Marker variant="separator" className="w-full my-2">
+                    <Marker variant="separator" className="my-2 w-full">
                       <MarkerContent className="flex items-center gap-2">
                         Advanced <ChevronDownIcon />
                       </MarkerContent>
                     </Marker>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
-                    <div className="gap-2 flex flex-col">
+                    <div className="flex flex-col gap-2">
                       <label
                         htmlFor="bonded-energy-input"
                         className="flex items-center text-sm font-medium"
@@ -519,7 +551,8 @@ export default function SimPage() {
                             ></CircleQuestionMarkIcon>
                           </TooltipTrigger>
                           <TooltipContent>
-                            Activation energy penalizing lithium ion trying to pass through SEI
+                            Activation energy penalizing lithium ion trying to
+                            pass through SEI
                           </TooltipContent>
                         </Tooltip>
                       </label>
