@@ -203,6 +203,8 @@ export default function SimPage() {
         "number",
         "number",
         "number",
+        "number",
+        "number",
       ],
       [
         nx, // width
@@ -213,6 +215,8 @@ export default function SimPage() {
         atomSubstrate, // e1
         freeAttFreq, // nu_f
         depAttFreq, // nu_d
+        1000, // nu_p
+        0.08, // E_pass
         randomSeed, // seed (randomized)
       ]
     )
