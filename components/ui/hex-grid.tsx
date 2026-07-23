@@ -2,6 +2,7 @@
 
 import { HexGrid, Layout, Hexagon } from "react-hexgrid"
 import { useTheme } from "next-themes"
+import { useEffect, useState } from "react"
 
 export default function DisplayHexGrid({
   data,
@@ -13,6 +14,15 @@ export default function DisplayHexGrid({
   height: number
 }) {
   const { resolvedTheme } = useTheme()
+
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    const handle = requestAnimationFrame(() => {
+      setMounted(true)
+    })
+    return () => cancelAnimationFrame(handle)
+  }, [])
 
   const hexagons = []
 
@@ -96,38 +106,40 @@ export default function DisplayHexGrid({
   const viewBox = `${clipX} ${clipY} ${clipWidth} ${clipHeight}`
 
   return (
-    <div className="flex h-full w-full items-center justify-center">
-      <HexGrid width="100%" height="100%" viewBox={viewBox}>
-        <defs>
-          <clipPath id="side-clip">
-            <rect x={clipX} y={clipY} width={clipWidth} height={clipHeight} />
-          </clipPath>
-        </defs>
+    mounted ? (
+      <div className="flex h-full w-full items-center justify-center">
+        <HexGrid width="100%" height="100%" viewBox={viewBox}>
+          <defs>
+            <clipPath id="side-clip">
+              <rect x={clipX} y={clipY} width={clipWidth} height={clipHeight} />
+            </clipPath>
+          </defs>
 
-        <g clipPath="url(#side-clip)">
-          <Layout
-            size={{ x: hexSize, y: hexSize }}
-            flat={false}
-            spacing={1}
-            origin={{ x: 0, y: 0 }}
-          >
-            {hexagons.map((hex, i) => (
-              <Hexagon
-                key={`${hex.q}-${hex.r}-${i}`}
-                q={hex.q}
-                r={hex.r}
-                s={hex.s}
-                style={{
-                  fill: getColor(hex.value),
-                  stroke: "#ffffff",
-                  strokeWidth: 0.3,
-                  strokeLinejoin: "round",
-                }}
-              />
-            ))}
-          </Layout>
-        </g>
-      </HexGrid>
-    </div>
+          <g clipPath="url(#side-clip)">
+            <Layout
+              size={{ x: hexSize, y: hexSize }}
+              flat={false}
+              spacing={1}
+              origin={{ x: 0, y: 0 }}
+            >
+              {hexagons.map((hex, i) => (
+                <Hexagon
+                  key={`${hex.q}-${hex.r}-${i}`}
+                  q={hex.q}
+                  r={hex.r}
+                  s={hex.s}
+                  style={{
+                    fill: getColor(hex.value),
+                    stroke: "#ffffff",
+                    strokeWidth: 0.3,
+                    strokeLinejoin: "round",
+                  }}
+                />
+              ))}
+            </Layout>
+          </g>
+        </HexGrid>
+      </div>
+    ) : <div className="w-full h-full flex items-center justify-center"><p>Loading...</p></div>
   )
 }
