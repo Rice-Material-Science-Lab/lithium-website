@@ -54,6 +54,7 @@ interface CustomWasmModule {
   _get_step(): number
   _get_time(): number
   _cleanup_simulation(): void
+  _force_update_frontend(): void
 }
 
 function generateStartingLattice(w: number, h: number) {
@@ -233,8 +234,14 @@ export default function SimPage() {
     function tick() {
       if (!wasmModule || remaining <= 0) return
 
-      wasmModule._run_steps(1000)
-      remaining -= 1000
+      if (remaining >= 1000) {
+        wasmModule._run_steps(1000)
+        remaining -= 1000
+      } else {
+        wasmModule._run_steps(remaining)
+        remaining = 0 // CRITICAL: Force countdown to zero so the loop can terminate
+        wasmModule._force_update_frontend()
+      }
 
       // store frame id to cancel if needed
       animFrameRef.current = requestAnimationFrame(tick)
@@ -242,10 +249,6 @@ export default function SimPage() {
 
     tick()
   }
-
-  useEffect(() => {
-    console.log(runTime)
-  }, [runTime])
 
   const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault()
@@ -388,7 +391,8 @@ export default function SimPage() {
                       ></CircleQuestionMarkIcon>
                     </TooltipTrigger>
                     <TooltipContent>
-                      The amount of steps that will be run upon starting the simulation
+                      The amount of steps that will be run upon starting the
+                      simulation
                     </TooltipContent>
                   </Tooltip>
                 </label>
