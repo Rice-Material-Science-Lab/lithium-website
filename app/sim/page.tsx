@@ -88,6 +88,8 @@ export default function SimPage() {
   const [atomSubstrate, setAtomSubstrate] = useState(-0.5)
   const [freeAttFreq, setFreeAttFreq] = useState(5000000000)
   const [depAttFreq, setDepAttFreq] = useState(5000000000)
+  const [passAttFreq, setPassAttFreq] = useState(200000000)
+  const [ePass, setEPass] = useState(0.4)
 
   const animFrameRef = useRef<number | null>(null)
 
@@ -215,8 +217,8 @@ export default function SimPage() {
         atomSubstrate, // e1
         freeAttFreq, // nu_f
         depAttFreq, // nu_d
-        1000, // nu_p
-        0.08, // E_pass
+        passAttFreq, // nu_p
+        ePass, // E_pass
         randomSeed, // seed (randomized)
       ]
     )
@@ -271,7 +273,7 @@ export default function SimPage() {
               <h3 className="text-2xl font-bold">Parameters</h3>
             </CardHeader>
 
-            <div className="flex flex-col gap-4 overflow-y-auto px-2">
+            <div className="flex flex-col gap-4 overflow-y-auto px-2 py-4">
               <div className="flex flex-col gap-2">
                 <label
                   htmlFor="width-input"
@@ -481,6 +483,51 @@ export default function SimPage() {
                         type="number"
                         value={depAttFreq}
                         onChange={(e) => setDepAttFreq(Number(e.target.value))}
+                      />
+                      <label
+                        htmlFor="pass-att-freq-input"
+                        className="flex items-center text-sm font-medium"
+                      >
+                        Passivation Attempt Freq. (v_p)
+                        <Tooltip>
+                          <TooltipTrigger className="ml-2">
+                            <CircleQuestionMarkIcon
+                              size={17}
+                            ></CircleQuestionMarkIcon>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            Vibrational frequency of isolated surface atoms that
+                            are beneath the SEI layer
+                          </TooltipContent>
+                        </Tooltip>
+                      </label>
+                      <Input
+                        id="pass-att-freq-input"
+                        type="number"
+                        value={passAttFreq}
+                        onChange={(e) => setPassAttFreq(Number(e.target.value))}
+                      />
+                      <label
+                        htmlFor="e-pass-input"
+                        className="flex items-center text-sm font-medium"
+                      >
+                        Passivation Energy Barrier (v_d)
+                        <Tooltip>
+                          <TooltipTrigger className="ml-2">
+                            <CircleQuestionMarkIcon
+                              size={17}
+                            ></CircleQuestionMarkIcon>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            Activation energy penalizing lithium ion trying to pass through SEI
+                          </TooltipContent>
+                        </Tooltip>
+                      </label>
+                      <Input
+                        id="e-pass-freq-input"
+                        type="number"
+                        value={ePass}
+                        onChange={(e) => setEPass(Number(e.target.value))}
                       />
                     </div>
                   </CollapsibleContent>
