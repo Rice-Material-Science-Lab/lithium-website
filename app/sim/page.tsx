@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/collapsible"
 import { Marker, MarkerContent } from "@/components/ui/marker"
 import AtomColorKey from "@/components/ui/atom-color-key"
+import AtomCountsChart from "@/components/ui/atom-counts-chart"
 
 interface CustomWasmModule {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -95,6 +96,19 @@ export default function SimPage() {
   const [passAttFreq, setPassAttFreq] = useState(200000000)
   const [ePass, setEPass] = useState(0.4)
   const [stepsToRun, setStepsToRun] = useState(1000000)
+  const [statsData, setStatsData] = useState<
+    {
+      deposited: number
+      empty: number
+      fill: number
+      free: number
+      passivated: number
+      step: number
+      substrate: number
+      time: number
+      total_rate: number
+    }[]
+  >([])
 
   const animFrameRef = useRef<number | null>(null)
 
@@ -140,10 +154,14 @@ export default function SimPage() {
               const latticePointer = initializedModule._get_lattice()
               const width = initializedModule._get_width()
               const height = initializedModule._get_height()
-
               const statsJsonPointer = initializedModule._get_stats_json()
 
-              if (!latticePointer || !statsJsonPointer || width === 0 || height === 0) {
+              if (
+                !latticePointer ||
+                !statsJsonPointer ||
+                width === 0 ||
+                height === 0
+              ) {
                 console.error(
                   "Simulation not initialized or returned null pointer."
                 )
@@ -151,21 +169,59 @@ export default function SimPage() {
               }
 
               const buffer = getWasmBuffer(initializedModule)
-
               if (!buffer) {
                 console.error("WebAssembly Memory buffer is not available.")
                 return
               }
 
+              const maxJsonLength = 65536
+              const rawMemoryView = new Uint8Array(
+                buffer,
+                statsJsonPointer,
+                maxJsonLength
+              )
+
+              // find the length of the strung
+
+              let stringLength = 0
+              while (
+                stringLength < maxJsonLength &&
+                rawMemoryView[stringLength] !== 0
+              ) {
+                stringLength++
+              }
+
+              // decode bytes into string
+
+              const jsonStringBytes = new Uint8Array(
+                buffer,
+                statsJsonPointer,
+                stringLength
+              )
+              const decodedJsonString = new TextDecoder("utf-8").decode(
+                jsonStringBytes
+              )
+              let statsData = []
+
+              try {
+                statsData = JSON.parse(decodedJsonString)
+              } catch (e) {
+                console.error("Failed to parse stats JSON from WASM memory:", e)
+              }
+
               const totalElements = width * height
-
-              const memoryView = new Int8Array(buffer, latticePointer, totalElements)
-
+              const memoryView = new Int8Array(
+                buffer,
+                latticePointer,
+                totalElements
+              )
               const snapshotData = Array.from(memoryView)
 
               setStepsRan(step)
               setRunTime(initializedModule._get_time())
               setSimState(snapshotData)
+
+              setStatsData(statsData)
             }
           }
         } else if (!moduleFactory) {
@@ -553,7 +609,7 @@ export default function SimPage() {
                         htmlFor="e-pass-input"
                         className="flex items-center text-sm font-medium"
                       >
-                        Passivation Energy Barrier (v_d)
+                        Passivation Energy Barrier (E_pass)
                         <Tooltip>
                           <TooltipTrigger className="ml-2">
                             <CircleQuestionMarkIcon
@@ -589,7 +645,7 @@ export default function SimPage() {
             <p className="text-md shrink-0">
               After {stepsRan} steps and {runTime.toFixed(2)}ms
             </p>
-            <div className="min-h-0 w-full flex-1 flex justify-center gap-4">
+            <div className="flex min-h-0 w-full flex-1 justify-center gap-4">
               <DisplayHexGrid
                 width={gridDimensions[0]}
                 height={gridDimensions[1]}
@@ -598,8 +654,8 @@ export default function SimPage() {
               <AtomColorKey />
             </div>
           </Card>
-          <Card className="flex min-h-0 flex-1 shrink-0 items-center justify-center">
-            <h3 className="text-6xl">ATOM COUNTS</h3>
+          <Card className="flex min-h-0 flex-1 flex-col p-4">
+            <AtomCountsChart data={statsData} />
           </Card>
         </div>
       </div>
