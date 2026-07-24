@@ -11,7 +11,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { ChevronDownIcon, CircleQuestionMarkIcon } from "lucide-react"
+import { ChevronDownIcon, CircleQuestionMarkIcon, House } from "lucide-react"
 import {
   Collapsible,
   CollapsibleContent,
@@ -20,6 +20,7 @@ import {
 import { Marker, MarkerContent } from "@/components/ui/marker"
 import AtomColorKey from "@/components/ui/atom-color-key"
 import AtomCountsChart from "@/components/ui/atom-counts-chart"
+import { useRouter } from "next/navigation"
 
 interface CustomWasmModule {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -321,9 +322,15 @@ export default function SimPage() {
     handleStartSim(newDimensions)
   }
 
+  const router = useRouter();
+
   return (
     <div className="flex h-full w-full flex-col overflow-hidden p-5">
       <div className="flex shrink-0 items-center gap-4 px-4">
+        <Button className="aspect-square" size="icon" onClick={() => router.push("/")}><House /></Button>
+        <h1 className="text-2xl font-bold">
+          |
+        </h1>
         <h1 className="text-2xl font-bold text-primary dark:text-cyan-500">
           LKMC Electrodeposition Simulator
         </h1>
