@@ -125,7 +125,8 @@ export default function SimPage() {
           /* @vite-ignore */ /* webpackIgnore: true */ scriptUrl
         )
 
-        const moduleFactory = wasmGlueCode.default
+        const moduleFactory =
+          wasmGlueCode.default || wasmGlueCode.Module || wasmGlueCode
 
         if (typeof moduleFactory === "function" && active) {
           const initializedModule = await moduleFactory()
