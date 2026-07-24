@@ -642,7 +642,7 @@ export default function SimPage() {
             </div>
             <CardFooter className="mt-auto! p-0">
               <Button type="submit" className="w-full" disabled={!wasmModule}>
-                {wasmModule ? "Run 1,000,000 Steps" : "Loading WASM..."}
+                {wasmModule ? "Run " + stepsToRun.toLocaleString() + " steps" : "Loading WASM..."}
               </Button>
             </CardFooter>
           </Card>
