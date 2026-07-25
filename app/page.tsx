@@ -100,7 +100,7 @@ export default function Page() {
               Overview
             </h2>
             <h1 className="text-2xl font-bold">What are dendrites?</h1>
-            <p className="typeset typeset-info m-2 max-w-[33em]">
+            <p className="typeset typeset-info m-2 max-w-[50em]">
               Every time a lithium battery charges, lithium ions move to the
               negative electrode and deposit as metal. Under ideal conditions,
               that metal lays down as a smooth, even layer. But under certain
@@ -113,39 +113,26 @@ export default function Page() {
               The Risk
             </h2>
             <h1 className="text-2xl font-bold">Why are they dangerous?</h1>
-            <div className="m-2 flex flex-col gap-4">
-              {" "}
+            <div className="m-2 flex flex-col gap-4 max-w-[50em]">
               <Alert className="bg-red-300 border-red-600 dark:bg-red-800 dark:border-red-400">
                 <TriangleAlertIcon />
                 <AlertTitle>Internal Short Circuits</AlertTitle>
                 <AlertDescription className="text-gray-800 dark:text-gray-100">
-                  Dendrites grow like tiny metal needles during charging. They
-                  slowly spread across the inner battery gap. Eventually, they
-                  pierce the protective separator layer. This creates a direct
-                  bridge to the cathode. The resulting short circuit instantly
-                  kills the battery.
+                  Dendrites pierce the protective internal separator to cause fatal battery short circuits.
                 </AlertDescription>
               </Alert>
               <Alert className="bg-red-300 border-red-600 dark:bg-red-800 dark:border-red-400">
                 <TriangleAlertIcon />
                 <AlertTitle>Accelerated Capacity Loss</AlertTitle>
                 <AlertDescription className="text-gray-800 dark:text-gray-100">
-                  Dendrite formation permanently traps active lithium ions.
-                  These ions get stuck in the dead structures. They can no
-                  longer move to carry charge. This damage rapidly reduces
-                  battery energy capacity. Devices suffer a much shorter overall
-                  lifespan.
+                  Dendrites permanently trap lithium ions to drastically reduce the battery lifespan.  
                 </AlertDescription>
               </Alert>
               <Alert className="bg-red-300 border-red-600 dark:bg-red-800 dark:border-red-400">
                 <TriangleAlertIcon />
                 <AlertTitle>Thermal Runaway and Fires</AlertTitle>
                 <AlertDescription className="text-gray-800 dark:text-gray-100">
-                  Short circuits from dendrites cause massive electrical surges.
-                  This sudden rush generates intense internal heat. The extreme
-                  temperature ignites flammable liquid electrolytes. This
-                  triggers a dangerous chain reaction. The battery can swell,
-                  explode, or catch fire.
+                  Dendrite short circuits spark intense heat that triggers explosive battery fires.  
                 </AlertDescription>
               </Alert>
             </div>
