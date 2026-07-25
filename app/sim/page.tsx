@@ -148,82 +148,82 @@ export default function SimPage() {
           if (active) {
             setWasmModule(initializedModule)
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            ;(window as any).updateSimulation = (step: number) => {
-              if (!active) return
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              ; (window as any).updateSimulation = (step: number) => {
+                if (!active) return
 
-              const latticePointer = initializedModule._get_lattice()
-              const width = initializedModule._get_width()
-              const height = initializedModule._get_height()
-              const statsJsonPointer = initializedModule._get_stats_json()
+                const latticePointer = initializedModule._get_lattice()
+                const width = initializedModule._get_width()
+                const height = initializedModule._get_height()
+                const statsJsonPointer = initializedModule._get_stats_json()
 
-              if (
-                !latticePointer ||
-                !statsJsonPointer ||
-                width === 0 ||
-                height === 0
-              ) {
-                console.error(
-                  "Simulation not initialized or returned null pointer."
+                if (
+                  !latticePointer ||
+                  !statsJsonPointer ||
+                  width === 0 ||
+                  height === 0
+                ) {
+                  console.error(
+                    "Simulation not initialized or returned null pointer."
+                  )
+                  return
+                }
+
+                const buffer = getWasmBuffer(initializedModule)
+                if (!buffer) {
+                  console.error("WebAssembly Memory buffer is not available.")
+                  return
+                }
+
+                const maxJsonLength = 65536
+                const rawMemoryView = new Uint8Array(
+                  buffer,
+                  statsJsonPointer,
+                  maxJsonLength
                 )
-                return
+
+                // find the length of the strung
+
+                let stringLength = 0
+                while (
+                  stringLength < maxJsonLength &&
+                  rawMemoryView[stringLength] !== 0
+                ) {
+                  stringLength++
+                }
+
+                // decode bytes into string
+
+                const jsonStringBytes = new Uint8Array(
+                  buffer,
+                  statsJsonPointer,
+                  stringLength
+                )
+                const decodedJsonString = new TextDecoder("utf-8").decode(
+                  jsonStringBytes
+                )
+                let statsData = []
+
+                try {
+                  statsData = JSON.parse(decodedJsonString)
+                } catch (e) {
+                  console.error("Failed to parse stats JSON from WASM memory:", e)
+                }
+
+                const totalElements = width * height
+                const memoryView = new Int8Array(
+                  buffer,
+                  latticePointer,
+                  totalElements
+                )
+                const snapshotData = Array.from(memoryView)
+
+                setStepsRan(step)
+                setRunTime(initializedModule._get_time())
+                setSimState(snapshotData)
+
+                setStatsData(statsData)
               }
-
-              const buffer = getWasmBuffer(initializedModule)
-              if (!buffer) {
-                console.error("WebAssembly Memory buffer is not available.")
-                return
-              }
-
-              const maxJsonLength = 65536
-              const rawMemoryView = new Uint8Array(
-                buffer,
-                statsJsonPointer,
-                maxJsonLength
-              )
-
-              // find the length of the strung
-
-              let stringLength = 0
-              while (
-                stringLength < maxJsonLength &&
-                rawMemoryView[stringLength] !== 0
-              ) {
-                stringLength++
-              }
-
-              // decode bytes into string
-
-              const jsonStringBytes = new Uint8Array(
-                buffer,
-                statsJsonPointer,
-                stringLength
-              )
-              const decodedJsonString = new TextDecoder("utf-8").decode(
-                jsonStringBytes
-              )
-              let statsData = []
-
-              try {
-                statsData = JSON.parse(decodedJsonString)
-              } catch (e) {
-                console.error("Failed to parse stats JSON from WASM memory:", e)
-              }
-
-              const totalElements = width * height
-              const memoryView = new Int8Array(
-                buffer,
-                latticePointer,
-                totalElements
-              )
-              const snapshotData = Array.from(memoryView)
-
-              setStepsRan(step)
-              setRunTime(initializedModule._get_time())
-              setSimState(snapshotData)
-
-              setStatsData(statsData)
-            }
           }
         } else if (!moduleFactory) {
           console.error("The default export from lkmc-wasm.js is undefined.")
@@ -272,6 +272,7 @@ export default function SimPage() {
         "number",
         "number",
         "number",
+        "number",
       ],
       [
         nx, // width
@@ -284,6 +285,7 @@ export default function SimPage() {
         depAttFreq, // nu_d
         passAttFreq, // nu_p
         ePass, // E_pass
+        4,
         randomSeed, // seed (randomized)
       ]
     )
