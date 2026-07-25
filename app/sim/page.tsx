@@ -652,7 +652,7 @@ export default function SimPage() {
         <div className="flex min-h-0 flex-1 flex-col gap-4">
           <Card className="flex min-h-0 flex-1 flex-col items-center justify-center gap-0 p-4">
             <p className="text-md shrink-0">
-              After {stepsRan} steps and {runTime.toFixed(2)}ms
+              After {stepsRan.toLocaleString()} steps and {runTime.toFixed(2)}ms
             </p>
             <div className="flex min-h-0 w-full flex-1 justify-center gap-4">
               <DisplayHexGrid
