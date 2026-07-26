@@ -13,7 +13,21 @@ import clsx from "clsx"
 import { ThemeToggle } from "@/components/theme-provider"
 import { Card } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { TriangleAlertIcon } from "lucide-react"
+import { TriangleAlert, Newspaper, MessageSquare } from "lucide-react"
+
+function RiskCard({ text1, text2 }: { text1:string, text2: string }) {
+  return (
+    <div className="flex items-center gap-3 bg-red-100 border border-red-200 rounded-xl px-4 py-3">
+      <div className="flex-shrink-0 w-8 h-8 bg-red-300 rounded-lg flex items-center justify-center">
+        <TriangleAlert className="w-4 h-4 text-red-600" />
+      </div>
+      <div>
+        <p className="font-semibold text-sm text-gray-800">{text1}</p>
+        <p className="text-xs text-red-600">{text2}</p>
+      </div>
+    </div>
+  )
+}
 
 export default function Page() {
   const router = useRouter()
@@ -35,110 +49,58 @@ export default function Page() {
   }, [])
 
   return (
-    <>
-      <div
-        ref={navRef}
-        className="fixed top-0 left-0 z-50 flex w-full items-center justify-between border-b border-b-accent p-4 text-white"
-      >
-        <span className="text-2xl font-bold text-primary dark:text-cyan-500">
-          Rice University Dendrite Lab
-        </span>
+  <div className="min-h-screen bg-[#dde9f5] font-sans">
+    <nav className="bg-[#3a6e8c] text-white px-8 py-4 flex items-center justify-between">
+      <span className="text-xl font-bold tracking-tight">Dendrite Lab</span>
+      <div className="flex items-center gap-6 text-sm font-medium">
+        <button className="font-bold underline underline-offset-4">Home</button>
+        <button className="text-white/70 hover:text-white" onClick={() => router.push("/sim")}>Simulate</button>
+        <button className="text-white/70 hover:text-white">Library</button>
+        <Newspaper className="w-5 h-5 text-white/70 ml-2" />
+        <MessageSquare className="w-5 h-5 text-white/70" />
+      </div>
+    </nav>
 
-        <div className="flex gap-2">
-          <NavigationMenu>
-            <NavigationMenuList className="flex list-none gap-2 text-foreground">
-              <NavigationMenuItem>
-                <NavigationMenuLink
-                  onClick={() => router.refresh()}
-                  className={clsx(
-                    navigationMenuTriggerStyle(),
-                    "cursor-pointer"
-                  )}
-                >
-                  Home
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-
-              <NavigationMenuItem>
-                <NavigationMenuLink
-                  onClick={() => router.push("/sim")}
-                  className={clsx(
-                    navigationMenuTriggerStyle(),
-                    "cursor-pointer"
-                  )}
-                >
-                  Sim
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-
-              <NavigationMenuItem>
-                <NavigationMenuLink
-                  onClick={() =>
-                    alert("Library is currently a work in progress.")
-                  }
-                  className={clsx(
-                    navigationMenuTriggerStyle(),
-                    "cursor-pointer"
-                  )}
-                >
-                  Library
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-            </NavigationMenuList>
-          </NavigationMenu>
-          <ThemeToggle />
+    <main className="p-6 space-y-6 max-w-5xl mx-auto">
+      <div className="bg-white/80 rounded-2xl p-8 grid grid-cols-1 md:grid-cols-2 gap-10 shadow-sm">
+        <div className="space-y-4">
+          <div>
+            <p className="text-xs font-bold tracking-widest text-[#3a6e8c] uppercase mb-1">Overview</p>
+            <h2 className="text-2xl font-bold text-gray-900">What are dendrites?</h2>
+          </div>
+          <p className="text-sm text-gray-700 leading-relaxed">
+            Every time a lithium battery charges, lithium ions move to the negative electrode and deposit as metal. Under ideal conditions, that metal lays down as a smooth, even layer.
+            But under certain conditions, the metal instead grows in thin, branching filaments called dendrites.
+          </p>
+          <div className="bg-[#3a6e8c] rounded-2xl flex items-center justify-center h-40">
+            <p className="text-white font-semibold text-center leading-snug">later insert vid sim</p>
+          </div>
         </div>
-      </div>
+        <div className="space-y-4">
+          <div>
+            <p className="text-xs font-bold tracking-widest text-red-500 uppercase mb-1">The Risk</p>
+            <h2 className="text-2xl font-bold text-gray-900">Why are they dangerous?</h2>
+          </div>
+          <div className="space-y-3">
+            <RiskCard text1="Short Circuits" text2="Dendrites pierce the protective internal separator to cause fatal battery short circuits." />
+            <RiskCard text1="Accelerated Capacity Loss" text2="Dendrites permanently trap lithium ions to drastically reduce the battery lifespan." />
+            <RiskCard text1="Thermal Runaway and Fires" text2="Dendrite short circuits spark intense heat that triggers explosive battery fires." />
+          </div>
+        </div>
+        <div className="col-span-2">
+          <h2 className="text-2xl font-bold text-gray-900">Where this shows up in daily life</h2>
+          <p className="text-sm text-gray-700 leading-relaxed mt-3">
+            Lithium-ion batteries are in nearly everything that holds a charge: phones, laptops, power tools, power banks, e-bikes and scooters, hearing aids, and of course
+             electric vehicles and grid-scale storage.
+          </p>
+        </div>
+        </div> 
 
-      <div
-        className="flex min-h-svh p-6"
-        style={{ paddingTop: `${navHeight + 24}px` }}
-      >
-        <Card className="w-full flex-row">
-          <div className="w-1/2">
-            <h2 className="text-xl font-bold text-primary dark:text-cyan-500">
-              Overview
-            </h2>
-            <h1 className="text-2xl font-bold">What are dendrites?</h1>
-            <p className="typeset typeset-info m-2 max-w-[50em]">
-              Every time a lithium battery charges, lithium ions move to the
-              negative electrode and deposit as metal. Under ideal conditions,
-              that metal lays down as a smooth, even layer. But under certain
-              conditions, the metal instead grows in thin, branching filaments
-              called dendrites.
-            </p>
-          </div>
-          <div className="w-1/2">
-            <h2 className="text-xl font-bold text-red-600 dark:text-red-500">
-              The Risk
-            </h2>
-            <h1 className="text-2xl font-bold">Why are they dangerous?</h1>
-            <div className="m-2 flex flex-col gap-4 max-w-[50em]">
-              <Alert className="bg-red-300 border-red-600 dark:bg-red-800 dark:border-red-400">
-                <TriangleAlertIcon />
-                <AlertTitle>Internal Short Circuits</AlertTitle>
-                <AlertDescription className="text-gray-800 dark:text-gray-100">
-                  Dendrites pierce the protective internal separator to cause fatal battery short circuits.
-                </AlertDescription>
-              </Alert>
-              <Alert className="bg-red-300 border-red-600 dark:bg-red-800 dark:border-red-400">
-                <TriangleAlertIcon />
-                <AlertTitle>Accelerated Capacity Loss</AlertTitle>
-                <AlertDescription className="text-gray-800 dark:text-gray-100">
-                  Dendrites permanently trap lithium ions to drastically reduce the battery lifespan.  
-                </AlertDescription>
-              </Alert>
-              <Alert className="bg-red-300 border-red-600 dark:bg-red-800 dark:border-red-400">
-                <TriangleAlertIcon />
-                <AlertTitle>Thermal Runaway and Fires</AlertTitle>
-                <AlertDescription className="text-gray-800 dark:text-gray-100">
-                  Dendrite short circuits spark intense heat that triggers explosive battery fires.  
-                </AlertDescription>
-              </Alert>
-            </div>
-          </div>
-        </Card>
+
+      <div className="bg-white/80 rounded-2xl p-8 shadow-sm">
+
       </div>
-    </>
-  )
+    </main>
+  </div>
+)
 }
