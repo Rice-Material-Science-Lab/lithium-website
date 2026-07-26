@@ -45,7 +45,7 @@ export default function Page() {
     <>
       <div
         ref={navRef}
-        className="fixed top-0 left-0 z-50 flex w-full items-center justify-between border-b border-b-accent p-4 text-white"
+        className="fixed bg-background top-0 left-0 z-50 flex w-full items-center justify-between border-b border-b-accent p-4 text-white"
       >
         <span className="text-2xl font-bold text-primary dark:text-cyan-500">
           Rice University Dendrite Lab
@@ -162,27 +162,27 @@ export default function Page() {
                   scooters, hearing aids, and of course electric vehicles and
                   grid-scale storage.
                 </p>
-                <div className="flex justify-between my-10">
+                <div className="flex justify-between">
                   <div className="flex flex-col items-center">
-                    <div className="flex aspect-square h-40 w-40 justify-center overflow-hidden">
+                    <div className="flex aspect-square h-40 w-40 justify-center overflow-hidden text-primary dark:text-cyan-500 my-10 ">
                       <MdOutlineElectricBike size={160} />
                     </div>
                     <p className="font-bold">E-bikes/scooters</p>
                   </div>
                   <div className="flex flex-col items-center">
-                    <div className="flex aspect-square h-40 w-40 justify-center overflow-hidden">
+                    <div className="flex aspect-square h-40 w-40 justify-center overflow-hidden text-primary dark:text-cyan-500 my-10 ">
                       <MdOutlineElectricCar size={160} />
                     </div>
                     <p className="font-bold">E-bikes/scooters</p>
                   </div>
                   <div className="flex flex-col items-center">
-                    <div className="flex aspect-square h-40 w-40 justify-center overflow-hidden">
+                    <div className="flex aspect-square h-40 w-40 justify-center overflow-hidden text-primary dark:text-cyan-500 my-10 ">
                       <MdOutlinePhoneAndroid size={160} />
                     </div>
                     <p className="font-bold">E-bikes/scooters</p>
                   </div>
                   <div className="flex flex-col items-center">
-                    <div className="flex aspect-square h-40 w-40 justify-center overflow-hidden">
+                    <div className="flex aspect-square h-40 w-40 justify-center overflow-hidden text-primary dark:text-cyan-500 my-10 ">
                       <MdOutlineAirplanemodeActive size={160} />
                     </div>
                     <p className="font-bold">E-bikes/scooters</p>
