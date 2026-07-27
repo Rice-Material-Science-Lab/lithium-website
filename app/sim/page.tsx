@@ -59,6 +59,7 @@ interface CustomWasmModule {
   _get_time(): number
   _cleanup_simulation(): void
   _force_update_frontend(): void
+  _get_wall_time(): number
 
   _get_stats_json(): number
 }
@@ -221,7 +222,12 @@ export default function SimPage() {
               const snapshotData = Array.from(memoryView)
 
               setStepsRan(step)
-              setRunTime(initializedModule._get_time())
+              const getWallTime = initializedModule.cwrap(
+                "get_wall_time",
+                "number",
+                []
+              )
+              setRunTime(getWallTime())
               setSimState(snapshotData)
 
               setStatsData(statsData)
@@ -677,8 +683,8 @@ export default function SimPage() {
           <div className="flex min-h-0 flex-1 flex-col gap-4">
             <Card className="flex min-h-0 flex-1 flex-col items-center justify-center gap-0 p-4">
               <p className="text-md shrink-0">
-                After {stepsRan.toLocaleString()} steps and {runTime.toFixed(2)}
-                ms
+                After {stepsRan.toLocaleString()} steps and {runTime.toFixed(2)}{" "}
+                seconds
               </p>
               <div className="flex min-h-0 w-full flex-1 justify-center gap-4">
                 <DisplayHexGrid
