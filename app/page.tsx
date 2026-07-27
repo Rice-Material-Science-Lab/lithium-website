@@ -84,8 +84,6 @@ export default function Page() {
             </p>
           </div>
         </Card>
-
-        <Card className="rounded-2xl bg-card p-8 shadow-sm"></Card>
       </main>
     </div>
   )
