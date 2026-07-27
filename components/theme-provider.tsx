@@ -72,14 +72,14 @@ function ThemeHotkey() {
 
 export { ThemeProvider }
 
-export function ThemeToggle() {
+export function ThemeToggle({ className }: { className?: string }) {
   const { resolvedTheme, setTheme } = useTheme()
 
   return (
     <Button
       variant="outline"
       size="icon"
-      className="text-foreground"
+      className={"text-foreground " + className}
       onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
     >
       <Sun className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />

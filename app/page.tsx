@@ -14,6 +14,7 @@ import { ThemeToggle } from "@/components/theme-provider"
 import { Card } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { TriangleAlert, Newspaper, MessageSquare } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 function RiskCard({ text1, text2 }: { text1:string, text2: string }) {
   return (
@@ -53,9 +54,10 @@ export default function Page() {
     <nav className="bg-[#3a6e8c] text-white px-8 py-4 flex items-center justify-between">
       <span className="text-xl font-bold tracking-tight">Dendrite Lab</span>
       <div className="flex items-center gap-6 text-sm font-medium">
-        <button className="font-bold underline underline-offset-4">Home</button>
-        <button className="text-white/70 hover:text-white" onClick={() => router.push("/sim")}>Simulate</button>
-        <button className="text-white/70 hover:text-white">Library</button>
+        <ThemeToggle className="text-white/70 hover:text-white" />
+        <Button variant="link" className="text-white/70 hover:text-white font-bold underline underline-offset-4">Home</Button>
+        <Button variant="link" className="text-white/70 hover:text-white" onClick={() => router.push("/sim")}>Sim</Button>
+        <Button variant="link" className="text-white/70 hover:text-white">Library</Button>
         <Newspaper className="w-5 h-5 text-white/70 ml-2" />
         <MessageSquare className="w-5 h-5 text-white/70" />
       </div>
