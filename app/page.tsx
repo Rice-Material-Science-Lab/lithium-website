@@ -1,10 +1,8 @@
 "use client"
 
-import { useRouter } from "next/navigation"
-import { ThemeToggle } from "@/components/theme-provider"
 import { Card } from "@/components/ui/card"
-import { TriangleAlert, Newspaper, MessageSquare } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { TriangleAlert } from "lucide-react"
+import Navbar from "@/components/ui/navbar"
 
 function RiskCard({ text1, text2 }: { text1: string; text2: string }) {
   return (
@@ -21,34 +19,10 @@ function RiskCard({ text1, text2 }: { text1: string; text2: string }) {
 }
 
 export default function Page() {
-  const router = useRouter()
 
   return (
     <div className="min-h-screen bg-[#dde9f5] font-sans dark:bg-background">
-      <nav className="dark: flex items-center justify-between bg-primary px-8 py-4 text-white">
-        <h1 className="text-2xl font-bold tracking-tight">Dendrite Lab</h1>
-        <div className="flex items-center gap-6 text-sm font-medium">
-          <ThemeToggle className="text-white/70 hover:text-white" />
-          <Button
-            variant="link"
-            className="font-bold text-white/70 underline underline-offset-4 hover:text-white"
-          >
-            Home
-          </Button>
-          <Button
-            variant="link"
-            className="text-white/70 hover:text-white"
-            onClick={() => router.push("/sim")}
-          >
-            Sim
-          </Button>
-          <Button variant="link" className="text-white/70 hover:text-white">
-            Library
-          </Button>
-          <Newspaper className="ml-2 h-5 w-5 text-white/70" />
-          <MessageSquare className="h-5 w-5 text-white/70" />
-        </div>
-      </nav>
+      <Navbar />
 
       <main className="mx-auto h-full max-w-5xl space-y-6 p-6">
         <Card className="grid grid-cols-1 gap-10 rounded-2xl bg-card p-8 shadow-sm md:grid-cols-2">

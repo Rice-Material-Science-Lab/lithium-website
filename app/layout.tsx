@@ -34,7 +34,7 @@ export default function RootLayout({
         merriweatherHeading.variable
       )}
     >
-      <body className="h-screen">
+      <body className="h-screen relative">
         <ThemeProvider>
           <TooltipProvider>{children}</TooltipProvider>
         </ThemeProvider>
