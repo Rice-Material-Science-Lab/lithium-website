@@ -4,9 +4,19 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: {
+    template: "%s | Rice University Dendrite Lab",
+    default: "The Risks of Dendrite", 
+  },
+};
+
 
 const merriweatherHeading = Merriweather({
   subsets: ["latin"],
+  weight: ["400", "700", "900"],
   variable: "--font-heading",
 })
 
