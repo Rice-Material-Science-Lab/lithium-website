@@ -31,6 +31,7 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@/components/ui/alert"
+import { BorderBeam } from "../ui/border-beam"
 
 interface CustomWasmModule {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -407,27 +408,44 @@ export default function SimPageClientView() {
                 <h3 className="text-2xl font-bold">Parameters</h3>
               </CardHeader>
 
-              <Alert>
-                <AlertTitle>
-                  <Label htmlFor="live-mode" className="text-sm font-medium">
-                    Live Mode
-                  </Label>
-                </AlertTitle>
-                <AlertDescription>
-                  <p className="text-xs text-muted-foreground">
-                    Update WASM parameters in real time
-                  </p>
-                </AlertDescription>
-                <AlertAction>
-                  <Switch
-                    id="live-mode"
-                    checked={isLiveMode}
-                    onCheckedChange={setIsLiveMode}
-                  />
-                </AlertAction>
-              </Alert>
-
               <div className="flex flex-col gap-4 overflow-y-auto px-2 py-4">
+                <Alert className="flex items-center justify-between overflow-hidden p-3! border-no">
+                  <div className="space-y-1">
+                    <AlertTitle className="leading-none">
+                      <Label
+                        htmlFor="live-mode"
+                        className="cursor-pointer text-sm font-medium"
+                      >
+                        Live Mode
+                      </Label>
+                    </AlertTitle>
+                    <AlertDescription>
+                      <p className="text-xs text-muted-foreground">
+                        Update WASM parameters in real time
+                      </p>
+                    </AlertDescription>
+                  </div>
+                  <AlertAction className="mt-0 shrink-0">
+                    <Switch
+                      id="live-mode"
+                      checked={isLiveMode}
+                      onCheckedChange={setIsLiveMode}
+                    />
+                  </AlertAction>
+                  <BorderBeam
+                    size={100}
+                    colorFrom={isLiveMode ? "var(--color-primary)" : "var(--color-card)"}
+                    colorTo={isLiveMode ? "var(--color-primary)" : "var(--color-card)"}
+                    borderWidth={2}
+                  />
+                  <BorderBeam
+                    size={100}
+                    colorFrom={isLiveMode ? "var(--color-primary)" : "var(--color-card)"}
+                    colorTo={isLiveMode ? "var(--color-primary)" : "var(--color-card)"}
+                    borderWidth={2}
+                    delay={3}
+                  />
+                </Alert>
                 <div className="flex flex-col gap-2">
                   <Label
                     htmlFor="width-input"
