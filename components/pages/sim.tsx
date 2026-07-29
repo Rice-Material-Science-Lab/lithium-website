@@ -22,7 +22,15 @@ import AtomColorKey from "@/components/ui/atom-color-key"
 import AtomCountsChart from "@/components/ui/atom-counts-chart"
 import Navbar from "@/components/ui/navbar"
 import { motion } from "motion/react"
-import { Slider } from "../slider"
+import { Slider } from "../ui/slider"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
+import {
+  Alert,
+  AlertAction,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert"
 
 interface CustomWasmModule {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -82,17 +90,22 @@ function generateStartingLattice(w: number, h: number) {
 
 export default function SimPageClientView() {
   const [navBarOpen, setNavbarOpen] = useState(false)
+  const [isLiveMode, setIsLiveMode] = useState(false)
+
+  const [wasmModule, setWasmModule] = useState<CustomWasmModule | null>(null)
+
   const [gridDimensions, setGridDimensions] = useState<[number, number]>([
     60, 25,
   ])
-  const [simState, setSimState] = useState<number[]>(
-    generateStartingLattice(...gridDimensions)
-  )
-  const [wasmModule, setWasmModule] = useState<CustomWasmModule | null>(null)
   const [stepsRan, setStepsRan] = useState(0)
   const [runTime, setRunTime] = useState(0)
   const [width, setWidth] = useState(gridDimensions[0])
   const [height, setHeight] = useState(gridDimensions[1])
+
+  const [simState, setSimState] = useState<number[]>(
+    generateStartingLattice(...gridDimensions)
+  )
+
   const [temp, setTemp] = useState(300)
   const [dropRate, setDropRate] = useState(1000)
   const [bondedEnergy, setBondedEnergy] = useState(-0.28)
@@ -102,6 +115,7 @@ export default function SimPageClientView() {
   const [passAttFreq, setPassAttFreq] = useState(200000000)
   const [ePass, setEPass] = useState(0.4)
   const [stepsToRun, setStepsToRun] = useState(1000000)
+
   const [statsData, setStatsData] = useState<
     {
       deposited: number
@@ -334,6 +348,26 @@ export default function SimPageClientView() {
     handleStartSim(newDimensions)
   }
 
+  useEffect(() => {
+    if (!wasmModule || !isLiveMode) return
+
+    wasmModule.ccall(
+      "update_simulation_params",
+      null,
+      ["number", "number", "number", "number", "number", "number"],
+      [dropRate, temp, freeAttFreq, depAttFreq, passAttFreq, ePass]
+    )
+  }, [
+    isLiveMode,
+    dropRate,
+    temp,
+    freeAttFreq,
+    depAttFreq,
+    passAttFreq,
+    ePass,
+    wasmModule,
+  ])
+
   return (
     <>
       <motion.div
@@ -373,9 +407,29 @@ export default function SimPageClientView() {
                 <h3 className="text-2xl font-bold">Parameters</h3>
               </CardHeader>
 
+              <Alert>
+                <AlertTitle>
+                  <Label htmlFor="live-mode" className="text-sm font-medium">
+                    Live Mode
+                  </Label>
+                </AlertTitle>
+                <AlertDescription>
+                  <p className="text-xs text-muted-foreground">
+                    Update WASM parameters in real time
+                  </p>
+                </AlertDescription>
+                <AlertAction>
+                  <Switch
+                    id="live-mode"
+                    checked={isLiveMode}
+                    onCheckedChange={setIsLiveMode}
+                  />
+                </AlertAction>
+              </Alert>
+
               <div className="flex flex-col gap-4 overflow-y-auto px-2 py-4">
                 <div className="flex flex-col gap-2">
-                  <label
+                  <Label
                     htmlFor="width-input"
                     className="flex items-center text-sm font-medium"
                   >
@@ -390,7 +444,7 @@ export default function SimPageClientView() {
                         The width of the simulation lattice
                       </TooltipContent>
                     </Tooltip>
-                  </label>
+                  </Label>
                   <Input
                     id="width-input"
                     type="number"
@@ -398,7 +452,7 @@ export default function SimPageClientView() {
                     value={width}
                     onChange={(e) => setWidth(Number(e.target.value))}
                   />
-                  <label
+                  <Label
                     htmlFor="height-input"
                     className="flex items-center text-sm font-medium"
                   >
@@ -413,7 +467,7 @@ export default function SimPageClientView() {
                         The height of the simulation lattice
                       </TooltipContent>
                     </Tooltip>
-                  </label>
+                  </Label>
                   <Input
                     id="height-input"
                     type="number"
@@ -428,7 +482,7 @@ export default function SimPageClientView() {
                     {/* temp */}
                     <div className="flex flex-col gap-2">
                       <div className="flex items-center justify-between">
-                        <label
+                        <Label
                           htmlFor="temp-input"
                           className="flex items-center text-sm font-medium"
                         >
@@ -441,7 +495,7 @@ export default function SimPageClientView() {
                               The temperature being simulated
                             </TooltipContent>
                           </Tooltip>
-                        </label>
+                        </Label>
                         <span className="font-mono text-sm text-muted-foreground">
                           {temp} K
                         </span>
@@ -459,7 +513,7 @@ export default function SimPageClientView() {
                     {/* drop rate */}
                     <div className="flex flex-col gap-2">
                       <div className="flex items-center justify-between">
-                        <label
+                        <Label
                           htmlFor="drop-rate-input"
                           className="flex items-center text-sm font-medium"
                         >
@@ -474,7 +528,7 @@ export default function SimPageClientView() {
                               The rate at which atoms spawn
                             </TooltipContent>
                           </Tooltip>
-                        </label>
+                        </Label>
                         <span className="font-mono text-sm text-muted-foreground">
                           {dropRate}
                         </span>
@@ -494,7 +548,7 @@ export default function SimPageClientView() {
 
                   {/* play options */}
 
-                  <label
+                  <Label
                     htmlFor="steps-to-run-input"
                     className="flex items-center text-sm font-medium"
                   >
@@ -510,7 +564,7 @@ export default function SimPageClientView() {
                         simulation
                       </TooltipContent>
                     </Tooltip>
-                  </label>
+                  </Label>
                   <Input
                     id="steps-to-run-input"
                     type="number"
@@ -534,7 +588,7 @@ export default function SimPageClientView() {
                         {/* bonded energy */}
                         <div className="flex flex-col gap-2">
                           <div className="flex items-center justify-between">
-                            <label
+                            <Label
                               htmlFor="bonded-energy-input"
                               className="flex items-center text-sm font-medium"
                             >
@@ -551,7 +605,7 @@ export default function SimPageClientView() {
                                   bonds stronger
                                 </TooltipContent>
                               </Tooltip>
-                            </label>
+                            </Label>
                             <span className="font-mono text-sm text-muted-foreground">
                               {bondedEnergy}
                             </span>
@@ -569,7 +623,7 @@ export default function SimPageClientView() {
                         {/* atom-substrate energy */}
                         <div className="flex flex-col gap-2">
                           <div className="flex items-center justify-between">
-                            <label
+                            <Label
                               htmlFor="atom-substrate-input"
                               className="flex items-center text-sm font-medium"
                             >
@@ -586,7 +640,7 @@ export default function SimPageClientView() {
                                   bonded energy promotes vertical growth
                                 </TooltipContent>
                               </Tooltip>
-                            </label>
+                            </Label>
                             <span className="font-mono text-sm text-muted-foreground">
                               {atomSubstrate}
                             </span>
@@ -604,7 +658,7 @@ export default function SimPageClientView() {
                         {/* free att freq */}
                         <div className="flex flex-col gap-2">
                           <div className="flex items-center justify-between">
-                            <label
+                            <Label
                               htmlFor="free-att-freq-input"
                               className="flex items-center text-sm font-medium"
                             >
@@ -618,7 +672,7 @@ export default function SimPageClientView() {
                                   atoms that may attempt displacement
                                 </TooltipContent>
                               </Tooltip>
-                            </label>
+                            </Label>
                             <span className="font-mono text-sm text-muted-foreground">
                               {freeAttFreq.toExponential(1)}
                             </span>
@@ -636,7 +690,7 @@ export default function SimPageClientView() {
                         {/* dep att freq */}
                         <div className="flex flex-col gap-2">
                           <div className="flex items-center justify-between">
-                            <label
+                            <Label
                               htmlFor="dep-att-freq-input"
                               className="flex items-center text-sm font-medium"
                             >
@@ -650,7 +704,7 @@ export default function SimPageClientView() {
                                   that may attempt displacement
                                 </TooltipContent>
                               </Tooltip>
-                            </label>
+                            </Label>
                             <span className="font-mono text-sm text-muted-foreground">
                               {depAttFreq.toExponential(1)}
                             </span>
@@ -668,7 +722,7 @@ export default function SimPageClientView() {
                         {/* pass att freq */}
                         <div className="flex flex-col gap-2">
                           <div className="flex items-center justify-between">
-                            <label
+                            <Label
                               htmlFor="pass-att-freq-input"
                               className="flex items-center text-sm font-medium"
                             >
@@ -682,7 +736,7 @@ export default function SimPageClientView() {
                                   atoms that are beneath the SEI layer
                                 </TooltipContent>
                               </Tooltip>
-                            </label>
+                            </Label>
                             <span className="font-mono text-sm text-muted-foreground">
                               {passAttFreq.toExponential(1)}
                             </span>
@@ -700,7 +754,7 @@ export default function SimPageClientView() {
                         {/* pass energy barrier */}
                         <div className="flex flex-col gap-2">
                           <div className="flex items-center justify-between">
-                            <label
+                            <Label
                               htmlFor="e-pass-input"
                               className="flex items-center text-sm font-medium"
                             >
@@ -714,7 +768,7 @@ export default function SimPageClientView() {
                                   trying to pass through SEI
                                 </TooltipContent>
                               </Tooltip>
-                            </label>
+                            </Label>
                             <span className="font-mono text-sm text-muted-foreground">
                               {ePass}
                             </span>
