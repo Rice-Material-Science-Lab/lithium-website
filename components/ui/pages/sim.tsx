@@ -22,7 +22,7 @@ import AtomColorKey from "@/components/ui/atom-color-key"
 import AtomCountsChart from "@/components/ui/atom-counts-chart"
 import Navbar from "@/components/ui/navbar"
 import { motion } from "motion/react"
-
+import { Slider } from "../slider"
 
 interface CustomWasmModule {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -61,6 +61,7 @@ interface CustomWasmModule {
   _cleanup_simulation(): void
   _force_update_frontend(): void
   _get_wall_time(): number
+  _update_simulation_params(): void
 
   _get_stats_json(): number
 }
@@ -423,52 +424,71 @@ export default function SimPageClientView() {
 
                   <Separator className="my-4" />
 
-                  <label
-                    htmlFor="temp-input"
-                    className="flex items-center text-sm font-medium"
-                  >
-                    Temperature (K)
-                    <Tooltip>
-                      <TooltipTrigger className="ml-2">
-                        <CircleQuestionMarkIcon
-                          size={17}
-                        ></CircleQuestionMarkIcon>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        The temperature being simulated
-                      </TooltipContent>
-                    </Tooltip>
-                  </label>
-                  <Input
-                    id="temp-input"
-                    type="number"
-                    min={1}
-                    value={temp}
-                    onChange={(e) => setTemp(Number(e.target.value))}
-                  />
-                  <label
-                    htmlFor="drop-rate-input"
-                    className="flex items-center text-sm font-medium"
-                  >
-                    Drop Rate (d<sub>0</sub>)
-                    <Tooltip>
-                      <TooltipTrigger className="ml-2">
-                        <CircleQuestionMarkIcon
-                          size={17}
-                        ></CircleQuestionMarkIcon>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        The rate at which atoms spawn
-                      </TooltipContent>
-                    </Tooltip>
-                  </label>
-                  <Input
-                    id="drop-rate-input"
-                    type="number"
-                    min={1}
-                    value={dropRate}
-                    onChange={(e) => setDropRate(Number(e.target.value))}
-                  />
+                  <div className="flex flex-col gap-4">
+                    {/* temp */}
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center justify-between">
+                        <label
+                          htmlFor="temp-input"
+                          className="flex items-center text-sm font-medium"
+                        >
+                          <span>Temperature (K)</span>
+                          <Tooltip>
+                            <TooltipTrigger className="ml-2" type="button">
+                              <CircleQuestionMarkIcon size={17} />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              The temperature being simulated
+                            </TooltipContent>
+                          </Tooltip>
+                        </label>
+                        <span className="font-mono text-sm text-muted-foreground">
+                          {temp} K
+                        </span>
+                      </div>
+                      <Slider
+                        id="temp-input"
+                        min={100}
+                        max={600}
+                        step={1}
+                        value={[temp]}
+                        onValueChange={(val) => setTemp(val[0])}
+                      />
+                    </div>
+
+                    {/* drop rate */}
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center justify-between">
+                        <label
+                          htmlFor="drop-rate-input"
+                          className="flex items-center text-sm font-medium"
+                        >
+                          <span>
+                            Drop Rate (d<sub>0</sub>)
+                          </span>
+                          <Tooltip>
+                            <TooltipTrigger className="ml-2" type="button">
+                              <CircleQuestionMarkIcon size={17} />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              The rate at which atoms spawn
+                            </TooltipContent>
+                          </Tooltip>
+                        </label>
+                        <span className="font-mono text-sm text-muted-foreground">
+                          {dropRate}
+                        </span>
+                      </div>
+                      <Slider
+                        id="drop-rate-input"
+                        min={1}
+                        max={5000}
+                        step={10}
+                        value={[dropRate]}
+                        onValueChange={(val) => setDropRate(val[0])}
+                      />
+                    </div>
+                  </div>
 
                   <Separator className="my-4" />
 
@@ -510,163 +530,204 @@ export default function SimPageClientView() {
                       </Marker>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
-                      <div className="flex flex-col gap-2">
-                        <label
-                          htmlFor="bonded-energy-input"
-                          className="flex items-center text-sm font-medium"
-                        >
-                          <span>
-                            Bonded Energy e<sub>0</sub> (eV)
-                          </span>
-                          <Tooltip>
-                            <TooltipTrigger className="ml-2">
-                              <CircleQuestionMarkIcon
-                                size={17}
-                              ></CircleQuestionMarkIcon>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              The energy stored in bonds between atoms; Farther
-                              negative values make bonds atoms&apos; bonds
-                              stronger
-                            </TooltipContent>
-                          </Tooltip>
-                        </label>
-                        <Input
-                          id="bonded-energy-input"
-                          max={0}
-                          type="number"
-                          value={bondedEnergy}
-                          onChange={(e) =>
-                            setBondedEnergy(Number(e.target.value))
-                          }
-                        />
-                        <label
-                          htmlFor="atom-substrate-input"
-                          className="flex items-center text-sm font-medium"
-                        >
-                          <span>
-                            Atom-substrate e<sub>1</sub> (eV)
-                          </span>
-                          <Tooltip>
-                            <TooltipTrigger className="ml-2">
-                              <CircleQuestionMarkIcon
-                                size={17}
-                              ></CircleQuestionMarkIcon>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              The energy stored in bonds between atoms and the
-                              substrate; Being more negative than the bonded
-                              energy promotes vertical growth
-                            </TooltipContent>
-                          </Tooltip>
-                        </label>
-                        <Input
-                          id="atom-substrate-input"
-                          type="number"
-                          max={0}
-                          value={atomSubstrate}
-                          onChange={(e) =>
-                            setAtomSubstrate(Number(e.target.value))
-                          }
-                        />
-                        <label
-                          htmlFor="free-att-freq-input"
-                          className="flex items-center text-sm font-medium"
-                        >
-                          Free Attempt Freq. (v_f)
-                          <Tooltip>
-                            <TooltipTrigger className="ml-2">
-                              <CircleQuestionMarkIcon
-                                size={17}
-                              ></CircleQuestionMarkIcon>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              Vibrational frequency of isolated surface atoms
-                              that may attempt displacement
-                            </TooltipContent>
-                          </Tooltip>
-                        </label>
-                        <Input
-                          id="free-att-freq-input"
-                          type="number"
-                          value={freeAttFreq}
-                          onChange={(e) =>
-                            setFreeAttFreq(Number(e.target.value))
-                          }
-                        />
-                        <label
-                          htmlFor="dep-att-freq-input"
-                          className="flex items-center text-sm font-medium"
-                        >
-                          Dep. Attempt Freq. (v_d)
-                          <Tooltip>
-                            <TooltipTrigger className="ml-2">
-                              <CircleQuestionMarkIcon
-                                size={17}
-                              ></CircleQuestionMarkIcon>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              Vibrational frequency of bonded surface atoms that
-                              may attempt displacement
-                            </TooltipContent>
-                          </Tooltip>
-                        </label>
-                        <Input
-                          id="dep-att-freq-input"
-                          type="number"
-                          value={depAttFreq}
-                          onChange={(e) =>
-                            setDepAttFreq(Number(e.target.value))
-                          }
-                        />
-                        <label
-                          htmlFor="pass-att-freq-input"
-                          className="flex items-center text-sm font-medium"
-                        >
-                          Passivation Attempt Freq. (v_p)
-                          <Tooltip>
-                            <TooltipTrigger className="ml-2">
-                              <CircleQuestionMarkIcon
-                                size={17}
-                              ></CircleQuestionMarkIcon>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              Vibrational frequency of isolated surface atoms
-                              that are beneath the SEI layer
-                            </TooltipContent>
-                          </Tooltip>
-                        </label>
-                        <Input
-                          id="pass-att-freq-input"
-                          type="number"
-                          value={passAttFreq}
-                          onChange={(e) =>
-                            setPassAttFreq(Number(e.target.value))
-                          }
-                        />
-                        <label
-                          htmlFor="e-pass-input"
-                          className="flex items-center text-sm font-medium"
-                        >
-                          Passivation Energy Barrier (E_pass)
-                          <Tooltip>
-                            <TooltipTrigger className="ml-2">
-                              <CircleQuestionMarkIcon
-                                size={17}
-                              ></CircleQuestionMarkIcon>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              Activation energy penalizing lithium ion trying to
-                              pass through SEI
-                            </TooltipContent>
-                          </Tooltip>
-                        </label>
-                        <Input
-                          id="e-pass-freq-input"
-                          type="number"
-                          value={ePass}
-                          onChange={(e) => setEPass(Number(e.target.value))}
-                        />
+                      <div className="flex flex-col gap-4">
+                        {/* bonded energy */}
+                        <div className="flex flex-col gap-2">
+                          <div className="flex items-center justify-between">
+                            <label
+                              htmlFor="bonded-energy-input"
+                              className="flex items-center text-sm font-medium"
+                            >
+                              <span>
+                                Bonded Energy e<sub>0</sub> (eV)
+                              </span>
+                              <Tooltip>
+                                <TooltipTrigger className="ml-2" type="button">
+                                  <CircleQuestionMarkIcon size={17} />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  The energy stored in bonds between atoms;
+                                  Farther negative values make bonds atoms&apos;
+                                  bonds stronger
+                                </TooltipContent>
+                              </Tooltip>
+                            </label>
+                            <span className="font-mono text-sm text-muted-foreground">
+                              {bondedEnergy}
+                            </span>
+                          </div>
+                          <Slider
+                            id="bonded-energy-input"
+                            min={-2.0}
+                            max={0}
+                            step={0.01}
+                            value={[bondedEnergy]}
+                            onValueChange={(val) => setBondedEnergy(val[0])}
+                          />
+                        </div>
+
+                        {/* atom-substrate energy */}
+                        <div className="flex flex-col gap-2">
+                          <div className="flex items-center justify-between">
+                            <label
+                              htmlFor="atom-substrate-input"
+                              className="flex items-center text-sm font-medium"
+                            >
+                              <span>
+                                Atom-substrate e<sub>1</sub> (eV)
+                              </span>
+                              <Tooltip>
+                                <TooltipTrigger className="ml-2" type="button">
+                                  <CircleQuestionMarkIcon size={17} />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  The energy stored in bonds between atoms and
+                                  the substrate; Being more negative than the
+                                  bonded energy promotes vertical growth
+                                </TooltipContent>
+                              </Tooltip>
+                            </label>
+                            <span className="font-mono text-sm text-muted-foreground">
+                              {atomSubstrate}
+                            </span>
+                          </div>
+                          <Slider
+                            id="atom-substrate-input"
+                            min={-2.0}
+                            max={0}
+                            step={0.01}
+                            value={[atomSubstrate]}
+                            onValueChange={(val) => setAtomSubstrate(val[0])}
+                          />
+                        </div>
+
+                        {/* free att freq */}
+                        <div className="flex flex-col gap-2">
+                          <div className="flex items-center justify-between">
+                            <label
+                              htmlFor="free-att-freq-input"
+                              className="flex items-center text-sm font-medium"
+                            >
+                              <span>Free Attempt Freq. (v_f)</span>
+                              <Tooltip>
+                                <TooltipTrigger className="ml-2" type="button">
+                                  <CircleQuestionMarkIcon size={17} />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  Vibrational frequency of isolated surface
+                                  atoms that may attempt displacement
+                                </TooltipContent>
+                              </Tooltip>
+                            </label>
+                            <span className="font-mono text-sm text-muted-foreground">
+                              {freeAttFreq.toExponential(1)}
+                            </span>
+                          </div>
+                          <Slider
+                            id="free-att-freq-input"
+                            min={1e8}
+                            max={1e10}
+                            step={1e8}
+                            value={[freeAttFreq]}
+                            onValueChange={(val) => setFreeAttFreq(val[0])}
+                          />
+                        </div>
+
+                        {/* dep att freq */}
+                        <div className="flex flex-col gap-2">
+                          <div className="flex items-center justify-between">
+                            <label
+                              htmlFor="dep-att-freq-input"
+                              className="flex items-center text-sm font-medium"
+                            >
+                              <span>Dep. Attempt Freq. (v_d)</span>
+                              <Tooltip>
+                                <TooltipTrigger className="ml-2" type="button">
+                                  <CircleQuestionMarkIcon size={17} />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  Vibrational frequency of bonded surface atoms
+                                  that may attempt displacement
+                                </TooltipContent>
+                              </Tooltip>
+                            </label>
+                            <span className="font-mono text-sm text-muted-foreground">
+                              {depAttFreq.toExponential(1)}
+                            </span>
+                          </div>
+                          <Slider
+                            id="dep-att-freq-input"
+                            min={1e8}
+                            max={1e10}
+                            step={1e8}
+                            value={[depAttFreq]}
+                            onValueChange={(val) => setDepAttFreq(val[0])}
+                          />
+                        </div>
+
+                        {/* pass att freq */}
+                        <div className="flex flex-col gap-2">
+                          <div className="flex items-center justify-between">
+                            <label
+                              htmlFor="pass-att-freq-input"
+                              className="flex items-center text-sm font-medium"
+                            >
+                              <span>Passivation Attempt Freq. (v_p)</span>
+                              <Tooltip>
+                                <TooltipTrigger className="ml-2" type="button">
+                                  <CircleQuestionMarkIcon size={17} />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  Vibrational frequency of isolated surface
+                                  atoms that are beneath the SEI layer
+                                </TooltipContent>
+                              </Tooltip>
+                            </label>
+                            <span className="font-mono text-sm text-muted-foreground">
+                              {passAttFreq.toExponential(1)}
+                            </span>
+                          </div>
+                          <Slider
+                            id="pass-att-freq-input"
+                            min={1e7}
+                            max={1e9}
+                            step={1e7}
+                            value={[passAttFreq]}
+                            onValueChange={(val) => setPassAttFreq(val[0])}
+                          />
+                        </div>
+
+                        {/* pass energy barrier */}
+                        <div className="flex flex-col gap-2">
+                          <div className="flex items-center justify-between">
+                            <label
+                              htmlFor="e-pass-input"
+                              className="flex items-center text-sm font-medium"
+                            >
+                              <span>Passivation Energy Barrier (E_pass)</span>
+                              <Tooltip>
+                                <TooltipTrigger className="ml-2" type="button">
+                                  <CircleQuestionMarkIcon size={17} />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  Activation energy penalizing lithium ion
+                                  trying to pass through SEI
+                                </TooltipContent>
+                              </Tooltip>
+                            </label>
+                            <span className="font-mono text-sm text-muted-foreground">
+                              {ePass}
+                            </span>
+                          </div>
+                          <Slider
+                            id="e-pass-input"
+                            min={0}
+                            max={2.0}
+                            step={0.01}
+                            value={[ePass]}
+                            onValueChange={(val) => setEPass(val[0])}
+                          />
+                        </div>
                       </div>
                     </CollapsibleContent>
                   </Collapsible>
