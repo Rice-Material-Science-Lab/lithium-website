@@ -156,7 +156,9 @@ export default function SimPageClientView() {
 
     const initWasm = async () => {
       try {
-        const scriptUrl = "/lkmc-wasm.js"
+        // Cache-bust: append a timestamp so the browser can never serve a
+        // stale cached copy of the WASM glue JS during development.
+        const scriptUrl = `/lkmc-wasm.js?v=${Date.now()}`
         const wasmGlueCode = await import(
           /* @vite-ignore */ /* webpackIgnore: true */ scriptUrl
         )
@@ -165,8 +167,21 @@ export default function SimPageClientView() {
           wasmGlueCode.default || wasmGlueCode.Module || wasmGlueCode
 
         if (typeof moduleFactory === "function" && active) {
-          const initializedModule = await moduleFactory()
+          // Also cache-bust the .wasm binary fetch itself -- the glue JS
+          // fetches this separately via its own fixed URL, so busting only
+          // the .js import above does not stop the browser from serving a
+          // stale cached .wasm binary.
+          const wasmCacheBust = Date.now()
+          const initializedModule = await moduleFactory({
+            locateFile: (path: string) => {
+              if (path.endsWith(".wasm")) {
+                return `/${path}?v=${wasmCacheBust}`
+              }
+              return path
+            },
+          })
           if (active) {
+            console.log("WASM module (re)initialized at", new Date().toISOString())
             setWasmModule(initializedModule)
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -237,10 +252,15 @@ export default function SimPageClientView() {
                 "number",
                 []
               )
-              setRunTime(getWallTime())
               setSimState(snapshotData)
 
               setStatsData(statsData)
+              if (statsData.length > 0) {
+                const row = statsData[statsData.length - 1]
+                console.log(
+                  `step=${row.step} time=${row.time} empty=${row.empty} free=${row.free} deposited=${row.deposited} passivated=${row.passivated} e_pass_used=${row.e_pass_used} nu_p_used=${row.nu_p_used}`
+                )
+              }
               } catch (e) {
                 console.error("updateSimulation callback failed:", e)
               }
