@@ -115,7 +115,6 @@ export default function SimPageClientView() {
   const [freeAttFreq, setFreeAttFreq] = useState(5000000000)
   const [depAttFreq, setDepAttFreq] = useState(5000000000)
   const [passAttFreq, setPassAttFreq] = useState(20000)
-  const [ePass, setEPass] = useState(0.4)
   const [stepsToRun, setStepsToRun] = useState(1000000)
 
   const [statsData, setStatsData] = useState<
@@ -181,88 +180,94 @@ export default function SimPageClientView() {
             },
           })
           if (active) {
-            console.log("WASM module (re)initialized at", new Date().toISOString())
+            console.log(
+              "WASM module (re)initialized at",
+              new Date().toISOString()
+            )
             setWasmModule(initializedModule)
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ;(window as any).updateSimulation = (step: number) => {
               if (!active) return
               try {
-              const latticePointer = initializedModule._get_lattice()
-              const width = initializedModule._get_width()
-              const height = initializedModule._get_height()
-              const statsJsonPointer = initializedModule._get_stats_json()
+                const latticePointer = initializedModule._get_lattice()
+                const width = initializedModule._get_width()
+                const height = initializedModule._get_height()
+                const statsJsonPointer = initializedModule._get_stats_json()
 
-              if (
-                !latticePointer ||
-                !statsJsonPointer ||
-                width === 0 ||
-                height === 0
-              ) {
-                console.error(
-                  "Simulation not initialized or returned null pointer."
+                if (
+                  !latticePointer ||
+                  !statsJsonPointer ||
+                  width === 0 ||
+                  height === 0
+                ) {
+                  console.error(
+                    "Simulation not initialized or returned null pointer."
+                  )
+                  return
+                }
+
+                const buffer = getWasmBuffer(initializedModule)
+                if (!buffer) {
+                  console.error("WebAssembly Memory buffer is not available.")
+                  return
+                }
+
+                // Read the EXACT string length from WASM instead of guessing
+                // a fixed window -- a fixed window can read past the end of
+                // the heap and throw a RangeError, which crashes the whole
+                // WASM instance since this callback runs synchronously
+                // inside a C++ call stack.
+                const jsonByteLength = initializedModule._get_stats_json_len()
+                const safeLength = Math.max(
+                  0,
+                  Math.min(jsonByteLength, buffer.byteLength - statsJsonPointer)
                 )
-                return
-              }
 
-              const buffer = getWasmBuffer(initializedModule)
-              if (!buffer) {
-                console.error("WebAssembly Memory buffer is not available.")
-                return
-              }
+                let statsData: ReturnType<typeof JSON.parse> = []
 
-              // Read the EXACT string length from WASM instead of guessing
-              // a fixed window -- a fixed window can read past the end of
-              // the heap and throw a RangeError, which crashes the whole
-              // WASM instance since this callback runs synchronously
-              // inside a C++ call stack.
-              const jsonByteLength = initializedModule._get_stats_json_len()
-              const safeLength = Math.max(
-                0,
-                Math.min(jsonByteLength, buffer.byteLength - statsJsonPointer)
-              )
+                try {
+                  const jsonStringBytes = new Uint8Array(
+                    buffer,
+                    statsJsonPointer,
+                    safeLength
+                  )
+                  const decodedJsonString = new TextDecoder("utf-8").decode(
+                    jsonStringBytes
+                  )
+                  statsData = JSON.parse(decodedJsonString)
+                } catch (e) {
+                  console.error(
+                    "Failed to read/parse stats JSON from WASM memory:",
+                    e
+                  )
+                }
 
-              let statsData: ReturnType<typeof JSON.parse> = []
-
-              try {
-                const jsonStringBytes = new Uint8Array(
+                const totalElements = width * height
+                const memoryView = new Int8Array(
                   buffer,
-                  statsJsonPointer,
-                  safeLength
+                  latticePointer,
+                  totalElements
                 )
-                const decodedJsonString = new TextDecoder("utf-8").decode(
-                  jsonStringBytes
+                const snapshotData = Array.from(memoryView)
+
+                setStepsRan(step)
+                const getWallTime = initializedModule.cwrap(
+                  "get_wall_time",
+                  "number",
+                  []
                 )
-                statsData = JSON.parse(decodedJsonString)
-              } catch (e) {
-                console.error("Failed to read/parse stats JSON from WASM memory:", e)
-              }
 
-              const totalElements = width * height
-              const memoryView = new Int8Array(
-                buffer,
-                latticePointer,
-                totalElements
-              )
-              const snapshotData = Array.from(memoryView)
+                setSimState(snapshotData)
+                setRunTime(getWallTime())
+                setStatsData(statsData)
 
-              setStepsRan(step)
-              const getWallTime = initializedModule.cwrap(
-                "get_wall_time",
-                "number",
-                []
-              )
-              
-              setSimState(snapshotData)
-              setRunTime(getWallTime())
-              setStatsData(statsData)
-
-              if (statsData.length > 0) {
-                const row = statsData[statsData.length - 1]
-                console.log(
-                  `step=${row.step} time=${row.time} empty=${row.empty} free=${row.free} deposited=${row.deposited} passivated=${row.passivated} e_pass_used=${row.e_pass_used} nu_p_used=${row.nu_p_used}`
-                )
-              }
+                if (statsData.length > 0) {
+                  const row = statsData[statsData.length - 1]
+                  console.log(
+                    `step=${row.step} time=${row.time} empty=${row.empty} free=${row.free} deposited=${row.deposited} passivated=${row.passivated} e_pass_used=${row.e_pass_used} nu_p_used=${row.nu_p_used}`
+                  )
+                }
               } catch (e) {
                 console.error("updateSimulation callback failed:", e)
               }
@@ -315,6 +320,7 @@ export default function SimPageClientView() {
         "number",
         "number",
         "number",
+        "number",
       ],
       [
         nx, // width
@@ -326,8 +332,9 @@ export default function SimPageClientView() {
         freeAttFreq, // nu_f
         depAttFreq, // nu_d
         passAttFreq, // nu_p
-        ePass, // e_pass
-        randomSeed, // seed
+        0, // E_pass
+        4,
+        randomSeed, // seed (randomized)
       ]
     )
 
@@ -371,8 +378,8 @@ export default function SimPageClientView() {
     wasmModule.ccall(
       "update_simulation_params",
       null,
-      ["number", "number", "number", "number", "number", "number"],
-      [dropRate, temp, freeAttFreq, depAttFreq, passAttFreq, ePass]
+      ["number", "number", "number", "number", "number"],
+      [dropRate, temp, freeAttFreq, depAttFreq, passAttFreq]
     )
   }, [
     isLiveMode,
@@ -381,7 +388,6 @@ export default function SimPageClientView() {
     freeAttFreq,
     depAttFreq,
     passAttFreq,
-    ePass,
     wasmModule,
   ])
 
@@ -425,7 +431,7 @@ export default function SimPageClientView() {
               </CardHeader>
 
               <div className="flex flex-col gap-4 overflow-y-auto px-2 py-4">
-                <Alert className="flex items-center justify-between overflow-hidden p-3! shrink-0">
+                <Alert className="flex shrink-0 items-center justify-between overflow-hidden p-3!">
                   <div className="space-y-1">
                     <AlertTitle className="leading-none">
                       <Label
@@ -450,14 +456,22 @@ export default function SimPageClientView() {
                   </AlertAction>
                   <BorderBeam
                     size={100}
-                    colorFrom={isLiveMode ? "var(--color-primary)" : "transparent"}
-                    colorTo={isLiveMode ? "var(--color-primary)" : "transparent"}
+                    colorFrom={
+                      isLiveMode ? "var(--color-primary)" : "transparent"
+                    }
+                    colorTo={
+                      isLiveMode ? "var(--color-primary)" : "transparent"
+                    }
                     borderWidth={2}
                   />
                   <BorderBeam
                     size={100}
-                    colorFrom={isLiveMode ? "var(--color-primary)" : "transparent"}
-                    colorTo={isLiveMode ? "var(--color-primary)" : "transparent"}
+                    colorFrom={
+                      isLiveMode ? "var(--color-primary)" : "transparent"
+                    }
+                    colorTo={
+                      isLiveMode ? "var(--color-primary)" : "transparent"
+                    }
                     borderWidth={2}
                     delay={3}
                   />
@@ -782,38 +796,6 @@ export default function SimPageClientView() {
                             step={1}
                             value={[passAttFreq]}
                             onValueChange={(val) => setPassAttFreq(val[0])}
-                          />
-                        </div>
-
-                        {/* pass energy barrier */}
-                        <div className="flex flex-col gap-2">
-                          <div className="flex items-center justify-between">
-                            <Label
-                              htmlFor="e-pass-input"
-                              className="flex items-center text-sm font-medium"
-                            >
-                              <span>Passivation Energy Barrier (E_pass)</span>
-                              <Tooltip>
-                                <TooltipTrigger className="ml-2" type="button">
-                                  <CircleQuestionMarkIcon size={17} />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  Activation energy penalizing lithium ion
-                                  trying to pass through SEI
-                                </TooltipContent>
-                              </Tooltip>
-                            </Label>
-                            <span className="font-mono text-sm text-muted-foreground">
-                              {ePass}
-                            </span>
-                          </div>
-                          <Slider
-                            id="e-pass-input"
-                            min={0}
-                            max={2.0}
-                            step={0.01}
-                            value={[ePass]}
-                            onValueChange={(val) => setEPass(val[0])}
                           />
                         </div>
                       </div>
