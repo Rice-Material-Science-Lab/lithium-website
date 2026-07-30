@@ -293,7 +293,6 @@ export default function SimPageClientView() {
         "number",
         "number",
         "number",
-        "number",
       ],
       [
         nx, // width
@@ -305,9 +304,8 @@ export default function SimPageClientView() {
         freeAttFreq, // nu_f
         depAttFreq, // nu_d
         passAttFreq, // nu_p
-        ePass, // E_pass
-        4,
-        randomSeed, // seed (randomized)
+        ePass, // e_pass
+        randomSeed, // seed
       ]
     )
 
