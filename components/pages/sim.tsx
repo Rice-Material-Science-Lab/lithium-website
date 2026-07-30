@@ -73,6 +73,7 @@ interface CustomWasmModule {
   _update_simulation_params(): void
 
   _get_stats_json(): number
+  _get_stats_json_len(): number
 }
 
 function generateStartingLattice(w: number, h: number) {
@@ -171,7 +172,7 @@ export default function SimPageClientView() {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ;(window as any).updateSimulation = (step: number) => {
               if (!active) return
-
+              try {
               const latticePointer = initializedModule._get_lattice()
               const width = initializedModule._get_width()
               const height = initializedModule._get_height()
@@ -195,39 +196,31 @@ export default function SimPageClientView() {
                 return
               }
 
-              const maxJsonLength = 65536
-              const rawMemoryView = new Uint8Array(
-                buffer,
-                statsJsonPointer,
-                maxJsonLength
+              // Read the EXACT string length from WASM instead of guessing
+              // a fixed window -- a fixed window can read past the end of
+              // the heap and throw a RangeError, which crashes the whole
+              // WASM instance since this callback runs synchronously
+              // inside a C++ call stack.
+              const jsonByteLength = initializedModule._get_stats_json_len()
+              const safeLength = Math.max(
+                0,
+                Math.min(jsonByteLength, buffer.byteLength - statsJsonPointer)
               )
 
-              // find the length of the strung
-
-              let stringLength = 0
-              while (
-                stringLength < maxJsonLength &&
-                rawMemoryView[stringLength] !== 0
-              ) {
-                stringLength++
-              }
-
-              // decode bytes into string
-
-              const jsonStringBytes = new Uint8Array(
-                buffer,
-                statsJsonPointer,
-                stringLength
-              )
-              const decodedJsonString = new TextDecoder("utf-8").decode(
-                jsonStringBytes
-              )
-              let statsData = []
+              let statsData: ReturnType<typeof JSON.parse> = []
 
               try {
+                const jsonStringBytes = new Uint8Array(
+                  buffer,
+                  statsJsonPointer,
+                  safeLength
+                )
+                const decodedJsonString = new TextDecoder("utf-8").decode(
+                  jsonStringBytes
+                )
                 statsData = JSON.parse(decodedJsonString)
               } catch (e) {
-                console.error("Failed to parse stats JSON from WASM memory:", e)
+                console.error("Failed to read/parse stats JSON from WASM memory:", e)
               }
 
               const totalElements = width * height
@@ -248,6 +241,9 @@ export default function SimPageClientView() {
               setSimState(snapshotData)
 
               setStatsData(statsData)
+              } catch (e) {
+                console.error("updateSimulation callback failed:", e)
+              }
             }
           }
         } else if (!moduleFactory) {
