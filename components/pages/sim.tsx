@@ -113,7 +113,7 @@ export default function SimPageClientView() {
   const [atomSubstrate, setAtomSubstrate] = useState(-0.5)
   const [freeAttFreq, setFreeAttFreq] = useState(5000000000)
   const [depAttFreq, setDepAttFreq] = useState(5000000000)
-  const [passAttFreq, setPassAttFreq] = useState(200000000)
+  const [passAttFreq, setPassAttFreq] = useState(20000)
   const [ePass, setEPass] = useState(0.4)
   const [stepsToRun, setStepsToRun] = useState(1000000)
 
@@ -409,7 +409,7 @@ export default function SimPageClientView() {
               </CardHeader>
 
               <div className="flex flex-col gap-4 overflow-y-auto px-2 py-4">
-                <Alert className="flex items-center justify-between overflow-hidden p-3! border-no">
+                <Alert className="flex items-center justify-between overflow-hidden p-3! ">
                   <div className="space-y-1">
                     <AlertTitle className="leading-none">
                       <Label
@@ -434,14 +434,14 @@ export default function SimPageClientView() {
                   </AlertAction>
                   <BorderBeam
                     size={100}
-                    colorFrom={isLiveMode ? "var(--color-primary)" : "var(--color-card)"}
-                    colorTo={isLiveMode ? "var(--color-primary)" : "var(--color-card)"}
+                    colorFrom={isLiveMode ? "var(--color-primary)" : "transparent"}
+                    colorTo={isLiveMode ? "var(--color-primary)" : "transparent"}
                     borderWidth={2}
                   />
                   <BorderBeam
                     size={100}
-                    colorFrom={isLiveMode ? "var(--color-primary)" : "var(--color-card)"}
-                    colorTo={isLiveMode ? "var(--color-primary)" : "var(--color-card)"}
+                    colorFrom={isLiveMode ? "var(--color-primary)" : "transparent"}
+                    colorTo={isLiveMode ? "var(--color-primary)" : "transparent"}
                     borderWidth={2}
                     delay={3}
                   />
@@ -761,9 +761,9 @@ export default function SimPageClientView() {
                           </div>
                           <Slider
                             id="pass-att-freq-input"
-                            min={1e7}
-                            max={1e9}
-                            step={1e7}
+                            min={1e1}
+                            max={1e5}
+                            step={1}
                             value={[passAttFreq]}
                             onValueChange={(val) => setPassAttFreq(val[0])}
                           />
