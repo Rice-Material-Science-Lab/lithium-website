@@ -409,7 +409,7 @@ export default function SimPageClientView() {
               </CardHeader>
 
               <div className="flex flex-col gap-4 overflow-y-auto px-2 py-4">
-                <Alert className="flex items-center justify-between overflow-hidden p-3! ">
+                <Alert className="flex items-center justify-between overflow-hidden p-3! shrink-0">
                   <div className="space-y-1">
                     <AlertTitle className="leading-none">
                       <Label
