@@ -252,9 +252,11 @@ export default function SimPageClientView() {
                 "number",
                 []
               )
+              
               setSimState(snapshotData)
-
+              setRunTime(getWallTime())
               setStatsData(statsData)
+
               if (statsData.length > 0) {
                 const row = statsData[statsData.length - 1]
                 console.log(
