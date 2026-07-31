@@ -76,6 +76,8 @@ interface CustomWasmModule {
   _get_stats_json_len(): number
   _set_stats_interval(interval: number): void
   _get_stats_interval(): number
+  _mark_carbon(x: number, y: number): void
+  _finalize_carbon_placement(): void
 }
 
 function generateStartingLattice(w: number, h: number) {
@@ -90,6 +92,24 @@ function generateStartingLattice(w: number, h: number) {
   }
 
   return arr
+}
+
+const CARBON_VALUE = 5
+
+function applyCarbonOverlay(
+  base: number[],
+  w: number,
+  carbonSites: Set<string>
+) {
+  const out = base.slice()
+  for (const key of carbonSites) {
+    const [x, y] = key.split(",").map(Number)
+    const idx = y * w + x
+    if (idx >= 0 && idx < out.length) {
+      out[idx] = CARBON_VALUE
+    }
+  }
+  return out
 }
 
 export default function SimPageClientView() {
@@ -109,6 +129,22 @@ export default function SimPageClientView() {
   const [simState, setSimState] = useState<number[]>(
     generateStartingLattice(...gridDimensions)
   )
+  const [hasRunOnce, setHasRunOnce] = useState(false)
+  const [drawingCarbon, setDrawingCarbon] = useState(false)
+  const [carbonSites, setCarbonSites] = useState<Set<string>>(new Set())
+
+  // Live preview: before the first run, reflect drawn carbon sites
+  // directly on the displayed grid so users can see what they're placing.
+  useEffect(() => {
+    if (hasRunOnce) return
+    setSimState(
+      applyCarbonOverlay(
+        generateStartingLattice(...gridDimensions),
+        gridDimensions[0],
+        carbonSites
+      )
+    )
+  }, [carbonSites, gridDimensions, hasRunOnce])
 
   const [temp, setTemp] = useState(300)
   const [dropRate, setDropRate] = useState(1000)
@@ -122,6 +158,7 @@ export default function SimPageClientView() {
   // mathematically unreachable at any slider position.
   const [passAttFreq, setPassAttFreq] = useState(1000000)
   const [ePass, setEPass] = useState(0.3)
+  const [carbonBondEnergy, setCarbonBondEnergy] = useState(-0.6)
   const [stepsToRun, setStepsToRun] = useState("1000000")
   const [updateInterval, setUpdateInterval] = useState("1000")
 
@@ -321,6 +358,7 @@ export default function SimPageClientView() {
         "number",
         "number",
         "number",
+        "number",
       ],
       [
         nx, // width
@@ -329,6 +367,7 @@ export default function SimPageClientView() {
         temp, // T
         bondedEnergy, // e0
         atomSubstrate, // e1
+        carbonBondEnergy, // e_c
         freeAttFreq, // nu_f
         depAttFreq, // nu_d
         passAttFreq, // nu_p
@@ -337,9 +376,20 @@ export default function SimPageClientView() {
       ]
     )
 
+    setHasRunOnce(true)
     setSimState(generateStartingLattice(nx, ny))
 
     wasmModule._init_simulation()
+
+    // Apply user-drawn carbon (graphite anode) sites, then rebuild the
+    // rate table once for all of them together.
+    for (const key of carbonSites) {
+      const [cx, cy] = key.split(",").map(Number)
+      if (cx < nx && cy < ny) {
+        wasmModule._mark_carbon(cx, cy)
+      }
+    }
+    wasmModule._finalize_carbon_placement()
 
     // Keep the stats-recording cadence (used by the chart) in sync with
     // the visual refresh cadence below, so a transient state like FREE
@@ -370,6 +420,19 @@ export default function SimPageClientView() {
     }
 
     tick()
+  }
+
+  const toggleCarbonSite = (x: number, y: number) => {
+    setCarbonSites((prev) => {
+      const key = `${x},${y}`
+      const next = new Set(prev)
+      if (next.has(key)) {
+        next.delete(key)
+      } else {
+        next.add(key)
+      }
+      return next
+    })
   }
 
   const handleSubmit = (e: React.SubmitEvent) => {
@@ -527,6 +590,43 @@ export default function SimPageClientView() {
                     value={height}
                     onChange={(e) => setHeight(e.target.value)}
                   />
+
+                  <Separator className="my-4" />
+
+                  <Alert className="flex items-center justify-between overflow-hidden p-3! shrink-0">
+                    <div className="space-y-1">
+                      <AlertTitle className="leading-none">
+                        <Label
+                          htmlFor="draw-carbon"
+                          className="cursor-pointer text-sm font-medium"
+                        >
+                          Draw Carbon (Anode)
+                        </Label>
+                      </AlertTitle>
+                      <AlertDescription>
+                        <p className="text-xs text-muted-foreground">
+                          Click grid cells to place graphite anode sites
+                        </p>
+                      </AlertDescription>
+                    </div>
+                    <AlertAction className="mt-0 shrink-0">
+                      <Switch
+                        id="draw-carbon"
+                        checked={drawingCarbon}
+                        onCheckedChange={setDrawingCarbon}
+                      />
+                    </AlertAction>
+                  </Alert>
+                  {carbonSites.size > 0 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => setCarbonSites(new Set())}
+                    >
+                      Clear Carbon ({carbonSites.size})
+                    </Button>
+                  )}
 
                   <Separator className="my-4" />
 
@@ -861,6 +961,43 @@ export default function SimPageClientView() {
                             onValueChange={(val) => setEPass(val[0])}
                           />
                         </div>
+
+                        {/* carbon bond energy */}
+                        <div className="flex flex-col gap-2">
+                          <div className="flex items-center justify-between">
+                            <Label
+                              htmlFor="carbon-bond-energy-input"
+                              className="flex items-center text-sm font-medium"
+                            >
+                              <span>
+                                Carbon Bond Energy e<sub>c</sub> (eV)
+                              </span>
+                              <Tooltip>
+                                <TooltipTrigger className="ml-2" type="button">
+                                  <CircleQuestionMarkIcon size={17} />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  The Li-C bond energy at graphite anode
+                                  sites; more negative values make lithium
+                                  bind more strongly to drawn carbon
+                                </TooltipContent>
+                              </Tooltip>
+                            </Label>
+                            <span className="font-mono text-sm text-muted-foreground">
+                              {carbonBondEnergy}
+                            </span>
+                          </div>
+                          <Slider
+                            id="carbon-bond-energy-input"
+                            min={-2.0}
+                            max={0}
+                            step={0.01}
+                            value={[carbonBondEnergy]}
+                            onValueChange={(val) =>
+                              setCarbonBondEnergy(val[0])
+                            }
+                          />
+                        </div>
                       </div>
                     </CollapsibleContent>
                   </Collapsible>
@@ -888,6 +1025,11 @@ export default function SimPageClientView() {
                   width={gridDimensions[0]}
                   height={gridDimensions[1]}
                   data={simState}
+                  onCellClick={
+                    drawingCarbon
+                      ? (x: number, y: number) => toggleCarbonSite(x, y)
+                      : undefined
+                  }
                 />
                 <AtomColorKey />
               </div>

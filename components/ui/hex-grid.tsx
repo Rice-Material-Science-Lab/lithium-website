@@ -8,10 +8,12 @@ export default function DisplayHexGrid({
   data,
   width,
   height,
+  onCellClick,
 }: {
   data: number[]
   width: number
   height: number
+  onCellClick?: (x: number, y: number) => void
 }) {
   const { resolvedTheme } = useTheme()
 
@@ -29,13 +31,12 @@ export default function DisplayHexGrid({
   for (let y = 0; y < height; y++) {
     // all of this math is for cubic coords
 
-    // filler hexagons (left)
-
+    // filler hexagons (left) -- latX -1 marks these as non-clickable
     if (y % 2 === 1) {
       const x = -1
       const q = x + Math.ceil(y / 2)
       const r = -y
-      hexagons.push({ q, r, s: -q - r, value: 3 })
+      hexagons.push({ q, r, s: -q - r, value: 3, latX: -1, latY: -1 })
     }
 
     // real hexagons
@@ -46,16 +47,16 @@ export default function DisplayHexGrid({
       if (index < data.length) {
         const q = x + Math.ceil(y / 2)
         const r = -y
-        hexagons.push({ q, r, s: -q - r, value: data[index] })
+        hexagons.push({ q, r, s: -q - r, value: data[index], latX: x, latY: y })
       }
     }
 
-    // filler hexagons (right)
+    // filler hexagons (right) -- latX width marks these as non-clickable
     if (y % 2 === 0) {
       const x = width
       const q = x + Math.ceil(y / 2)
       const r = -y
-      hexagons.push({ q, r, s: -q - r, value: 3 })
+      hexagons.push({ q, r, s: -q - r, value: 3, latX: -1, latY: -1 })
     }
   }
 
@@ -72,6 +73,8 @@ export default function DisplayHexGrid({
           return "#374151" // dark gray (substrate)
         case 4:
           return "#22c55e" // green (passivated)
+        case 5:
+          return "#DD2222" // red (carbon / graphite anode)
         default:
           return "#000000" // fallback black
       }
@@ -87,6 +90,8 @@ export default function DisplayHexGrid({
           return "#858585" // dark gray (substrate)
         case 4:
           return "#49E281" // green (passivated)
+        case 5:
+          return "#CC2222" // red (carbon / graphite anode)
         default:
           return "#000000" // fallback black
       }
@@ -128,11 +133,23 @@ export default function DisplayHexGrid({
                   q={hex.q}
                   r={hex.r}
                   s={hex.s}
+                  data={{ latX: hex.latX, latY: hex.latY }}
+                  onClick={
+                    onCellClick
+                      ? (_event, h) => {
+                          const { latX, latY } = h.props.data ?? {}
+                          if (latX >= 0 && latY >= 0) {
+                            onCellClick(latX, latY)
+                          }
+                        }
+                      : undefined
+                  }
                   style={{
                     fill: getColor(hex.value),
                     stroke: "#ffffff",
                     strokeWidth: 0.3,
                     strokeLinejoin: "round",
+                    cursor: onCellClick ? "pointer" : "default",
                   }}
                 />
               ))}
