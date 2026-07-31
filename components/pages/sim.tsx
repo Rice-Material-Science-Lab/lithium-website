@@ -147,7 +147,7 @@ export default function SimPageClientView() {
         )
       )
     }
-    
+
     setDefaultSimState()
   }, [carbonSites, gridDimensions, hasRunOnce])
 
@@ -394,6 +394,9 @@ export default function SimPageClientView() {
 
     // Apply user-drawn carbon (graphite anode) sites, then rebuild the
     // rate table once for all of them together.
+
+    /*
+
     for (const key of carbonSites) {
       const [cx, cy] = key.split(",").map(Number)
       if (cx < nx && cy < ny) {
@@ -401,6 +404,8 @@ export default function SimPageClientView() {
       }
     }
     wasmModule._finalize_carbon_placement()
+
+    */
 
     // Keep the stats-recording cadence (used by the chart) in sync with
     // the visual refresh cadence below, so a transient state like FREE
@@ -614,7 +619,7 @@ export default function SimPageClientView() {
 
                   <Separator className="my-4" />
 
-                  <Alert className="flex shrink-0 items-center justify-between overflow-hidden p-3!">
+                  <Alert className="flex shrink-0 items-center justify-between overflow-hidden p-3! pointer-events-none opacity-50">
                     <div className="space-y-1">
                       <AlertTitle className="leading-none">
                         <Label
