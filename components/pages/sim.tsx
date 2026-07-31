@@ -21,7 +21,6 @@ import { Marker, MarkerContent } from "@/components/ui/marker"
 import AtomColorKey from "@/components/ui/atom-color-key"
 import AtomCountsChart from "@/components/ui/atom-counts-chart"
 import Navbar from "@/components/ui/navbar"
-import { motion } from "motion/react"
 import { Slider } from "../ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
@@ -113,7 +112,6 @@ function applyCarbonOverlay(
 }
 
 export default function SimPageClientView() {
-  const [navBarOpen, setNavbarOpen] = useState(false)
   const [isLiveMode, setIsLiveMode] = useState(false)
 
   const [wasmModule, setWasmModule] = useState<CustomWasmModule | null>(null)
@@ -486,26 +484,7 @@ export default function SimPageClientView() {
 
   return (
     <>
-      <motion.div
-        initial={{ y: "calc(-100% + 40px)" }}
-        animate={{ y: navBarOpen ? 0 : "calc(-100% + 40px)" }}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="absolute top-0 z-10 flex w-full flex-col items-end"
-      >
-        <Navbar />
-        <button
-          type="button"
-          onClick={() => setNavbarOpen((prev) => !prev)}
-          aria-label={navBarOpen ? "Collapse navigation" : "Expand navigation"}
-          className="mr-10 flex h-10 w-fit cursor-pointer items-center justify-center rounded-b-2xl bg-primary p-2 focus:outline-none"
-        >
-          <ChevronDownIcon
-            className={`h-6 w-6 text-white transition-transform duration-300 ${
-              navBarOpen ? "rotate-180" : "rotate-0"
-            }`}
-          />
-        </button>
-      </motion.div>
+      <Navbar />
       <div className="relative flex h-full w-full flex-col overflow-hidden p-5">
         <div className="flex shrink-0 items-center gap-4 px-4">
           <h1 className="text-2xl font-bold text-primary dark:text-cyan-500">
@@ -619,7 +598,7 @@ export default function SimPageClientView() {
 
                   <Separator className="my-4" />
 
-                  <Alert className="flex shrink-0 items-center justify-between overflow-hidden p-3! pointer-events-none opacity-50">
+                  <Alert className="pointer-events-none flex shrink-0 items-center justify-between overflow-hidden p-3! opacity-50">
                     <div className="space-y-1">
                       <AlertTitle className="leading-none">
                         <Label
