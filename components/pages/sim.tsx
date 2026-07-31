@@ -137,13 +137,18 @@ export default function SimPageClientView() {
   // directly on the displayed grid so users can see what they're placing.
   useEffect(() => {
     if (hasRunOnce) return
-    setSimState(
-      applyCarbonOverlay(
-        generateStartingLattice(...gridDimensions),
-        gridDimensions[0],
-        carbonSites
+
+    function setDefaultSimState() {
+      setSimState(
+        applyCarbonOverlay(
+          generateStartingLattice(...gridDimensions),
+          gridDimensions[0],
+          carbonSites
+        )
       )
-    )
+    }
+    
+    setDefaultSimState()
   }, [carbonSites, gridDimensions, hasRunOnce])
 
   const [temp, setTemp] = useState(300)
@@ -225,82 +230,88 @@ export default function SimPageClientView() {
             },
           })
           if (active) {
-            console.log("WASM module (re)initialized at", new Date().toISOString())
+            console.log(
+              "WASM module (re)initialized at",
+              new Date().toISOString()
+            )
             setWasmModule(initializedModule)
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ;(window as any).updateSimulation = (step: number) => {
               if (!active) return
               try {
-              const latticePointer = initializedModule._get_lattice()
-              const width = initializedModule._get_width()
-              const height = initializedModule._get_height()
-              const statsJsonPointer = initializedModule._get_stats_json()
+                const latticePointer = initializedModule._get_lattice()
+                const width = initializedModule._get_width()
+                const height = initializedModule._get_height()
+                const statsJsonPointer = initializedModule._get_stats_json()
 
-              if (
-                !latticePointer ||
-                !statsJsonPointer ||
-                width === 0 ||
-                height === 0
-              ) {
-                console.error(
-                  "Simulation not initialized or returned null pointer."
+                if (
+                  !latticePointer ||
+                  !statsJsonPointer ||
+                  width === 0 ||
+                  height === 0
+                ) {
+                  console.error(
+                    "Simulation not initialized or returned null pointer."
+                  )
+                  return
+                }
+
+                const buffer = getWasmBuffer(initializedModule)
+                if (!buffer) {
+                  console.error("WebAssembly Memory buffer is not available.")
+                  return
+                }
+
+                // Read the EXACT string length from WASM instead of guessing
+                // a fixed window -- a fixed window can read past the end of
+                // the heap and throw a RangeError, which crashes the whole
+                // WASM instance since this callback runs synchronously
+                // inside a C++ call stack.
+                const jsonByteLength = initializedModule._get_stats_json_len()
+                const safeLength = Math.max(
+                  0,
+                  Math.min(jsonByteLength, buffer.byteLength - statsJsonPointer)
                 )
-                return
-              }
 
-              const buffer = getWasmBuffer(initializedModule)
-              if (!buffer) {
-                console.error("WebAssembly Memory buffer is not available.")
-                return
-              }
+                let statsData: ReturnType<typeof JSON.parse> = []
 
-              // Read the EXACT string length from WASM instead of guessing
-              // a fixed window -- a fixed window can read past the end of
-              // the heap and throw a RangeError, which crashes the whole
-              // WASM instance since this callback runs synchronously
-              // inside a C++ call stack.
-              const jsonByteLength = initializedModule._get_stats_json_len()
-              const safeLength = Math.max(
-                0,
-                Math.min(jsonByteLength, buffer.byteLength - statsJsonPointer)
-              )
+                try {
+                  const jsonStringBytes = new Uint8Array(
+                    buffer,
+                    statsJsonPointer,
+                    safeLength
+                  )
+                  const decodedJsonString = new TextDecoder("utf-8").decode(
+                    jsonStringBytes
+                  )
+                  statsData = JSON.parse(decodedJsonString)
+                } catch (e) {
+                  console.error(
+                    "Failed to read/parse stats JSON from WASM memory:",
+                    e
+                  )
+                }
 
-              let statsData: ReturnType<typeof JSON.parse> = []
-
-              try {
-                const jsonStringBytes = new Uint8Array(
+                const totalElements = width * height
+                const memoryView = new Int8Array(
                   buffer,
-                  statsJsonPointer,
-                  safeLength
+                  latticePointer,
+                  totalElements
                 )
-                const decodedJsonString = new TextDecoder("utf-8").decode(
-                  jsonStringBytes
-                )
-                statsData = JSON.parse(decodedJsonString)
-              } catch (e) {
-                console.error("Failed to read/parse stats JSON from WASM memory:", e)
-              }
+                const snapshotData = Array.from(memoryView)
 
-              const totalElements = width * height
-              const memoryView = new Int8Array(
-                buffer,
-                latticePointer,
-                totalElements
-              )
-              const snapshotData = Array.from(memoryView)
+                setStepsRan(step)
+                setRunTime(initializedModule._get_wall_time())
+                setSimState(snapshotData)
 
-              setStepsRan(step)
-              setRunTime(initializedModule._get_wall_time())
-              setSimState(snapshotData)
-
-              setStatsData(statsData)
-              if (statsData.length > 0) {
-                const row = statsData[statsData.length - 1]
-                console.log(
-                  `step=${row.step} time=${row.time} empty=${row.empty} free=${row.free} deposited=${row.deposited} passivated=${row.passivated} e_pass_used=${row.e_pass_used} nu_p_used=${row.nu_p_used}`
-                )
-              }
+                setStatsData(statsData)
+                if (statsData.length > 0) {
+                  const row = statsData[statsData.length - 1]
+                  console.log(
+                    `step=${row.step} time=${row.time} empty=${row.empty} free=${row.free} deposited=${row.deposited} passivated=${row.passivated} e_pass_used=${row.e_pass_used} nu_p_used=${row.nu_p_used}`
+                  )
+                }
               } catch (e) {
                 console.error("updateSimulation callback failed:", e)
               }
@@ -397,8 +408,10 @@ export default function SimPageClientView() {
     const batchSize = updateIntervalNum
     wasmModule._set_stats_interval(batchSize)
     console.log(
-      "Requested stats interval:", batchSize,
-      "-- WASM confirms:", wasmModule._get_stats_interval()
+      "Requested stats interval:",
+      batchSize,
+      "-- WASM confirms:",
+      wasmModule._get_stats_interval()
     )
 
     let remaining = stepsToRunNum
@@ -506,7 +519,7 @@ export default function SimPageClientView() {
               </CardHeader>
 
               <div className="flex flex-col gap-4 overflow-y-auto px-2 py-4">
-                <Alert className="flex items-center justify-between overflow-hidden p-3! shrink-0">
+                <Alert className="flex shrink-0 items-center justify-between overflow-hidden p-3!">
                   <div className="space-y-1">
                     <AlertTitle className="leading-none">
                       <Label
@@ -531,14 +544,22 @@ export default function SimPageClientView() {
                   </AlertAction>
                   <BorderBeam
                     size={100}
-                    colorFrom={isLiveMode ? "var(--color-primary)" : "transparent"}
-                    colorTo={isLiveMode ? "var(--color-primary)" : "transparent"}
+                    colorFrom={
+                      isLiveMode ? "var(--color-primary)" : "transparent"
+                    }
+                    colorTo={
+                      isLiveMode ? "var(--color-primary)" : "transparent"
+                    }
                     borderWidth={2}
                   />
                   <BorderBeam
                     size={100}
-                    colorFrom={isLiveMode ? "var(--color-primary)" : "transparent"}
-                    colorTo={isLiveMode ? "var(--color-primary)" : "transparent"}
+                    colorFrom={
+                      isLiveMode ? "var(--color-primary)" : "transparent"
+                    }
+                    colorTo={
+                      isLiveMode ? "var(--color-primary)" : "transparent"
+                    }
                     borderWidth={2}
                     delay={3}
                   />
@@ -593,7 +614,7 @@ export default function SimPageClientView() {
 
                   <Separator className="my-4" />
 
-                  <Alert className="flex items-center justify-between overflow-hidden p-3! shrink-0">
+                  <Alert className="flex shrink-0 items-center justify-between overflow-hidden p-3!">
                     <div className="space-y-1">
                       <AlertTitle className="leading-none">
                         <Label
@@ -737,10 +758,9 @@ export default function SimPageClientView() {
                         ></CircleQuestionMarkIcon>
                       </TooltipTrigger>
                       <TooltipContent>
-                        How many simulated steps run between each visual
-                        and chart update. Lower values show short-lived
-                        states like free atoms more often, at the cost of
-                        performance.
+                        How many simulated steps run between each visual and
+                        chart update. Lower values show short-lived states like
+                        free atoms more often, at the cost of performance.
                       </TooltipContent>
                     </Tooltip>
                   </Label>
@@ -977,9 +997,9 @@ export default function SimPageClientView() {
                                   <CircleQuestionMarkIcon size={17} />
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                  The Li-C bond energy at graphite anode
-                                  sites; more negative values make lithium
-                                  bind more strongly to drawn carbon
+                                  The Li-C bond energy at graphite anode sites;
+                                  more negative values make lithium bind more
+                                  strongly to drawn carbon
                                 </TooltipContent>
                               </Tooltip>
                             </Label>
@@ -993,9 +1013,7 @@ export default function SimPageClientView() {
                             max={0}
                             step={0.01}
                             value={[carbonBondEnergy]}
-                            onValueChange={(val) =>
-                              setCarbonBondEnergy(val[0])
-                            }
+                            onValueChange={(val) => setCarbonBondEnergy(val[0])}
                           />
                         </div>
                       </div>
