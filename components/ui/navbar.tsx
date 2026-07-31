@@ -70,15 +70,18 @@ function NewsPanel() {
       </Button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-3 w-96 rounded-2xl border border-border bg-card text-card-foreground shadow-xl z-50 flex flex-col max-h-[520px]">
+        <div className="absolute top-full right-0 z-50 mt-3 flex max-h-130 w-96 flex-col rounded-2xl border border-border bg-card text-card-foreground shadow-xl">
           <div className="px-5 pt-5 pb-3">
             <p className="text-base font-bold text-foreground">Recent News</p>
           </div>
 
-          <div className="overflow-y-auto flex-1 px-3 pb-3 space-y-2">
+          <div className="flex-1 space-y-2 overflow-y-auto px-3 pb-3">
             {loading &&
               Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="rounded-xl bg-muted p-4 space-y-2 animate-pulse">
+                <div
+                  key={i}
+                  className="animate-pulse space-y-2 rounded-xl bg-muted p-4"
+                >
                   <div className="h-3 w-3/4 rounded bg-muted-foreground/20" />
                   <div className="h-3 w-full rounded bg-muted-foreground/20" />
                   <div className="h-3 w-1/2 rounded bg-muted-foreground/20" />
@@ -86,7 +89,9 @@ function NewsPanel() {
               ))}
 
             {!loading && news.length === 0 && (
-              <p className="text-sm text-muted-foreground px-2 py-4">No news found.</p>
+              <p className="px-2 py-4 text-sm text-muted-foreground">
+                No news found.
+              </p>
             )}
 
             {!loading &&
@@ -96,13 +101,15 @@ function NewsPanel() {
                   href={item.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block rounded-xl bg-muted hover:bg-accent transition-colors p-4 space-y-1"
+                  className="block space-y-1 rounded-xl bg-muted p-4 transition-colors hover:bg-accent"
                 >
-                  <p className="text-sm font-medium text-foreground leading-snug line-clamp-2">
+                  <p className="line-clamp-2 text-sm leading-snug font-medium text-foreground">
                     {item.title}
                   </p>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    {item.source && <span className="font-medium">{item.source}</span>}
+                    {item.source && (
+                      <span className="font-medium">{item.source}</span>
+                    )}
                     {item.source && item.pubDate && <span>·</span>}
                     {item.pubDate && <span>{timeAgo(item.pubDate)}</span>}
                   </div>
@@ -123,9 +130,13 @@ export default function Navbar() {
 
   useEffect(() => {
     if (isSimPage) {
-      setNavbarOpen(false)
+      ;(() => {
+        setNavbarOpen(false)
+      })()
     } else {
-      setNavbarOpen(true)
+      ;(() => {
+        setNavbarOpen(true)
+      })()
     }
   }, [isSimPage])
 
@@ -147,7 +158,9 @@ export default function Navbar() {
       }
     >
       <nav className="flex w-full items-center justify-between bg-primary px-8 py-4 text-white shadow-lg dark:shadow-[0_6px_24px_rgba(255,255,255,0.12)]">
-        <h1 className="font-heading text-2xl font-bold tracking-tight">Dendrite Lab</h1>
+        <h1 className="font-heading text-2xl font-bold tracking-tight">
+          Dendrite Lab
+        </h1>
         <div className="flex items-center gap-6 text-sm font-medium">
           <ThemeToggle className="text-white/70 hover:text-white" />
 
