@@ -74,6 +74,8 @@ interface CustomWasmModule {
 
   _get_stats_json(): number
   _get_stats_json_len(): number
+  _set_stats_interval(interval: number): void
+  _get_stats_interval(): number
 }
 
 function generateStartingLattice(w: number, h: number) {
@@ -101,8 +103,8 @@ export default function SimPageClientView() {
   ])
   const [stepsRan, setStepsRan] = useState(0)
   const [runTime, setRunTime] = useState(0)
-  const [width, setWidth] = useState(gridDimensions[0])
-  const [height, setHeight] = useState(gridDimensions[1])
+  const [width, setWidth] = useState(String(gridDimensions[0]))
+  const [height, setHeight] = useState(String(gridDimensions[1]))
 
   const [simState, setSimState] = useState<number[]>(
     generateStartingLattice(...gridDimensions)
@@ -114,9 +116,14 @@ export default function SimPageClientView() {
   const [atomSubstrate, setAtomSubstrate] = useState(-0.5)
   const [freeAttFreq, setFreeAttFreq] = useState(5000000000)
   const [depAttFreq, setDepAttFreq] = useState(5000000000)
-  const [passAttFreq, setPassAttFreq] = useState(20000)
-  const [ePass, setEPass] = useState(0.5)
-  const [stepsToRun, setStepsToRun] = useState(1000000)
+  // nu_p raised to be within reach of hop-rate order of magnitude, and
+  // e_pass lowered closer to the literature-cited ~0.36 eV SEI barrier,
+  // so passivation is rare-but-reachable by default instead of
+  // mathematically unreachable at any slider position.
+  const [passAttFreq, setPassAttFreq] = useState(1000000)
+  const [ePass, setEPass] = useState(0.3)
+  const [stepsToRun, setStepsToRun] = useState("1000000")
+  const [updateInterval, setUpdateInterval] = useState("1000")
 
   const [statsData, setStatsData] = useState<
     {
@@ -247,11 +254,7 @@ export default function SimPageClientView() {
               const snapshotData = Array.from(memoryView)
 
               setStepsRan(step)
-              const getWallTime = initializedModule.cwrap(
-                "get_wall_time",
-                "number",
-                []
-              )
+              setRunTime(initializedModule._get_wall_time())
               setSimState(snapshotData)
 
               setStatsData(statsData)
@@ -295,6 +298,11 @@ export default function SimPageClientView() {
 
     // fallback dimensions
     const [nx, ny] = dimensions ?? gridDimensions
+    // Parse here (point of use) rather than on every keystroke, so the
+    // input field can hold an in-progress string like "" or "01" while
+    // typing without fighting the controlled-input cursor.
+    const stepsToRunNum = Math.max(1, Number(stepsToRun) || 0)
+    const updateIntervalNum = Math.max(1, Number(updateInterval) || 1)
 
     const randomSeed = Math.floor(Math.random() * 1000000)
 
@@ -333,14 +341,24 @@ export default function SimPageClientView() {
 
     wasmModule._init_simulation()
 
-    let remaining = stepsToRun
+    // Keep the stats-recording cadence (used by the chart) in sync with
+    // the visual refresh cadence below, so a transient state like FREE
+    // is just as likely to show up on the graph as on the lattice.
+    const batchSize = updateIntervalNum
+    wasmModule._set_stats_interval(batchSize)
+    console.log(
+      "Requested stats interval:", batchSize,
+      "-- WASM confirms:", wasmModule._get_stats_interval()
+    )
+
+    let remaining = stepsToRunNum
 
     function tick() {
       if (!wasmModule || remaining <= 0) return
 
-      if (remaining >= 1000) {
-        wasmModule._run_steps(1000)
-        remaining -= 1000
+      if (remaining >= batchSize) {
+        wasmModule._run_steps(batchSize)
+        remaining -= batchSize
       } else {
         wasmModule._run_steps(remaining)
         remaining = 0 // CRITICAL: Force countdown to zero so the loop can terminate
@@ -357,7 +375,9 @@ export default function SimPageClientView() {
   const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault()
 
-    const newDimensions: [number, number] = [Number(width), Number(height)]
+    const nx = Math.max(1, Number(width) || 0)
+    const ny = Math.max(1, Number(height) || 0)
+    const newDimensions: [number, number] = [nx, ny]
     setGridDimensions(newDimensions)
 
     handleStartSim(newDimensions)
@@ -482,7 +502,7 @@ export default function SimPageClientView() {
                     type="number"
                     min={1}
                     value={width}
-                    onChange={(e) => setWidth(Number(e.target.value))}
+                    onChange={(e) => setWidth(e.target.value)}
                   />
                   <Label
                     htmlFor="height-input"
@@ -505,7 +525,7 @@ export default function SimPageClientView() {
                     type="number"
                     min={1}
                     value={height}
-                    onChange={(e) => setHeight(Number(e.target.value))}
+                    onChange={(e) => setHeight(e.target.value)}
                   />
 
                   <Separator className="my-4" />
@@ -568,8 +588,8 @@ export default function SimPageClientView() {
                       <Slider
                         id="drop-rate-input"
                         min={1}
-                        max={5000}
-                        step={10}
+                        max={200000}
+                        step={100}
                         value={[dropRate]}
                         onValueChange={(val) => setDropRate(val[0])}
                       />
@@ -602,7 +622,34 @@ export default function SimPageClientView() {
                     type="number"
                     min={1}
                     value={stepsToRun}
-                    onChange={(e) => setStepsToRun(Number(e.target.value))}
+                    onChange={(e) => setStepsToRun(e.target.value)}
+                  />
+
+                  <Label
+                    htmlFor="update-interval-input"
+                    className="mt-2 flex items-center text-sm font-medium"
+                  >
+                    Update Frequency (steps)
+                    <Tooltip>
+                      <TooltipTrigger className="ml-2">
+                        <CircleQuestionMarkIcon
+                          size={17}
+                        ></CircleQuestionMarkIcon>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        How many simulated steps run between each visual
+                        and chart update. Lower values show short-lived
+                        states like free atoms more often, at the cost of
+                        performance.
+                      </TooltipContent>
+                    </Tooltip>
+                  </Label>
+                  <Input
+                    id="update-interval-input"
+                    type="number"
+                    min={1}
+                    value={updateInterval}
+                    onChange={(e) => setUpdateInterval(e.target.value)}
                   />
 
                   {/* advanced options */}
@@ -776,8 +823,8 @@ export default function SimPageClientView() {
                           <Slider
                             id="pass-att-freq-input"
                             min={1e1}
-                            max={1e5}
-                            step={1}
+                            max={1e9}
+                            step={1e5}
                             value={[passAttFreq]}
                             onValueChange={(val) => setPassAttFreq(val[0])}
                           />
@@ -822,7 +869,9 @@ export default function SimPageClientView() {
               <CardFooter className="mt-auto! p-0">
                 <Button type="submit" className="w-full" disabled={!wasmModule}>
                   {wasmModule
-                    ? "Run " + stepsToRun.toLocaleString() + " steps"
+                    ? "Run " +
+                      (Number(stepsToRun) || 0).toLocaleString() +
+                      " steps"
                     : "Loading WASM..."}
                 </Button>
               </CardFooter>
