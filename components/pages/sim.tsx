@@ -288,10 +288,92 @@ export default function SimPageClientView() {
     historyModeRef.current = historyMode
   }, [historyMode])
 
+  // Recompute the scale that fits the whole lattice in the visible
+  // container, since the lattice's natural rendered size grows/shrinks
+  // with Nx/Ny -- a fixed zoom of 1 only happens to fit one particular
+  // grid size. transform: scale() doesn't affect offsetWidth/Height, so
+  // these measurements reflect the content's true, unscaled size.
+  useEffect(() => {
+    function recomputeFit() {
+      const container = gridContainerRef.current
+      const content = gridContentRef.current
+      if (!container || !content) return
+      const scaleAtCurrentZoom = zoom || 1
+      const naturalWidth = content.offsetWidth / scaleAtCurrentZoom
+      const naturalHeight = content.offsetHeight / scaleAtCurrentZoom
+      if (naturalWidth === 0 || naturalHeight === 0) return
+
+      const fit = Math.min(
+        container.clientWidth / naturalWidth,
+        container.clientHeight / naturalHeight,
+        1 // never zoom in past 100% by default, only shrink to fit
+      )
+
+      setFitZoom(fit)
+      setZoom(fit)
+      setPan({ x: 0, y: 0 })
+    }
+
+    recomputeFit()
+
+    const resizeObserver = new ResizeObserver(recomputeFit)
+    if (gridContainerRef.current) {
+      resizeObserver.observe(gridContainerRef.current)
+    }
+    return () => resizeObserver.disconnect()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gridDimensions])
+
   const [zoom, setZoom] = useState(1)
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const isDraggingRef = useRef(false)
   const lastPointerRef = useRef({ x: 0, y: 0 })
+  const [fitZoom, setFitZoom] = useState(1)
+  const gridContainerRef = useRef<HTMLDivElement | null>(null)
+  const gridContentRef = useRef<HTMLDivElement | null>(null)
+
+  // Recompute the scale that fits the whole lattice in the visible
+  // container, since the lattice's natural rendered size grows/shrinks
+  // with Nx/Ny -- a fixed zoom of 1 only happens to fit one particular
+  // grid size. transform: scale() doesn't affect offsetWidth/Height, so
+  // these measurements reflect the content's true, unscaled size.
+  useEffect(() => {
+    function recomputeFit() {
+      const container = gridContainerRef.current
+      const content = gridContentRef.current
+      if (!container || !content) return
+
+      // Read the transform's current scale directly rather than trusting
+      // React state, since this can run inside a ResizeObserver callback
+      // that fires before a pending setZoom has committed.
+      const style = window.getComputedStyle(content)
+      const matrix = new DOMMatrixReadOnly(style.transform)
+      const currentScale = matrix.a || 1
+
+      const naturalWidth = content.offsetWidth / currentScale
+      const naturalHeight = content.offsetHeight / currentScale
+      if (naturalWidth === 0 || naturalHeight === 0) return
+
+      const fit = Math.min(
+        container.clientWidth / naturalWidth,
+        container.clientHeight / naturalHeight,
+        1 // never zoom in past 100% by default, only shrink to fit
+      )
+
+      setFitZoom(fit)
+      setZoom(fit)
+      setPan({ x: 0, y: 0 })
+    }
+
+    recomputeFit()
+
+    const resizeObserver = new ResizeObserver(recomputeFit)
+    if (gridContainerRef.current) {
+      resizeObserver.observe(gridContainerRef.current)
+    }
+    return () => resizeObserver.disconnect()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gridDimensions])
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function getWasmBuffer(mod: any): ArrayBuffer | null {
@@ -736,10 +818,9 @@ export default function SimPageClientView() {
   }
 
   const resetView = () => {
-    setZoom(1)
+    setZoom(fitZoom)
     setPan({ x: 0, y: 0 })
   }
-
   const downloadCSV = (filename: string, rows: string[]) => {
     const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" })
     const url = URL.createObjectURL(blob)
@@ -1568,6 +1649,7 @@ export default function SimPageClientView() {
               </h3>
               <div className="flex min-h-0 w-full flex-1 justify-center gap-4">
                 <div
+                  ref={gridContainerRef}
                   className="flex min-h-0 flex-1 items-center justify-center overflow-hidden"
                   style={{ cursor: isDraggingRef.current ? "grabbing" : "grab" }}
                   onPointerDown={handlePointerDown}
@@ -1576,6 +1658,7 @@ export default function SimPageClientView() {
                   onPointerLeave={handlePointerUp}
                 >
                   <div
+                    ref={gridContentRef}
                     style={{
                       transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
                       transformOrigin: "center center",
@@ -1608,7 +1691,7 @@ export default function SimPageClientView() {
                 <Button type="button" variant="outline" size="sm" onClick={handleZoomIn}>
                   Zoom In
                 </Button>
-                {(zoom !== 1 || pan.x !== 0 || pan.y !== 0) && (
+                {(Math.abs(zoom - fitZoom) > 0.001 || pan.x !== 0 || pan.y !== 0) && (
                   <Button type="button" variant="outline" size="sm" onClick={resetView}>
                     Reset View
                   </Button>
