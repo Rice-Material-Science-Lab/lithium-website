@@ -485,8 +485,8 @@ export default function SimPageClientView() {
     wasmModule.ccall(
       "update_simulation_params",
       null,
-      ["number", "number", "number", "number", "number", "number", "number"],
-      [dropRate, temp, freeAttFreq, depAttFreq, passAttFreq, ePass, carbonBondEnergy]
+      ["number", "number", "number", "number", "number", "number", "number", "number", "number"],
+      [dropRate, temp, freeAttFreq, depAttFreq, passAttFreq, ePass, carbonBondEnergy, bondedEnergy, atomSubstrate]
     )
   }, [
     isLiveMode,
@@ -497,6 +497,8 @@ export default function SimPageClientView() {
     passAttFreq,
     ePass,
     carbonBondEnergy,
+    bondedEnergy,
+    atomSubstrate,
     wasmModule,
   ])
 
