@@ -82,6 +82,9 @@ interface CustomWasmModule {
   _play(): void
   _stop(): void
   _get_cell_coordination(x: number, y: number): number
+  _get_snapshot_count(): number
+  _get_snapshot_step(idx: number): number
+  _get_snapshot_lattice(idx: number): number
 }
 
 function generateStartingLattice(w: number, h: number) {
@@ -273,6 +276,16 @@ export default function SimPageClientView() {
   const tickFnRef = useRef<(() => void) | null>(null)
   const [isRunning, setIsRunning] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
+  const [historyMode, setHistoryMode] = useState(false)
+  const [snapshotCount, setSnapshotCount] = useState(0)
+  const [snapshotIndex, setSnapshotIndex] = useState(0)
+  const [snapshotStep, setSnapshotStep] = useState(0)
+  const latestLiveStateRef = useRef<number[]>([])
+
+  useEffect(() => {
+    historyModeRef.current = historyMode
+  }, [historyMode])
+  const historyModeRef = useRef(false)
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function getWasmBuffer(mod: any): ArrayBuffer | null {
@@ -394,7 +407,11 @@ export default function SimPageClientView() {
 
                 setStepsRan(step)
                 setRunTime(initializedModule._get_wall_time())
-                setSimState(snapshotData)
+                latestLiveStateRef.current = snapshotData
+                setSnapshotCount(initializedModule._get_snapshot_count())
+                if (!historyModeRef.current) {
+                  setSimState(snapshotData)
+                }
 
                 setStatsData(statsData)
                 if (statsData.length > 0) {
@@ -506,6 +523,10 @@ export default function SimPageClientView() {
     setIsRunning(true)
     setIsPaused(false)
     isPausedRef.current = false
+    setHistoryMode(false)
+    setSnapshotCount(0)
+    setSnapshotIndex(0)
+    setSnapshotStep(0)
     setSimState(generateStartingLattice(nx, ny))
 
     wasmModule._init_simulation()
@@ -648,6 +669,28 @@ export default function SimPageClientView() {
     const state = simState[idx] ?? -1
     const coordination = wasmModule._get_cell_coordination(x, y)
     setSelectedCell({ x, y, state, coordination })
+  }
+
+  const loadSnapshot = (idx: number) => {
+    if (!wasmModule) return
+    const clampedIdx = Math.max(0, Math.min(idx, snapshotCount - 1))
+    const ptr = wasmModule._get_snapshot_lattice(clampedIdx)
+    if (!ptr) return
+
+    const buffer = getWasmBuffer(wasmModule)
+    if (!buffer) return
+
+    const [nx, ny] = gridDimensions
+    const view = new Int8Array(buffer, ptr, nx * ny)
+    setSimState(Array.from(view))
+    setSnapshotIndex(clampedIdx)
+    setSnapshotStep(wasmModule._get_snapshot_step(clampedIdx))
+    setHistoryMode(true)
+  }
+
+  const returnToLive = () => {
+    setHistoryMode(false)
+    setSimState(latestLiveStateRef.current)
   }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -1364,9 +1407,11 @@ export default function SimPageClientView() {
                   height={gridDimensions[1]}
                   data={simState}
                   onCellClick={
-                    drawingCarbon
-                      ? (x: number, y: number) => toggleCarbonSite(x, y)
-                      : (x: number, y: number) => inspectCell(x, y)
+                    historyMode
+                      ? undefined
+                      : drawingCarbon
+                        ? (x: number, y: number) => toggleCarbonSite(x, y)
+                        : (x: number, y: number) => inspectCell(x, y)
                   }
                 />
                 <AtomColorKey />
@@ -1377,6 +1422,26 @@ export default function SimPageClientView() {
                   {CELL_STATE_LABELS[selectedCell.state] ?? "Unknown"}
                   {selectedCell.coordination >= 0 &&
                     ` · coordination ${selectedCell.coordination}`}
+                </div>
+              )}
+              {snapshotCount > 1 && (
+                <div className="mt-2 flex w-full items-center gap-2">
+                  <input
+                    type="range"
+                    min={0}
+                    max={snapshotCount - 1}
+                    value={historyMode ? snapshotIndex : snapshotCount - 1}
+                    onChange={(e) => loadSnapshot(Number(e.target.value))}
+                    className="flex-1"
+                  />
+                  <span className="whitespace-nowrap text-xs text-muted-foreground">
+                    {historyMode ? `step ${snapshotStep.toLocaleString()}` : "live"}
+                  </span>
+                  {historyMode && (
+                    <Button type="button" variant="outline" size="sm" onClick={returnToLive}>
+                      Back to Live
+                    </Button>
+                  )}
                 </div>
               )}
             </Card>
