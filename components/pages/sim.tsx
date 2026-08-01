@@ -20,7 +20,6 @@ import {
 import { Marker, MarkerContent } from "@/components/ui/marker"
 import AtomColorKey from "@/components/ui/atom-color-key"
 import AtomCountsChart from "@/components/ui/atom-counts-chart"
-import Navbar from "@/components/ui/navbar"
 import { Slider } from "../ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
@@ -162,8 +161,8 @@ export default function SimPageClientView() {
   const [passAttFreq, setPassAttFreq] = useState(1000000)
   const [ePass, setEPass] = useState(0.3)
   const [carbonBondEnergy, setCarbonBondEnergy] = useState(-0.6)
-  const [stepsToRun, setStepsToRun] = useState("1000000")
-  const [updateInterval, setUpdateInterval] = useState("1000")
+  const [stepsToRun, setStepsToRun] = useState(1000000)
+  const [updateInterval, setUpdateInterval] = useState(10000)
 
   const [statsData, setStatsData] = useState<
     {
@@ -393,7 +392,6 @@ export default function SimPageClientView() {
     // Apply user-drawn carbon (graphite anode) sites, then rebuild the
     // rate table once for all of them together.
 
-    /*
 
     for (const key of carbonSites) {
       const [cx, cy] = key.split(",").map(Number)
@@ -403,7 +401,6 @@ export default function SimPageClientView() {
     }
     wasmModule._finalize_carbon_placement()
 
-    */
 
     // Keep the stats-recording cadence (used by the chart) in sync with
     // the visual refresh cadence below, so a transient state like FREE
@@ -484,7 +481,6 @@ export default function SimPageClientView() {
 
   return (
     <>
-      <Navbar />
       <div className="relative flex h-full w-full flex-col overflow-hidden p-5">
         <div className="flex shrink-0 items-center gap-4 px-4">
           <h1 className="text-2xl font-bold text-primary dark:text-cyan-500">
@@ -598,7 +594,7 @@ export default function SimPageClientView() {
 
                   <Separator className="my-4" />
 
-                  <Alert className="pointer-events-none flex shrink-0 items-center justify-between overflow-hidden p-3! opacity-50">
+                  <Alert className="flex shrink-0 items-center justify-between overflow-hidden p-3!">
                     <div className="space-y-1">
                       <AlertTitle className="leading-none">
                         <Label
@@ -727,7 +723,7 @@ export default function SimPageClientView() {
                     type="number"
                     min={1}
                     value={stepsToRun}
-                    onChange={(e) => setStepsToRun(e.target.value)}
+                    onChange={(e) => setStepsToRun(+e.target.value)}
                   />
 
                   <Label
@@ -753,7 +749,7 @@ export default function SimPageClientView() {
                     type="number"
                     min={1}
                     value={updateInterval}
-                    onChange={(e) => setUpdateInterval(e.target.value)}
+                    onChange={(e) => setUpdateInterval(+e.target.value)}
                   />
 
                   {/* advanced options */}
