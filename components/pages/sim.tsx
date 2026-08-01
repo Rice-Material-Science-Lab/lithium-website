@@ -187,6 +187,9 @@ export default function SimPageClientView() {
   const [passAttFreq, setPassAttFreq] = useState(1000000)
   const [ePass, setEPass] = useState(0.3)
   const [carbonBondEnergy, setCarbonBondEnergy] = useState(-0.6)
+  const [depassAttFreq, setDepassAttFreq] = useState(100000) // nu_dp
+  const [eDepass, setEDepass] = useState(0.5) // e_dp -- higher than e_pass
+  // by default so passivation dominates unless tuned otherwise
   const [stepsToRun, setStepsToRun] = useState("1000000")
   const [updateInterval, setUpdateInterval] = useState("10000")
   const [seed, setSeed] = useState("") // blank = random each run
@@ -223,6 +226,8 @@ export default function SimPageClientView() {
       if (typeof saved.passAttFreq === "number") setPassAttFreq(saved.passAttFreq)
       if (typeof saved.ePass === "number") setEPass(saved.ePass)
       if (typeof saved.carbonBondEnergy === "number") setCarbonBondEnergy(saved.carbonBondEnergy)
+      if (typeof saved.depassAttFreq === "number") setDepassAttFreq(saved.depassAttFreq)
+      if (typeof saved.eDepass === "number") setEDepass(saved.eDepass)
       if (typeof saved.stepsToRun === "string") setStepsToRun(saved.stepsToRun)
       if (typeof saved.updateInterval === "string") setUpdateInterval(saved.updateInterval)
       if (typeof saved.seed === "string") setSeed(saved.seed)
@@ -246,6 +251,8 @@ export default function SimPageClientView() {
           passAttFreq,
           ePass,
           carbonBondEnergy,
+          depassAttFreq,
+          eDepass,
           stepsToRun,
           updateInterval,
           seed,
@@ -264,6 +271,8 @@ export default function SimPageClientView() {
     passAttFreq,
     ePass,
     carbonBondEnergy,
+    depassAttFreq,
+    eDepass,
     stepsToRun,
     updateInterval,
     seed,
@@ -287,42 +296,6 @@ export default function SimPageClientView() {
   useEffect(() => {
     historyModeRef.current = historyMode
   }, [historyMode])
-
-  // Recompute the scale that fits the whole lattice in the visible
-  // container, since the lattice's natural rendered size grows/shrinks
-  // with Nx/Ny -- a fixed zoom of 1 only happens to fit one particular
-  // grid size. transform: scale() doesn't affect offsetWidth/Height, so
-  // these measurements reflect the content's true, unscaled size.
-  useEffect(() => {
-    function recomputeFit() {
-      const container = gridContainerRef.current
-      const content = gridContentRef.current
-      if (!container || !content) return
-      const scaleAtCurrentZoom = zoom || 1
-      const naturalWidth = content.offsetWidth / scaleAtCurrentZoom
-      const naturalHeight = content.offsetHeight / scaleAtCurrentZoom
-      if (naturalWidth === 0 || naturalHeight === 0) return
-
-      const fit = Math.min(
-        container.clientWidth / naturalWidth,
-        container.clientHeight / naturalHeight,
-        1 // never zoom in past 100% by default, only shrink to fit
-      )
-
-      setFitZoom(fit)
-      setZoom(fit)
-      setPan({ x: 0, y: 0 })
-    }
-
-    recomputeFit()
-
-    const resizeObserver = new ResizeObserver(recomputeFit)
-    if (gridContainerRef.current) {
-      resizeObserver.observe(gridContainerRef.current)
-    }
-    return () => resizeObserver.disconnect()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gridDimensions])
 
   const [zoom, setZoom] = useState(1)
   const [pan, setPan] = useState({ x: 0, y: 0 })
@@ -589,6 +562,8 @@ export default function SimPageClientView() {
         "number",
         "number",
         "number",
+        "number",
+        "number",
       ],
       [
         nx, // width
@@ -602,6 +577,8 @@ export default function SimPageClientView() {
         depAttFreq, // nu_d
         passAttFreq, // nu_p
         ePass, // e_pass
+        depassAttFreq, // nu_dp
+        eDepass, // e_dp
         randomSeed, // seed
       ]
     )
@@ -800,7 +777,7 @@ export default function SimPageClientView() {
     setZoom((z) => Math.max(0.25, z - 0.25))
   }
 
-  const handlePointerDown = (e: React.PointerEvent) => {f
+  const handlePointerDown = (e: React.PointerEvent) => {
     isDraggingRef.current = true
     lastPointerRef.current = { x: e.clientX, y: e.clientY }
   }
@@ -863,6 +840,8 @@ export default function SimPageClientView() {
       passAttFreq: number
       ePass: number
       carbonBondEnergy: number
+      depassAttFreq: number
+      eDepass: number
     }
   > = {
     "Dense growth": {
@@ -875,6 +854,8 @@ export default function SimPageClientView() {
       passAttFreq: 1e5,
       ePass: 0.4,
       carbonBondEnergy: -0.6,
+      depassAttFreq: 1e5,
+      eDepass: 0.6,
     },
     "Sparse / dendritic": {
       temp: 200,
@@ -886,6 +867,8 @@ export default function SimPageClientView() {
       passAttFreq: 1e5,
       ePass: 0.3,
       carbonBondEnergy: -0.4,
+      depassAttFreq: 1e5,
+      eDepass: 0.6,
     },
     "SEI-heavy": {
       temp: 300,
@@ -897,6 +880,8 @@ export default function SimPageClientView() {
       passAttFreq: 5e7,
       ePass: 0.15,
       carbonBondEnergy: -0.6,
+      depassAttFreq: 1e6,
+      eDepass: 0.4, // lower barrier than usual -- SEI actively cycles
     },
   }
 
@@ -911,6 +896,8 @@ export default function SimPageClientView() {
     setPassAttFreq(p.passAttFreq)
     setEPass(p.ePass)
     setCarbonBondEnergy(p.carbonBondEnergy)
+    setDepassAttFreq(p.depassAttFreq)
+    setEDepass(p.eDepass)
   }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -930,8 +917,20 @@ export default function SimPageClientView() {
     wasmModule.ccall(
       "update_simulation_params",
       null,
-      ["number", "number", "number", "number", "number", "number", "number", "number", "number"],
-      [dropRate, temp, freeAttFreq, depAttFreq, passAttFreq, ePass, carbonBondEnergy, bondedEnergy, atomSubstrate]
+      ["number", "number", "number", "number", "number", "number", "number", "number", "number", "number", "number"],
+      [
+        dropRate,
+        temp,
+        freeAttFreq,
+        depAttFreq,
+        passAttFreq,
+        ePass,
+        carbonBondEnergy,
+        bondedEnergy,
+        atomSubstrate,
+        depassAttFreq,
+        eDepass,
+      ]
     )
   }, [
     isLiveMode,
@@ -944,6 +943,8 @@ export default function SimPageClientView() {
     carbonBondEnergy,
     bondedEnergy,
     atomSubstrate,
+    depassAttFreq,
+    eDepass,
     wasmModule,
   ])
 
@@ -1529,6 +1530,72 @@ export default function SimPageClientView() {
                             step={0.01}
                             value={[ePass]}
                             onValueChange={(val) => setEPass(val[0])}
+                          />
+                        </div>
+
+                        {/* de-passivation attempt freq */}
+                        <div className="flex flex-col gap-2">
+                          <div className="flex items-center justify-between">
+                            <Label
+                              htmlFor="depass-att-freq-input"
+                              className="flex items-center text-sm font-medium"
+                            >
+                              <span>De-passivation Attempt Freq. (v_dp)</span>
+                              <Tooltip>
+                                <TooltipTrigger className="ml-2" type="button">
+                                  <CircleQuestionMarkIcon size={17} />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  Vibrational frequency governing SEI
+                                  breakdown, reverting a passivated atom back
+                                  to deposited
+                                </TooltipContent>
+                              </Tooltip>
+                            </Label>
+                            <span className="font-mono text-sm text-muted-foreground">
+                              {depassAttFreq.toExponential(1)}
+                            </span>
+                          </div>
+                          <Slider
+                            id="depass-att-freq-input"
+                            min={1e1}
+                            max={1e9}
+                            step={1e5}
+                            value={[depassAttFreq]}
+                            onValueChange={(val) => setDepassAttFreq(val[0])}
+                          />
+                        </div>
+
+                        {/* de-passivation energy barrier */}
+                        <div className="flex flex-col gap-2">
+                          <div className="flex items-center justify-between">
+                            <Label
+                              htmlFor="e-depass-input"
+                              className="flex items-center text-sm font-medium"
+                            >
+                              <span>De-passivation Energy Barrier (E_dp)</span>
+                              <Tooltip>
+                                <TooltipTrigger className="ml-2" type="button">
+                                  <CircleQuestionMarkIcon size={17} />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  Activation energy penalizing SEI breakdown;
+                                  higher than E_pass keeps passivation dominant
+                                  by default
+                                </TooltipContent>
+                              </Tooltip>
+                            </Label>
+                            <span className="font-mono text-sm text-muted-foreground">
+                              {eDepass}
+                            </span>
+                          </div>
+                          <Slider
+                            id="e-depass-input"
+                            min={0}
+                            max={2.0}
+                            step={0.01}
+                            value={[eDepass]}
+                            onValueChange={(val) => setEDepass(val[0])}
                           />
                         </div>
 
