@@ -5,8 +5,10 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
 import { MessageSquare, Newspaper, ChevronDown } from "lucide-react"
-import { ThemeToggle } from "../theme-provider"
 import { Button } from "./button"
+import { cn } from "@/lib/utils"
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler"
+import { useTheme } from "next-themes"
 
 interface NewsItem {
   title: string
@@ -146,62 +148,82 @@ export default function Navbar() {
     { label: "Library", href: "/library" },
   ]
 
+  const { resolvedTheme, setTheme } = useTheme()
+
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    const handle = requestAnimationFrame(() => {
+      setMounted(true)
+    })
+    return () => cancelAnimationFrame(handle)
+  }, [])
+
   return (
-    <motion.div
-      initial={false}
-      animate={{ y: navBarOpen || !isSimPage ? 0 : "calc(-100% + 40px)" }}
-      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className={
-        isSimPage
-          ? "absolute top-0 z-10 flex w-full flex-col items-end"
-          : "flex w-full flex-col"
-      }
-    >
-      <nav className="flex w-full items-center justify-between bg-primary px-8 py-4 text-white shadow-lg dark:shadow-[0_6px_24px_rgba(255,255,255,0.12)]">
-        <h1 className="font-heading text-2xl font-bold tracking-tight">
-          Dendrite Lab
-        </h1>
-        <div className="flex items-center gap-6 text-sm font-medium">
-          <ThemeToggle className="text-white/70 hover:text-white" />
-
-          {navLinks.map((link) => {
-            const isActive = pathname === link.href
-
-            return (
-              <Button
-                key={link.href}
-                asChild
-                variant="link"
-                className={
-                  isActive
-                    ? "font-bold text-white underline underline-offset-4"
-                    : "text-white/70 hover:text-white hover:underline"
-                }
-              >
-                <Link href={link.href}>{link.label}</Link>
-              </Button>
-            )
-          })}
-
-          <NewsPanel />
-          <MessageSquare className="h-5 w-5 text-white/70" />
-        </div>
-      </nav>
-
-      {isSimPage && (
-        <button
-          type="button"
-          onClick={() => setNavbarOpen((prev) => !prev)}
-          aria-label={navBarOpen ? "Collapse navigation" : "Expand navigation"}
-          className="mr-10 flex h-10 w-fit cursor-pointer items-center justify-center rounded-b-2xl bg-primary p-2 focus:outline-none"
+    mounted && (
+      <div className="relative z-50">
+        <motion.div
+          initial={false}
+          animate={{ y: navBarOpen || !isSimPage ? 0 : "calc(-100% + 40px)" }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          className={cn(
+            "absolute inset-x-0 top-0 z-50 flex w-full flex-col",
+            isSimPage && "items-end"
+          )}
         >
-          <ChevronDown
-            className={`h-6 w-6 text-white transition-transform duration-300 ${
-              navBarOpen ? "rotate-180" : "rotate-0"
-            }`}
-          />
-        </button>
-      )}
-    </motion.div>
+          <nav className="z-10 flex w-full items-center justify-between bg-primary px-8 py-4 text-white shadow-lg dark:shadow-[0_6px_24px_rgba(255,255,255,0.12)]">
+            <h1 className="font-heading text-2xl font-bold tracking-tight">
+              Dendrite Lab
+            </h1>
+            <div className="flex items-center gap-6 text-sm font-medium">
+              <AnimatedThemeToggler
+                theme={resolvedTheme === "dark" ? "dark" : "light"}
+                onThemeChange={setTheme}
+                variant={"hexagon"}
+              />
+
+              {navLinks.map((link) => {
+                const isActive = pathname === link.href
+
+                return (
+                  <Button
+                    key={link.href}
+                    asChild
+                    variant="link"
+                    className={
+                      isActive
+                        ? "font-bold text-white underline underline-offset-4"
+                        : "text-white/70 hover:text-white hover:underline"
+                    }
+                  >
+                    <Link href={link.href}>{link.label}</Link>
+                  </Button>
+                )
+              })}
+
+              <NewsPanel />
+              <MessageSquare className="h-5 w-5 text-white/70" />
+            </div>
+          </nav>
+
+          {isSimPage && (
+            <button
+              type="button"
+              onClick={() => setNavbarOpen((prev) => !prev)}
+              aria-label={
+                navBarOpen ? "Collapse navigation" : "Expand navigation"
+              }
+              className="mr-10 flex h-10 w-fit cursor-pointer items-center justify-center rounded-b-2xl bg-primary p-2 focus:outline-none"
+            >
+              <ChevronDown
+                className={`h-6 w-6 text-white transition-transform duration-300 ${
+                  navBarOpen ? "rotate-180" : "rotate-0"
+                }`}
+              />
+            </button>
+          )}
+        </motion.div>
+      </div>
+    )
   )
 }

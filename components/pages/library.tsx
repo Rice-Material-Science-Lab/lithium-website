@@ -1,9 +1,9 @@
+/* eslint-disable @next/next/no-img-element */
 "use client"
 
 import { ExternalLink } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import Navbar from "@/components/ui/navbar"
 
 interface CatastrophicEvent {
   id: string
@@ -136,7 +136,6 @@ function EventCard({ event }: { event: CatastrophicEvent }) {
 export default function LibraryClientView() {
   return (
     <div className="min-h-screen bg-[#dde9f5] font-sans dark:bg-background">
-      <Navbar />
       <main className="mx-auto h-full max-w-5xl space-y-6 p-6">
         <div className="space-y-1">
           <p className="text-sm font-bold text-primary dark:text-cyan-500">

@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Metadata } from "next";
+import Navbar from "@/components/ui/navbar"
 
 export const metadata: Metadata = {
   title: {
@@ -46,7 +47,7 @@ export default function RootLayout({
     >
       <body className="h-screen relative">
         <ThemeProvider>
-          <TooltipProvider>{children}</TooltipProvider>
+          <TooltipProvider><Navbar />{children}</TooltipProvider>
         </ThemeProvider>
       </body>
     </html>
