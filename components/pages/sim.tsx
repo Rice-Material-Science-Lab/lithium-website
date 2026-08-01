@@ -1375,7 +1375,7 @@ export default function SimPageClientView() {
                               className={
                                 "h-7 w-7 rounded-full border-2 transition-all " +
                                 (carbonSpecies === sp
-                                  ? "scale-110 border-primary shadow-primary/30 dark:border-primary"
+                                  ? "scale-110 border-primary"
                                   : "border-transparent opacity-70 hover:opacity-100")
                               }
                               style={{
@@ -1942,7 +1942,7 @@ export default function SimPageClientView() {
               </Card>
             </form>
             <div className="flex min-h-0 flex-1 flex-col gap-4">
-              <Card className="flex min-h-0 flex-1 flex-col items-center justify-center gap-0 rounded-2xl border border-black/5 bg-white/70 p-4 shadow-xl shadow-primary/5 backdrop-blur-xl dark:border-white/10 dark:bg-white/5 dark:shadow-cyan-500/5">
+              <Card className="flex min-h-0 flex-1 flex-col items-center justify-center gap-0 rounded-2xl border p-4 backdrop-blur-xl ">
                 {simTerminated && (
                   <Alert variant="destructive" className="mb-2 w-full">
                     <AlertTitle>Simulation jammed</AlertTitle>
@@ -2102,7 +2102,7 @@ export default function SimPageClientView() {
                   )}
                 </div>
               </Card>
-              <Card className="flex min-h-0 flex-1 flex-col rounded-2xl border border-black/5 bg-white/70 p-4 shadow-xl shadow-primary/5 backdrop-blur-xl dark:border-white/10 dark:bg-white/5 dark:shadow-cyan-500/5">
+              <Card className="flex min-h-0 flex-1 flex-col rounded-2xl border border-black/5 p-4  backdrop-blur-xl dark:border-white/10">
                 <AtomCountsChart data={statsData} />
                 <div className="mt-2 flex shrink-0 gap-2">
                   <Button
@@ -2128,7 +2128,7 @@ export default function SimPageClientView() {
                 </div>
               </Card>
               {batchOpen ? (
-                <Card className="flex max-h-[45vh] shrink-0 flex-col gap-3 overflow-y-auto rounded-2xl border border-black/5 bg-white/70 p-4 shadow-xl shadow-primary/5 backdrop-blur-xl dark:border-white/10 dark:bg-white/5 dark:shadow-cyan-500/5">
+                <Card className="flex max-h-[45vh] shrink-0 flex-col gap-3 overflow-y-auto rounded-2xl border p-4  backdrop-blur-xl">
                   <div className="flex shrink-0 items-center justify-between">
                     <h3 className="text-lg font-semibold">Batch Run</h3>
                     <Button
