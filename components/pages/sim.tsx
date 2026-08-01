@@ -139,6 +139,7 @@ export default function SimPageClientView() {
   const [simTerminated, setSimTerminated] = useState(false)
   const [drawingCarbon, setDrawingCarbon] = useState(false)
   const [carbonSites, setCarbonSites] = useState<Set<string>>(new Set())
+  const carbonUndoStackRef = useRef<Set<string>[]>([])
   const [selectedCell, setSelectedCell] = useState<{
     x: number
     y: number
@@ -281,11 +282,16 @@ export default function SimPageClientView() {
   const [snapshotIndex, setSnapshotIndex] = useState(0)
   const [snapshotStep, setSnapshotStep] = useState(0)
   const latestLiveStateRef = useRef<number[]>([])
+  const historyModeRef = useRef(false)
 
   useEffect(() => {
     historyModeRef.current = historyMode
   }, [historyMode])
-  const historyModeRef = useRef(false)
+
+  const [zoom, setZoom] = useState(1)
+  const [pan, setPan] = useState({ x: 0, y: 0 })
+  const isDraggingRef = useRef(false)
+  const lastPointerRef = useRef({ x: 0, y: 0 })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function getWasmBuffer(mod: any): ArrayBuffer | null {
@@ -652,6 +658,10 @@ export default function SimPageClientView() {
 
   const toggleCarbonSite = (x: number, y: number) => {
     setCarbonSites((prev) => {
+      carbonUndoStackRef.current.push(new Set(prev))
+      if (carbonUndoStackRef.current.length > 100) {
+        carbonUndoStackRef.current.shift()
+      }
       const key = `${x},${y}`
       const next = new Set(prev)
       if (next.has(key)) {
@@ -661,6 +671,13 @@ export default function SimPageClientView() {
       }
       return next
     })
+  }
+
+  const undoCarbonSite = () => {
+    const prev = carbonUndoStackRef.current.pop()
+    if (prev !== undefined) {
+      setCarbonSites(prev)
+    }
   }
 
   const inspectCell = (x: number, y: number) => {
@@ -691,6 +708,126 @@ export default function SimPageClientView() {
   const returnToLive = () => {
     setHistoryMode(false)
     setSimState(latestLiveStateRef.current)
+  }
+
+  const handleWheelZoom = (e: React.WheelEvent) => {
+    e.preventDefault()
+    const delta = -e.deltaY * 0.001
+    setZoom((z) => Math.min(4, Math.max(0.25, z + delta)))
+  }
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    isDraggingRef.current = true
+    lastPointerRef.current = { x: e.clientX, y: e.clientY }
+  }
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isDraggingRef.current) return
+    const dx = e.clientX - lastPointerRef.current.x
+    const dy = e.clientY - lastPointerRef.current.y
+    lastPointerRef.current = { x: e.clientX, y: e.clientY }
+    setPan((p) => ({ x: p.x + dx, y: p.y + dy }))
+  }
+
+  const handlePointerUp = () => {
+    isDraggingRef.current = false
+  }
+
+  const resetView = () => {
+    setZoom(1)
+    setPan({ x: 0, y: 0 })
+  }
+
+  const downloadCSV = (filename: string, rows: string[]) => {
+    const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = filename
+    link.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const exportStatsCSV = () => {
+    if (statsData.length === 0) return
+    const header = "step,time,empty,free,deposited,passivated,substrate,fill,total_rate"
+    const rows = statsData.map(
+      (r) =>
+        `${r.step},${r.time},${r.empty},${r.free},${r.deposited},${r.passivated},${r.substrate},${r.fill},${r.total_rate}`
+    )
+    downloadCSV(`lkmc-stats-step${stepsRan}.csv`, [header, ...rows])
+  }
+
+  const exportLatticeCSV = () => {
+    const [nx, ny] = gridDimensions
+    if (simState.length === 0) return
+    const rows: string[] = []
+    for (let y = 0; y < ny; y++) {
+      rows.push(simState.slice(y * nx, (y + 1) * nx).join(","))
+    }
+    downloadCSV(`lkmc-lattice-step${stepsRan}.csv`, rows)
+  }
+
+  const PRESETS: Record
+    string,
+    {
+      temp: number
+      dropRate: number
+      bondedEnergy: number
+      atomSubstrate: number
+      freeAttFreq: number
+      depAttFreq: number
+      passAttFreq: number
+      ePass: number
+      carbonBondEnergy: number
+    }
+  > = {
+    "Dense growth": {
+      temp: 350,
+      dropRate: 50000,
+      bondedEnergy: -0.6,
+      atomSubstrate: -0.8,
+      freeAttFreq: 8e9,
+      depAttFreq: 8e9,
+      passAttFreq: 1e5,
+      ePass: 0.4,
+      carbonBondEnergy: -0.6,
+    },
+    "Sparse / dendritic": {
+      temp: 200,
+      dropRate: 500,
+      bondedEnergy: -0.15,
+      atomSubstrate: -0.3,
+      freeAttFreq: 2e9,
+      depAttFreq: 2e9,
+      passAttFreq: 1e5,
+      ePass: 0.3,
+      carbonBondEnergy: -0.4,
+    },
+    "SEI-heavy": {
+      temp: 300,
+      dropRate: 2000,
+      bondedEnergy: -0.28,
+      atomSubstrate: -0.5,
+      freeAttFreq: 5e9,
+      depAttFreq: 5e9,
+      passAttFreq: 5e7,
+      ePass: 0.15,
+      carbonBondEnergy: -0.6,
+    },
+  }
+
+  const applyPreset = (name: keyof typeof PRESETS) => {
+    const p = PRESETS[name]
+    setTemp(p.temp)
+    setDropRate(p.dropRate)
+    setBondedEnergy(p.bondedEnergy)
+    setAtomSubstrate(p.atomSubstrate)
+    setFreeAttFreq(p.freeAttFreq)
+    setDepAttFreq(p.depAttFreq)
+    setPassAttFreq(p.passAttFreq)
+    setEPass(p.ePass)
+    setCarbonBondEnergy(p.carbonBondEnergy)
   }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -843,6 +980,19 @@ export default function SimPageClientView() {
                     delay={3}
                   />
                 </Alert>
+                <div className="flex flex-wrap gap-2">
+                  {Object.keys(PRESETS).map((name) => (
+                    <Button
+                      key={name}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => applyPreset(name as keyof typeof PRESETS)}
+                    >
+                      {name}
+                    </Button>
+                  ))}
+                </div>
                 <div className="flex flex-col gap-2">
                   <Label
                     htmlFor="width-input"
@@ -918,14 +1068,27 @@ export default function SimPageClientView() {
                     </AlertAction>
                   </Alert>
                   {carbonSites.size > 0 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => setCarbonSites(new Set())}
-                    >
-                      Clear Carbon ({carbonSites.size})
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => {
+                          carbonUndoStackRef.current.push(new Set(carbonSites))
+                          setCarbonSites(new Set())
+                        }}
+                      >
+                        Clear Carbon ({carbonSites.size})
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={undoCarbonSite}
+                        disabled={carbonUndoStackRef.current.length === 0}
+                      >
+                        Undo
+                      </Button>
+                    </div>
                   )}
 
                   <Separator className="my-4" />
@@ -1402,20 +1565,49 @@ export default function SimPageClientView() {
                 seconds
               </h3>
               <div className="flex min-h-0 w-full flex-1 justify-center gap-4">
-                <DisplayHexGrid
-                  width={gridDimensions[0]}
-                  height={gridDimensions[1]}
-                  data={simState}
-                  onCellClick={
-                    historyMode
-                      ? undefined
-                      : drawingCarbon
-                        ? (x: number, y: number) => toggleCarbonSite(x, y)
-                        : (x: number, y: number) => inspectCell(x, y)
-                  }
-                />
+                <div
+                  className="min-h-0 flex-1 overflow-hidden"
+                  style={{ cursor: isDraggingRef.current ? "grabbing" : "grab" }}
+                  onWheel={handleWheelZoom}
+                  onPointerDown={handlePointerDown}
+                  onPointerMove={handlePointerMove}
+                  onPointerUp={handlePointerUp}
+                  onPointerLeave={handlePointerUp}
+                >
+                  <div
+                    style={{
+                      transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                      transformOrigin: "center center",
+                      transition: isDraggingRef.current ? "none" : "transform 0.05s linear",
+                    }}
+                  >
+                    <DisplayHexGrid
+                      width={gridDimensions[0]}
+                      height={gridDimensions[1]}
+                      data={simState}
+                      onCellClick={
+                        historyMode
+                          ? undefined
+                          : drawingCarbon
+                            ? (x: number, y: number) => toggleCarbonSite(x, y)
+                            : (x: number, y: number) => inspectCell(x, y)
+                      }
+                    />
+                  </div>
+                </div>
                 <AtomColorKey />
               </div>
+              {(zoom !== 1 || pan.x !== 0 || pan.y !== 0) && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-1"
+                  onClick={resetView}
+                >
+                  Reset View ({Math.round(zoom * 100)}%)
+                </Button>
+              )}
               {selectedCell && (
                 <div className="mt-2 w-full rounded-md border p-2 text-xs text-muted-foreground">
                   Cell ({selectedCell.x}, {selectedCell.y}):{" "}
@@ -1447,6 +1639,26 @@ export default function SimPageClientView() {
             </Card>
             <Card className="flex min-h-0 flex-1 flex-col p-4">
               <AtomCountsChart data={statsData} />
+              <div className="mt-2 flex shrink-0 gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={exportStatsCSV}
+                  disabled={statsData.length === 0}
+                >
+                  Export Stats CSV
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={exportLatticeCSV}
+                  disabled={simState.length === 0}
+                >
+                  Export Lattice CSV
+                </Button>
+              </div>
             </Card>
           </div>
         </div>
