@@ -1568,7 +1568,7 @@ export default function SimPageClientView() {
               </h3>
               <div className="flex min-h-0 w-full flex-1 justify-center gap-4">
                 <div
-                  className="min-h-0 flex-1 overflow-hidden"
+                  className="flex min-h-0 flex-1 items-center justify-center overflow-hidden"
                   style={{ cursor: isDraggingRef.current ? "grabbing" : "grab" }}
                   onPointerDown={handlePointerDown}
                   onPointerMove={handlePointerMove}
