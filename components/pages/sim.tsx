@@ -768,7 +768,7 @@ export default function SimPageClientView() {
     downloadCSV(`lkmc-lattice-step${stepsRan}.csv`, rows)
   }
 
-  const PRESETS: Record
+  const PRESETS: Record <
     string,
     {
       temp: number
