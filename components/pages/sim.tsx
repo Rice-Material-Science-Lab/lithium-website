@@ -1851,42 +1851,44 @@ export default function SimPageClientView() {
                         : "Stopped"}
                 </span>
               </div>
-              <h3 className="text-center text-sm font-medium text-muted-foreground">
-                After {stepsRan.toLocaleString()} steps and {runTime.toFixed(2)}{" "}
-                seconds
-              </h3>
-              <div className="flex min-h-0 w-full flex-1 justify-center gap-4">
-                <div
-                  ref={gridContainerRef}
-                  className="flex min-h-0 flex-1 items-center justify-center overflow-hidden"
-                  style={{ cursor: isDraggingRef.current ? "grabbing" : "grab" }}
-                  onPointerDown={handlePointerDown}
-                  onPointerMove={handlePointerMove}
-                  onPointerUp={handlePointerUp}
-                  onPointerLeave={handlePointerUp}
-                >
+              <div className="flex min-h-0 w-full flex-1 gap-4">
+                <div className="flex min-h-0 flex-1 flex-col items-center">
+                  <h3 className="text-center text-sm font-medium text-muted-foreground">
+                    After {stepsRan.toLocaleString()} steps and {runTime.toFixed(2)}{" "}
+                    seconds
+                  </h3>
                   <div
-                    ref={gridContentRef}
-                    style={{
-                      transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-                      transformOrigin: "center center",
-                      transition: isDraggingRef.current ? "none" : "transform 0.05s linear",
-                    }}
+                    ref={gridContainerRef}
+                    className="flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden"
+                    style={{ cursor: isDraggingRef.current ? "grabbing" : "grab" }}
+                    onPointerDown={handlePointerDown}
+                    onPointerMove={handlePointerMove}
+                    onPointerUp={handlePointerUp}
+                    onPointerLeave={handlePointerUp}
                   >
-                    <DisplayHexGrid
-                      width={gridDimensions[0]}
-                      height={gridDimensions[1]}
-                      data={simState}
-                      carbonSpeciesMap={carbonSites}
-                      carbonSpeciesColors={CARBON_SPECIES_COLORS}
-                      onCellClick={
-                        historyMode
-                          ? undefined
-                          : drawingCarbon
-                            ? (x: number, y: number) => toggleCarbonSite(x, y)
-                            : (x: number, y: number) => inspectCell(x, y)
-                      }
-                    />
+                    <div
+                      ref={gridContentRef}
+                      style={{
+                        transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                        transformOrigin: "center center",
+                        transition: isDraggingRef.current ? "none" : "transform 0.05s linear",
+                      }}
+                    >
+                      <DisplayHexGrid
+                        width={gridDimensions[0]}
+                        height={gridDimensions[1]}
+                        data={simState}
+                        carbonSpeciesMap={carbonSites}
+                        carbonSpeciesColors={CARBON_SPECIES_COLORS}
+                        onCellClick={
+                          historyMode
+                            ? undefined
+                            : drawingCarbon
+                              ? (x: number, y: number) => toggleCarbonSite(x, y)
+                              : (x: number, y: number) => inspectCell(x, y)
+                        }
+                      />
+                    </div>
                   </div>
                 </div>
                 <AtomColorKey carbonSpeciesColors={CARBON_SPECIES_COLORS} />
