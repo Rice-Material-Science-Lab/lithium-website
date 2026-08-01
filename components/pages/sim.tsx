@@ -169,6 +169,7 @@ export default function SimPageClientView() {
   const [carbonBondEnergy, setCarbonBondEnergy] = useState(-0.6)
   const [stepsToRun, setStepsToRun] = useState("1000000")
   const [updateInterval, setUpdateInterval] = useState("10000")
+  const [seed, setSeed] = useState("") // blank = random each run
 
   const [statsData, setStatsData] = useState<
     {
@@ -183,6 +184,70 @@ export default function SimPageClientView() {
       total_rate: number
     }[]
   >([])
+
+  const STORAGE_KEY = "lkmc-sim-params-v1"
+
+  // Restore saved params on mount (skip grid size -- covered separately
+  // by width/height inputs which already default sensibly).
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY)
+      if (!raw) return
+      const saved = JSON.parse(raw)
+      if (typeof saved.temp === "number") setTemp(saved.temp)
+      if (typeof saved.dropRate === "number") setDropRate(saved.dropRate)
+      if (typeof saved.bondedEnergy === "number") setBondedEnergy(saved.bondedEnergy)
+      if (typeof saved.atomSubstrate === "number") setAtomSubstrate(saved.atomSubstrate)
+      if (typeof saved.freeAttFreq === "number") setFreeAttFreq(saved.freeAttFreq)
+      if (typeof saved.depAttFreq === "number") setDepAttFreq(saved.depAttFreq)
+      if (typeof saved.passAttFreq === "number") setPassAttFreq(saved.passAttFreq)
+      if (typeof saved.ePass === "number") setEPass(saved.ePass)
+      if (typeof saved.carbonBondEnergy === "number") setCarbonBondEnergy(saved.carbonBondEnergy)
+      if (typeof saved.stepsToRun === "string") setStepsToRun(saved.stepsToRun)
+      if (typeof saved.updateInterval === "string") setUpdateInterval(saved.updateInterval)
+      if (typeof saved.seed === "string") setSeed(saved.seed)
+    } catch (e) {
+      console.error("Failed to restore saved parameters:", e)
+    }
+  }, [])
+
+  // Persist params whenever they change.
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          temp,
+          dropRate,
+          bondedEnergy,
+          atomSubstrate,
+          freeAttFreq,
+          depAttFreq,
+          passAttFreq,
+          ePass,
+          carbonBondEnergy,
+          stepsToRun,
+          updateInterval,
+          seed,
+        })
+      )
+    } catch (e) {
+      console.error("Failed to save parameters:", e)
+    }
+  }, [
+    temp,
+    dropRate,
+    bondedEnergy,
+    atomSubstrate,
+    freeAttFreq,
+    depAttFreq,
+    passAttFreq,
+    ePass,
+    carbonBondEnergy,
+    stepsToRun,
+    updateInterval,
+    seed,
+  ])
 
   const animFrameRef = useRef<number | null>(null)
   const remainingStepsRef = useRef(0)
@@ -381,7 +446,11 @@ export default function SimPageClientView() {
     const stepsToRunNum = Math.max(1, Number(stepsToRun) || 0)
     const updateIntervalNum = Math.max(1, Number(updateInterval) || 1)
 
-    const randomSeed = Math.floor(Math.random() * 1000000)
+    const trimmedSeed = seed.trim()
+    const randomSeed =
+      trimmedSeed !== "" && !Number.isNaN(Number(trimmedSeed))
+        ? Math.floor(Number(trimmedSeed))
+        : Math.floor(Math.random() * 1000000)
 
     wasmModule.ccall(
       "set_params",
@@ -503,6 +572,14 @@ export default function SimPageClientView() {
 
   const handleStopSim = () => {
     if (!wasmModule) return
+    if (
+      stepsRan > 0 &&
+      !window.confirm(
+        "Stop the simulation? Progress will be discarded and you'll need to press Run to start over."
+      )
+    ) {
+      return
+    }
     wasmModule._stop()
     isPausedRef.current = false
     setIsPaused(false)
@@ -514,6 +591,27 @@ export default function SimPageClientView() {
     }
     wasmModule._force_update_frontend()
   }
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.code !== "Space") return
+      const target = e.target as HTMLElement | null
+      const tag = target?.tagName
+      if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) {
+        return
+      }
+      if (!isRunning && !isPaused) return
+      e.preventDefault()
+      if (isPaused) {
+        handleResumeSim()
+      } else {
+        handlePauseSim()
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [isRunning, isPaused, wasmModule])
 
   const toggleCarbonSite = (x: number, y: number) => {
     setCarbonSites((prev) => {
@@ -886,6 +984,31 @@ export default function SimPageClientView() {
                     onChange={(e) => setUpdateInterval(e.target.value)}
                   />
 
+                  <Label
+                    htmlFor="seed-input"
+                    className="mt-2 flex items-center text-sm font-medium"
+                  >
+                    Seed (optional)
+                    <Tooltip>
+                      <TooltipTrigger className="ml-2" type="button">
+                        <CircleQuestionMarkIcon
+                          size={17}
+                        ></CircleQuestionMarkIcon>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Fix the RNG seed to reproduce an identical run. Leave
+                        blank for a new random seed each time.
+                      </TooltipContent>
+                    </Tooltip>
+                  </Label>
+                  <Input
+                    id="seed-input"
+                    type="number"
+                    placeholder="random"
+                    value={seed}
+                    onChange={(e) => setSeed(e.target.value)}
+                  />
+
                   {/* advanced options */}
 
                   <Collapsible className="w-full rounded-md">
@@ -1184,6 +1307,29 @@ export default function SimPageClientView() {
                   </AlertDescription>
                 </Alert>
               )}
+              <div className="flex items-center gap-2">
+                <span
+                  className={
+                    "h-2 w-2 rounded-full " +
+                    (simTerminated
+                      ? "bg-destructive"
+                      : isPaused
+                        ? "bg-yellow-500"
+                        : isRunning
+                          ? "bg-green-500"
+                          : "bg-muted-foreground")
+                  }
+                />
+                <span className="text-xs font-medium text-muted-foreground">
+                  {simTerminated
+                    ? "Jammed"
+                    : isPaused
+                      ? "Paused"
+                      : isRunning
+                        ? "Running"
+                        : "Stopped"}
+                </span>
+              </div>
               <h3 className="text-center text-sm font-medium text-muted-foreground">
                 After {stepsRan.toLocaleString()} steps and {runTime.toFixed(2)}{" "}
                 seconds
