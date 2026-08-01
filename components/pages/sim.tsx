@@ -319,7 +319,14 @@ export default function SimPageClientView() {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ;(window as any).onSimulationTerminated = () => {
               if (!active) return
-              setSimTerminated(true)
+              setSimTerminated((already) => {
+                if (!already) {
+                  alert(
+                    "Simulation jammed: every entry column is full and no further event is possible. Adjust parameters and press Run to restart."
+                  )
+                }
+                return true
+              })
               if (animFrameRef.current) {
                 cancelAnimationFrame(animFrameRef.current)
                 animFrameRef.current = null
@@ -422,12 +429,6 @@ export default function SimPageClientView() {
     // is just as likely to show up on the graph as on the lattice.
     const batchSize = updateIntervalNum
     wasmModule._set_stats_interval(batchSize)
-    console.log(
-      "Requested stats interval:",
-      batchSize,
-      "-- WASM confirms:",
-      wasmModule._get_stats_interval()
-    )
 
     let remaining = stepsToRunNum
 
@@ -435,6 +436,7 @@ export default function SimPageClientView() {
       if (!wasmModule || remaining <= 0) return
 
       if (wasmModule._get_terminated()) {
+        remaining = 0
         setSimTerminated(true)
         return
       }
