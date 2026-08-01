@@ -1193,9 +1193,6 @@ export default function SimPageClientView() {
   return (
     <>
       <div className="relative flex h-full w-full flex-col overflow-hidden">
-        <div className="pointer-events-none absolute -top-32 -left-32 h-96 w-96 rounded-full bg-primary/20 blur-[120px] dark:bg-cyan-500/20" />
-        <div className="pointer-events-none absolute top-1/3 -right-32 h-96 w-96 rounded-full bg-primary/10 blur-[120px] dark:bg-cyan-500/10" />
-
         <div className="relative z-10 flex h-full w-full flex-col overflow-hidden p-5">
           <div className="flex shrink-0 items-center gap-3 px-4 pb-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary dark:bg-cyan-500">
@@ -1218,7 +1215,7 @@ export default function SimPageClientView() {
               <Card className="flex h-full flex-col justify-start rounded-2xl border border-black/5 backdrop-blur-xl dark:border-white/10">
                 <CardHeader className="pl-2">
                   <h3 className="flex items-center gap-2 text-xl font-bold">
-                    <span className="h-1.5 w-1.5 rounded-full bg-primary dark:bg-cyan-500" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                     Parameters
                   </h3>
                 </CardHeader>
@@ -1276,7 +1273,7 @@ export default function SimPageClientView() {
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="rounded-full border-primary/30 bg-primary/5 text-primary hover:bg-primary/15 dark:border-cyan-500/30 dark:bg-cyan-500/5 dark:text-cyan-400 dark:hover:bg-cyan-500/15"
+                        className="rounded-full"
                         onClick={() =>
                           applyPreset(name as keyof typeof PRESETS)
                         }
@@ -1335,7 +1332,7 @@ export default function SimPageClientView() {
                       onChange={(e) => setHeight(e.target.value)}
                     />
 
-                    <Separator className="my-4 bg-linear-to-r from-transparent via-primary/20 to-transparent dark:via-cyan-500/20" />
+                    <Separator className="my-4 bg-linear-to-r from-transparent via-primary/50 to-transparent dark:via-primary/50" />
 
                     <Alert className="flex shrink-0 items-center justify-between overflow-hidden rounded-xl border-black/5 p-3! dark:border-white/10">
                       <div className="space-y-1">
