@@ -63,7 +63,18 @@ interface CustomWasmModule {
   _get_carbon_species_grid(): number
   _malloc(size: number): number
   _free(ptr: number): void
-
+  _run_batch(
+    d0Ptr: number,
+    TPtr: number,
+    e0Ptr: number,
+    e1Ptr: number,
+    numRuns: number,
+    nx: number,
+    ny: number,
+    stepsPerRun: number,
+    baseSeed: number
+  ): void
+  _get_batch_json(): number
   _init_simulation(): void
   _run_steps(steps: number): void
   _get_step(): number
@@ -201,19 +212,17 @@ export default function SimPageClientView() {
   const [updateInterval, setUpdateInterval] = useState("10000")
   const [seed, setSeed] = useState("") // blank = random each run
 
-  const [statsData, setStatsData] = useState<
-    {
-      deposited: number
-      empty: number
-      fill: number
-      free: number
-      passivated: number
-      step: number
-      substrate: number
-      time: number
-      total_rate: number
-    }[]
-  >([])
+  const [statsData, setStatsData] = useState<{
+  deposited: number
+  empty: number
+  fill: number
+  free: number
+  passivated: number
+  step: number
+  substrate: number
+  time: number
+  total_rate: number
+}[]>([])
 
   const STORAGE_KEY = "lkmc-sim-params-v1"
 
@@ -840,6 +849,102 @@ export default function SimPageClientView() {
       rows.push(simState.slice(y * nx, (y + 1) * nx).join(","))
     }
     downloadCSV(`lkmc-lattice-step${stepsRan}.csv`, rows)
+  }
+
+  const [batchParam, setBatchParam] = useState<"temp" | "dropRate">("temp")
+  const [batchMin, setBatchMin] = useState("250")
+  const [batchMax, setBatchMax] = useState("400")
+  const [batchCount, setBatchCount] = useState("5")
+  const [batchSteps, setBatchSteps] = useState("200000")
+  const [batchResults, setBatchResults] = useState<Record<string, number>[]>([])
+  const [batchRunning, setBatchRunning] = useState(false)
+  const [batchProgress, setBatchProgress] = useState({ done: 0, total: 0 })
+
+  const runBatch = () => {
+    if (!wasmModule) return
+    const count = Math.max(1, Number(batchCount) || 1)
+    const min = Number(batchMin)
+    const max = Number(batchMax)
+    const [nx, ny] = gridDimensions
+    const stepsPerRun = Math.max(1, Number(batchSteps) || 1)
+
+    const d0Arr = new Float64Array(count)
+    const TArr = new Float64Array(count)
+    const e0Arr = new Float64Array(count)
+    const e1Arr = new Float64Array(count)
+
+    for (let i = 0; i < count; i++) {
+      const t = count === 1 ? 0 : i / (count - 1)
+      const value = min + t * (max - min)
+      d0Arr[i] = batchParam === "dropRate" ? value : dropRate
+      TArr[i] = batchParam === "temp" ? value : temp
+      e0Arr[i] = bondedEnergy
+      e1Arr[i] = atomSubstrate
+    }
+
+    const bytesPerArr = count * 8
+    const d0Ptr = wasmModule._malloc(bytesPerArr)
+    const TPtr = wasmModule._malloc(bytesPerArr)
+    const e0Ptr = wasmModule._malloc(bytesPerArr)
+    const e1Ptr = wasmModule._malloc(bytesPerArr)
+
+    wasmModule.HEAPF64.set(d0Arr, d0Ptr / 8)
+    wasmModule.HEAPF64.set(TArr, TPtr / 8)
+    wasmModule.HEAPF64.set(e0Arr, e0Ptr / 8)
+    wasmModule.HEAPF64.set(e1Arr, e1Ptr / 8)
+
+    setBatchRunning(true)
+    setBatchProgress({ done: 0, total: count })
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(window as any).onBatchRunProgress = (done: number, total: number) => {
+      setBatchProgress({ done, total })
+    }
+
+    // Yield one frame so the "Running..." state paints before the
+    // synchronous, blocking batch loop starts.
+    requestAnimationFrame(() => {
+      wasmModule._run_batch(
+        d0Ptr,
+        TPtr,
+        e0Ptr,
+        e1Ptr,
+        count,
+        nx,
+        ny,
+        stepsPerRun,
+        Math.floor(Math.random() * 1000000)
+      )
+
+      wasmModule._free(d0Ptr)
+      wasmModule._free(TPtr)
+      wasmModule._free(e0Ptr)
+      wasmModule._free(e1Ptr)
+
+      const jsonStr = wasmModule.ccall("get_batch_json", "string", [], [])
+      let results: Record<string, number>[] = []
+      try {
+        results = JSON.parse(jsonStr as string)
+      } catch (e) {
+        console.error("Failed to parse batch results:", e)
+      }
+
+      setBatchResults(results)
+      setBatchRunning(false)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      delete (window as any).onBatchRunProgress
+    })
+  }
+
+  const exportBatchCSV = () => {
+    if (batchResults.length === 0) return
+    const header =
+      "index,d0,T,e0,e1,steps_run,final_step,final_time,fill_pct,passivated,terminated,wall_time"
+    const rows = batchResults.map(
+      (r) =>
+        `${r.index},${r.d0},${r.T},${r.e0},${r.e1},${r.steps_run},${r.final_step},${r.final_time},${r.fill_pct},${r.passivated},${r.terminated},${r.wall_time}`
+    )
+    downloadCSV("lkmc-batch-results.csv", [header, ...rows])
   }
 
   const PRESETS: Record <
@@ -1855,6 +1960,104 @@ export default function SimPageClientView() {
                   Export Lattice CSV
                 </Button>
               </div>
+            </Card>
+            <Card className="flex shrink-0 flex-col gap-3 p-4">
+              <h3 className="text-lg font-semibold">Batch Run</h3>
+              <div className="flex flex-wrap items-end gap-2">
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs">Sweep parameter</Label>
+                  <select
+                    className="rounded-md border bg-background px-2 py-1 text-sm"
+                    value={batchParam}
+                    onChange={(e) =>
+                      setBatchParam(e.target.value as "temp" | "dropRate")
+                    }
+                  >
+                    <option value="temp">Temperature</option>
+                    <option value="dropRate">Drop Rate</option>
+                  </select>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs">Min</Label>
+                  <Input
+                    className="w-24"
+                    type="number"
+                    value={batchMin}
+                    onChange={(e) => setBatchMin(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs">Max</Label>
+                  <Input
+                    className="w-24"
+                    type="number"
+                    value={batchMax}
+                    onChange={(e) => setBatchMax(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs">Runs</Label>
+                  <Input
+                    className="w-20"
+                    type="number"
+                    min={1}
+                    value={batchCount}
+                    onChange={(e) => setBatchCount(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs">Steps / run</Label>
+                  <Input
+                    className="w-28"
+                    type="number"
+                    min={1}
+                    value={batchSteps}
+                    onChange={(e) => setBatchSteps(e.target.value)}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  onClick={runBatch}
+                  disabled={!wasmModule || batchRunning}
+                >
+                  {batchRunning
+                    ? `Running ${batchProgress.done}/${batchProgress.total}...`
+                    : "Run Batch"}
+                </Button>
+                {batchResults.length > 0 && (
+                  <Button type="button" variant="outline" onClick={exportBatchCSV}>
+                    Export CSV
+                  </Button>
+                )}
+              </div>
+              {batchResults.length > 0 && (
+                <div className="max-h-40 overflow-auto rounded-md border">
+                  <table className="w-full text-xs">
+                    <thead className="sticky top-0 bg-muted">
+                      <tr>
+                        <th className="p-1 text-left">#</th>
+                        <th className="p-1 text-left">T</th>
+                        <th className="p-1 text-left">d0</th>
+                        <th className="p-1 text-left">Fill %</th>
+                        <th className="p-1 text-left">Passivated</th>
+                        <th className="p-1 text-left">Jammed</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {batchResults.map((r) => (
+                        <tr key={r.index} className="border-t">
+                          <td className="p-1">{r.index}</td>
+                          <td className="p-1">{r.T}</td>
+                          <td className="p-1">{r.d0}</td>
+                          <td className="p-1">{r.fill_pct?.toFixed(1)}</td>
+                          <td className="p-1">{r.passivated}</td>
+                          <td className="p-1">{r.terminated ? "yes" : "no"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </Card>
           </div>
         </div>
