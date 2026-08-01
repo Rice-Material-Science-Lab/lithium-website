@@ -81,6 +81,7 @@ interface CustomWasmModule {
   _pause(): void
   _play(): void
   _stop(): void
+  _get_cell_coordination(x: number, y: number): number
 }
 
 function generateStartingLattice(w: number, h: number) {
@@ -135,6 +136,21 @@ export default function SimPageClientView() {
   const [simTerminated, setSimTerminated] = useState(false)
   const [drawingCarbon, setDrawingCarbon] = useState(false)
   const [carbonSites, setCarbonSites] = useState<Set<string>>(new Set())
+  const [selectedCell, setSelectedCell] = useState<{
+    x: number
+    y: number
+    state: number
+    coordination: number
+  } | null>(null)
+
+  const CELL_STATE_LABELS: Record<number, string> = {
+    0: "Empty",
+    1: "Free",
+    2: "Deposited",
+    3: "Substrate",
+    4: "Passivated",
+    5: "Carbon",
+  }
 
   // Live preview: before the first run, reflect drawn carbon sites
   // directly on the displayed grid so users can see what they're placing.
@@ -624,6 +640,14 @@ export default function SimPageClientView() {
       }
       return next
     })
+  }
+
+  const inspectCell = (x: number, y: number) => {
+    if (!wasmModule || !hasRunOnce) return
+    const idx = y * gridDimensions[0] + x
+    const state = simState[idx] ?? -1
+    const coordination = wasmModule._get_cell_coordination(x, y)
+    setSelectedCell({ x, y, state, coordination })
   }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -1342,11 +1366,19 @@ export default function SimPageClientView() {
                   onCellClick={
                     drawingCarbon
                       ? (x: number, y: number) => toggleCarbonSite(x, y)
-                      : undefined
+                      : (x: number, y: number) => inspectCell(x, y)
                   }
                 />
                 <AtomColorKey />
               </div>
+              {selectedCell && (
+                <div className="mt-2 w-full rounded-md border p-2 text-xs text-muted-foreground">
+                  Cell ({selectedCell.x}, {selectedCell.y}):{" "}
+                  {CELL_STATE_LABELS[selectedCell.state] ?? "Unknown"}
+                  {selectedCell.coordination >= 0 &&
+                    ` · coordination ${selectedCell.coordination}`}
+                </div>
+              )}
             </Card>
             <Card className="flex min-h-0 flex-1 flex-col p-4">
               <AtomCountsChart data={statsData} />
