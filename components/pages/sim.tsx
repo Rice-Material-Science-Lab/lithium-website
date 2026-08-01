@@ -192,6 +192,11 @@ export default function SimPageClientView() {
   // needing to restart the sim -- a plain closure constant would freeze
   // this value for the whole run.
   const batchSizeRef = useRef(10000)
+  // Mutable target step count -- tick() compares this against the sim's
+  // actual cumulative step count each iteration, so raising it live
+  // (or after the sim already finished) resumes/extends the run instead
+  // of being frozen at whatever stepsToRun was when Start was clicked.
+  const targetStepsRef = useRef(1000000)
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function getWasmBuffer(mod: any): ArrayBuffer | null {
@@ -362,6 +367,7 @@ export default function SimPageClientView() {
     const stepsToRunNum = Math.max(1, Number(stepsToRun) || 0)
     const updateIntervalNum = Math.max(1, Number(updateInterval) || 1)
     batchSizeRef.current = updateIntervalNum
+    targetStepsRef.current = stepsToRunNum
 
     const randomSeed = Math.floor(Math.random() * 1000000)
 
@@ -425,21 +431,25 @@ export default function SimPageClientView() {
       wasmModule._get_stats_interval()
     )
 
-    let remaining = stepsToRunNum
-
     function tick() {
-      if (!wasmModule || remaining <= 0) return
+      if (!wasmModule) return
 
-      // Read fresh each iteration so live changes to Update Frequency
-      // (via the useEffect below) take effect without restarting the sim.
+      // Recomputed every iteration from the sim's actual step count and
+      // the live target ref, so changes to "Steps" while running (or
+      // after the run already finished) take effect without a restart.
+      const currentStep = wasmModule._get_step()
+      const remaining = targetStepsRef.current - currentStep
+      if (remaining <= 0) {
+        animFrameRef.current = null
+        return
+      }
+
       const batchSize = batchSizeRef.current
 
       if (remaining >= batchSize) {
         wasmModule._run_steps(batchSize)
-        remaining -= batchSize
       } else {
         wasmModule._run_steps(remaining)
-        remaining = 0 // CRITICAL: Force countdown to zero so the loop can terminate
         wasmModule._force_update_frontend()
       }
 
@@ -540,6 +550,37 @@ export default function SimPageClientView() {
     batchSizeRef.current = updateIntervalNum
     wasmModule._set_stats_interval(updateIntervalNum)
   }, [isLiveMode, updateInterval, wasmModule, hasRunOnce])
+
+  // Live-adjustable Steps: updates the target tick() runs toward, and
+  // restarts the animation loop if it had already stopped (e.g. the
+  // previous target was reached and the user raised it afterward).
+  useEffect(() => {
+    if (!wasmModule || !isLiveMode || !hasRunOnce) return
+
+    const stepsToRunNum = Math.max(1, Number(stepsToRun) || 0)
+    targetStepsRef.current = stepsToRunNum
+
+    if (animFrameRef.current == null) {
+      const currentStep = wasmModule._get_step()
+      if (targetStepsRef.current - currentStep > 0) {
+        function tick() {
+          if (!wasmModule) return
+          const cur = wasmModule._get_step()
+          const remaining = targetStepsRef.current - cur
+          if (remaining <= 0) return
+          const batchSize = batchSizeRef.current
+          if (remaining >= batchSize) {
+            wasmModule._run_steps(batchSize)
+          } else {
+            wasmModule._run_steps(remaining)
+            wasmModule._force_update_frontend()
+          }
+          animFrameRef.current = requestAnimationFrame(tick)
+        }
+        tick()
+      }
+    }
+  }, [isLiveMode, stepsToRun, wasmModule, hasRunOnce])
 
   return (
     <>
