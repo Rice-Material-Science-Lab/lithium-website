@@ -2056,7 +2056,7 @@ export default function SimPageClientView() {
                   <AtomColorKey carbonSpeciesColors={CARBON_SPECIES_COLORS} />
                 </div>
                 {selectedCell && (
-                  <div className="mt-2 w-full rounded-xl border border-primary/20 bg-primary/5 p-2 text-xs text-muted-foreground dark:border-cyan-500/20 dark:bg-cyan-500/5">
+                  <div className="mt-2 w-full rounded-xl border border-primary/20 bg-primary/5 p-2 text-xs text-muted-foreground">
                     Cell ({selectedCell.x}, {selectedCell.y}):{" "}
                     {CELL_STATE_LABELS[selectedCell.state] ?? "Unknown"}
                     {selectedCell.coordination >= 0 &&
@@ -2091,7 +2091,7 @@ export default function SimPageClientView() {
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="rounded-full border-primary/30 text-primary dark:border-cyan-500/30 dark:text-cyan-400"
+                      className="rounded-full text-primary"
                       onClick={returnToLive}
                     >
                       Back to Live
@@ -2193,7 +2193,7 @@ export default function SimPageClientView() {
                     </div>
                     <Button
                       type="button"
-                      className="rounded-xl bg-primary hover:bg-primary/90 dark:bg-cyan-500 dark:hover:bg-cyan-400"
+                      className="rounded-xl"
                       onClick={runBatch}
                       disabled={!wasmModule || batchRunning}
                     >
@@ -2215,7 +2215,7 @@ export default function SimPageClientView() {
                   {batchResults.length > 0 && (
                     <div className="max-h-40 shrink-0 overflow-auto rounded-xl border border-black/10 dark:border-white/10">
                       <table className="w-full text-xs">
-                        <thead className="sticky top-0 bg-primary/10 dark:bg-cyan-500/10">
+                        <thead className="sticky top-0 bg-primary/30">
                           <tr>
                             <th className="p-1 text-left">#</th>
                             <th className="p-1 text-left">T</th>
@@ -2229,7 +2229,7 @@ export default function SimPageClientView() {
                           {batchResults.map((r) => (
                             <tr
                               key={r.index}
-                              className="border-t border-black/5 hover:bg-primary/5 dark:border-white/5 dark:hover:bg-cyan-500/5"
+                              className="border-t border-black/5 hover:bg-primary/5 dark:border-white/5 dark:hover:bg-primary/5"
                             >
                               <td className="p-1">{r.index}</td>
                               <td className="p-1">{r.T}</td>
@@ -2251,7 +2251,7 @@ export default function SimPageClientView() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="w-fit shrink-0 rounded-full border-primary/30 bg-primary/5 text-primary hover:bg-primary/15 dark:border-cyan-500/30 dark:bg-cyan-500/5 dark:text-cyan-400 dark:hover:bg-cyan-500/15"
+                  className="w-fit shrink-0 rounded-full border-primary/30 bg-primary/5 text-primary hover:bg-primary/15"
                   onClick={() => setBatchOpen(true)}
                 >
                   Show Batch Run
