@@ -68,22 +68,14 @@ interface CustomWasmModule {
   _cleanup_simulation(): void
   _force_update_frontend(): void
   _get_wall_time(): number
-  _update_simulation_params(
-    d0: number,
-    T: number,
-    nu_f: number,
-    nu_d: number,
-    nu_p: number,
-    e_pass: number,
-    e_c: number
-  ): void
+  _update_simulation_params(): void
 
   _get_stats_json(): number
   _get_stats_json_len(): number
   _set_stats_interval(interval: number): void
   _get_stats_interval(): number
+  _get_terminated(): number
   _mark_carbon(x: number, y: number): void
-  _unmark_carbon(x: number, y: number): void
   _finalize_carbon_placement(): void
 }
 
@@ -136,6 +128,7 @@ export default function SimPageClientView() {
     generateStartingLattice(...gridDimensions)
   )
   const [hasRunOnce, setHasRunOnce] = useState(false)
+  const [simTerminated, setSimTerminated] = useState(false)
   const [drawingCarbon, setDrawingCarbon] = useState(false)
   const [carbonSites, setCarbonSites] = useState<Set<string>>(new Set())
 
@@ -188,15 +181,6 @@ export default function SimPageClientView() {
   >([])
 
   const animFrameRef = useRef<number | null>(null)
-  // Mutable so tick() picks up live changes to Update Frequency without
-  // needing to restart the sim -- a plain closure constant would freeze
-  // this value for the whole run.
-  const batchSizeRef = useRef(10000)
-  // Mutable target step count -- tick() compares this against the sim's
-  // actual cumulative step count each iteration, so raising it live
-  // (or after the sim already finished) resumes/extends the run instead
-  // of being frozen at whatever stepsToRun was when Start was clicked.
-  const targetStepsRef = useRef(1000000)
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function getWasmBuffer(mod: any): ArrayBuffer | null {
@@ -331,6 +315,16 @@ export default function SimPageClientView() {
                 console.error("updateSimulation callback failed:", e)
               }
             }
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ;(window as any).onSimulationTerminated = () => {
+              if (!active) return
+              setSimTerminated(true)
+              if (animFrameRef.current) {
+                cancelAnimationFrame(animFrameRef.current)
+                animFrameRef.current = null
+              }
+            }
           }
         } else if (!moduleFactory) {
           console.error("The default export from lkmc-wasm.js is undefined.")
@@ -348,6 +342,8 @@ export default function SimPageClientView() {
       delete (window as any).onSimUpdate
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (window as any).updateSimulation
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      delete (window as any).onSimulationTerminated
     }
   }, [])
 
@@ -366,8 +362,6 @@ export default function SimPageClientView() {
     // typing without fighting the controlled-input cursor.
     const stepsToRunNum = Math.max(1, Number(stepsToRun) || 0)
     const updateIntervalNum = Math.max(1, Number(updateInterval) || 1)
-    batchSizeRef.current = updateIntervalNum
-    targetStepsRef.current = stepsToRunNum
 
     const randomSeed = Math.floor(Math.random() * 1000000)
 
@@ -405,12 +399,14 @@ export default function SimPageClientView() {
     )
 
     setHasRunOnce(true)
+    setSimTerminated(false)
     setSimState(generateStartingLattice(nx, ny))
 
     wasmModule._init_simulation()
 
     // Apply user-drawn carbon (graphite anode) sites, then rebuild the
     // rate table once for all of them together.
+
 
     for (const key of carbonSites) {
       const [cx, cy] = key.split(",").map(Number)
@@ -420,36 +416,35 @@ export default function SimPageClientView() {
     }
     wasmModule._finalize_carbon_placement()
 
+
     // Keep the stats-recording cadence (used by the chart) in sync with
     // the visual refresh cadence below, so a transient state like FREE
     // is just as likely to show up on the graph as on the lattice.
-    wasmModule._set_stats_interval(batchSizeRef.current)
+    const batchSize = updateIntervalNum
+    wasmModule._set_stats_interval(batchSize)
     console.log(
       "Requested stats interval:",
-      batchSizeRef.current,
+      batchSize,
       "-- WASM confirms:",
       wasmModule._get_stats_interval()
     )
 
-    function tick() {
-      if (!wasmModule) return
+    let remaining = stepsToRunNum
 
-      // Recomputed every iteration from the sim's actual step count and
-      // the live target ref, so changes to "Steps" while running (or
-      // after the run already finished) take effect without a restart.
-      const currentStep = wasmModule._get_step()
-      const remaining = targetStepsRef.current - currentStep
-      if (remaining <= 0) {
-        animFrameRef.current = null
+    function tick() {
+      if (!wasmModule || remaining <= 0) return
+
+      if (wasmModule._get_terminated()) {
+        setSimTerminated(true)
         return
       }
 
-      const batchSize = batchSizeRef.current
-
       if (remaining >= batchSize) {
         wasmModule._run_steps(batchSize)
+        remaining -= batchSize
       } else {
         wasmModule._run_steps(remaining)
+        remaining = 0 // CRITICAL: Force countdown to zero so the loop can terminate
         wasmModule._force_update_frontend()
       }
 
@@ -461,10 +456,8 @@ export default function SimPageClientView() {
   }
 
   const toggleCarbonSite = (x: number, y: number) => {
-    const key = `${x},${y}`
-    const wasPresent = carbonSites.has(key)
-
     setCarbonSites((prev) => {
+      const key = `${x},${y}`
       const next = new Set(prev)
       if (next.has(key)) {
         next.delete(key)
@@ -473,32 +466,6 @@ export default function SimPageClientView() {
       }
       return next
     })
-
-    // Carbon placement is a structural draw action, not a physics
-    // parameter -- apply it to a running simulation immediately
-    // regardless of the Live Mode toggle (which only governs whether
-    // parameter sliders push live updates).
-    if (wasmModule && hasRunOnce) {
-      if (wasPresent) {
-        wasmModule._unmark_carbon(x, y)
-      } else {
-        wasmModule._mark_carbon(x, y)
-      }
-      wasmModule._finalize_carbon_placement()
-
-      // Patch the displayed lattice immediately so the click gives
-      // instant visual feedback instead of waiting for the next
-      // snapshot from run_steps() (which may be far off if Update
-      // Frequency is set high). The next real snapshot will overwrite
-      // this with the authoritative WASM state regardless.
-      setSimState((prev) => {
-        const idx = y * gridDimensions[0] + x
-        if (idx < 0 || idx >= prev.length) return prev
-        const next = prev.slice()
-        next[idx] = wasPresent ? 0 : CARBON_VALUE
-        return next
-      })
-    }
   }
 
   const handleSubmit = (e: React.SubmitEvent) => {
@@ -519,15 +486,7 @@ export default function SimPageClientView() {
       "update_simulation_params",
       null,
       ["number", "number", "number", "number", "number", "number", "number"],
-      [
-        dropRate,
-        temp,
-        freeAttFreq,
-        depAttFreq,
-        passAttFreq,
-        ePass,
-        carbonBondEnergy,
-      ]
+      [dropRate, temp, freeAttFreq, depAttFreq, passAttFreq, ePass, carbonBondEnergy]
     )
   }, [
     isLiveMode,
@@ -540,47 +499,6 @@ export default function SimPageClientView() {
     carbonBondEnergy,
     wasmModule,
   ])
-
-  // Live-adjustable Update Frequency: pushes to both the running tick()
-  // loop (via batchSizeRef) and WASM's own stats-recording cadence.
-  useEffect(() => {
-    if (!wasmModule || !isLiveMode || !hasRunOnce) return
-
-    const updateIntervalNum = Math.max(1, Number(updateInterval) || 1)
-    batchSizeRef.current = updateIntervalNum
-    wasmModule._set_stats_interval(updateIntervalNum)
-  }, [isLiveMode, updateInterval, wasmModule, hasRunOnce])
-
-  // Live-adjustable Steps: updates the target tick() runs toward, and
-  // restarts the animation loop if it had already stopped (e.g. the
-  // previous target was reached and the user raised it afterward).
-  useEffect(() => {
-    if (!wasmModule || !isLiveMode || !hasRunOnce) return
-
-    const stepsToRunNum = Math.max(1, Number(stepsToRun) || 0)
-    targetStepsRef.current = stepsToRunNum
-
-    if (animFrameRef.current == null) {
-      const currentStep = wasmModule._get_step()
-      if (targetStepsRef.current - currentStep > 0) {
-        function tick() {
-          if (!wasmModule) return
-          const cur = wasmModule._get_step()
-          const remaining = targetStepsRef.current - cur
-          if (remaining <= 0) return
-          const batchSize = batchSizeRef.current
-          if (remaining >= batchSize) {
-            wasmModule._run_steps(batchSize)
-          } else {
-            wasmModule._run_steps(remaining)
-            wasmModule._force_update_frontend()
-          }
-          animFrameRef.current = requestAnimationFrame(tick)
-        }
-        tick()
-      }
-    }
-  }, [isLiveMode, stepsToRun, wasmModule, hasRunOnce])
 
   return (
     <>
@@ -620,7 +538,6 @@ export default function SimPageClientView() {
                   </div>
                   <AlertAction className="mt-0 shrink-0">
                     <Switch
-                      className="data-[state=checked]:bg-primary"
                       id="live-mode"
                       checked={isLiveMode}
                       onCheckedChange={setIsLiveMode}
@@ -1118,6 +1035,15 @@ export default function SimPageClientView() {
           </form>
           <div className="flex min-h-0 flex-1 flex-col gap-4">
             <Card className="flex min-h-0 flex-1 flex-col items-center justify-center gap-0 p-4">
+              {simTerminated && (
+                <Alert variant="destructive" className="mb-2 w-full">
+                  <AlertTitle>Simulation jammed</AlertTitle>
+                  <AlertDescription>
+                    Every entry column is full and no further event is
+                    possible. Adjust parameters and press Run to restart.
+                  </AlertDescription>
+                </Alert>
+              )}
               <h3 className="text-center text-sm font-medium text-muted-foreground">
                 After {stepsRan.toLocaleString()} steps and {runTime.toFixed(2)}{" "}
                 seconds
