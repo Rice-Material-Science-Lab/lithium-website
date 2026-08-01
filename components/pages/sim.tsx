@@ -848,8 +848,23 @@ export default function SimPageClientView() {
     setZoom((z) => Math.max(0.25, z - 0.25))
   }
 
+  // Movement threshold (px) before a pointer-down is treated as a pan
+  // rather than a click. Without this, Chrome's native HTML5 drag
+  // detection can hijack even a 1-2px jitter and swallow the click
+  // event entirely before it reaches the hexagon's onClick -- Safari
+  // is far more lenient here, which is why drawing carbon worked
+  // there but not in Chrome.
+  const DRAG_THRESHOLD = 4
+  const pointerDownPosRef = useRef({ x: 0, y: 0 })
+  const hasExceededThresholdRef = useRef(false)
+
   const handlePointerDown = (e: React.PointerEvent) => {
+    // Stop Chrome/Firefox from initiating a native drag-and-drop
+    // gesture on the SVG, which otherwise cancels the click event.
+    e.preventDefault()
     setIsDragging(true)
+    hasExceededThresholdRef.current = false
+    pointerDownPosRef.current = { x: e.clientX, y: e.clientY }
     lastPointerRef.current = { x: e.clientX, y: e.clientY }
 
     e.currentTarget.setPointerCapture(e.pointerId)
@@ -857,6 +872,18 @@ export default function SimPageClientView() {
 
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDragging) return
+
+    if (!hasExceededThresholdRef.current) {
+      const totalDx = e.clientX - pointerDownPosRef.current.x
+      const totalDy = e.clientY - pointerDownPosRef.current.y
+      if (Math.hypot(totalDx, totalDy) < DRAG_THRESHOLD) {
+        // Still within click tolerance -- don't pan yet, so a simple
+        // click never triggers even a 1px pan.
+        return
+      }
+      hasExceededThresholdRef.current = true
+    }
+
     const dx = e.clientX - lastPointerRef.current.x
     const dy = e.clientY - lastPointerRef.current.y
     lastPointerRef.current = { x: e.clientX, y: e.clientY }
@@ -1983,10 +2010,21 @@ export default function SimPageClientView() {
                       className="flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden"
                       style={{
                         cursor: isDragging ? "grabbing" : "grab",
-                      }}
+                        touchAction: "none",
+                        WebkitUserSelect: "none",
+                        userSelect: "none",
+                        // Chrome/Firefox allow native HTML5 drag-and-drop
+                        // on SVG content by default; this disables it so a
+                        // pointerdown+move never gets hijacked into a
+                        // native drag gesture (which cancels the click).
+                        WebkitUserDrag: "none",
+                      } as React.CSSProperties}
+                      draggable={false}
+                      onDragStart={(e) => e.preventDefault()}
                       onPointerDown={handlePointerDown}
                       onPointerMove={handlePointerMove}
                       onPointerUp={handlePointerUp}
+                      onPointerCancel={handlePointerUp}
                       onPointerLeave={handlePointerUp}
                     >
                       <div
