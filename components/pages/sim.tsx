@@ -68,13 +68,22 @@ interface CustomWasmModule {
   _cleanup_simulation(): void
   _force_update_frontend(): void
   _get_wall_time(): number
-  _update_simulation_params(): void
+  _update_simulation_params(
+    d0: number,
+    T: number,
+    nu_f: number,
+    nu_d: number,
+    nu_p: number,
+    e_pass: number,
+    e_c: number
+  ): void
 
   _get_stats_json(): number
   _get_stats_json_len(): number
   _set_stats_interval(interval: number): void
   _get_stats_interval(): number
   _mark_carbon(x: number, y: number): void
+  _unmark_carbon(x: number, y: number): void
   _finalize_carbon_placement(): void
 }
 
@@ -436,8 +445,10 @@ export default function SimPageClientView() {
   }
 
   const toggleCarbonSite = (x: number, y: number) => {
+    const key = `${x},${y}`
+    const wasPresent = carbonSites.has(key)
+
     setCarbonSites((prev) => {
-      const key = `${x},${y}`
       const next = new Set(prev)
       if (next.has(key)) {
         next.delete(key)
@@ -446,6 +457,17 @@ export default function SimPageClientView() {
       }
       return next
     })
+
+    // In live mode, apply the change to the running simulation right
+    // away instead of waiting for the next full run to start.
+    if (isLiveMode && wasmModule && hasRunOnce) {
+      if (wasPresent) {
+        wasmModule._unmark_carbon(x, y)
+      } else {
+        wasmModule._mark_carbon(x, y)
+      }
+      wasmModule._finalize_carbon_placement()
+    }
   }
 
   const handleSubmit = (e: React.SubmitEvent) => {
@@ -465,8 +487,16 @@ export default function SimPageClientView() {
     wasmModule.ccall(
       "update_simulation_params",
       null,
-      ["number", "number", "number", "number", "number", "number"],
-      [dropRate, temp, freeAttFreq, depAttFreq, passAttFreq, ePass]
+      ["number", "number", "number", "number", "number", "number", "number"],
+      [
+        dropRate,
+        temp,
+        freeAttFreq,
+        depAttFreq,
+        passAttFreq,
+        ePass,
+        carbonBondEnergy,
+      ]
     )
   }, [
     isLiveMode,
@@ -476,6 +506,7 @@ export default function SimPageClientView() {
     depAttFreq,
     passAttFreq,
     ePass,
+    carbonBondEnergy,
     wasmModule,
   ])
 
