@@ -68,13 +68,22 @@ interface CustomWasmModule {
   _cleanup_simulation(): void
   _force_update_frontend(): void
   _get_wall_time(): number
-  _update_simulation_params(): void
+  _update_simulation_params(
+    d0: number,
+    T: number,
+    nu_f: number,
+    nu_d: number,
+    nu_p: number,
+    e_pass: number,
+    e_c: number
+  ): void
 
   _get_stats_json(): number
   _get_stats_json_len(): number
   _set_stats_interval(interval: number): void
   _get_stats_interval(): number
   _mark_carbon(x: number, y: number): void
+  _unmark_carbon(x: number, y: number): void
   _finalize_carbon_placement(): void
 }
 
@@ -179,6 +188,10 @@ export default function SimPageClientView() {
   >([])
 
   const animFrameRef = useRef<number | null>(null)
+  // Mutable so tick() picks up live changes to Update Frequency without
+  // needing to restart the sim -- a plain closure constant would freeze
+  // this value for the whole run.
+  const batchSizeRef = useRef(10000)
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function getWasmBuffer(mod: any): ArrayBuffer | null {
@@ -348,6 +361,7 @@ export default function SimPageClientView() {
     // typing without fighting the controlled-input cursor.
     const stepsToRunNum = Math.max(1, Number(stepsToRun) || 0)
     const updateIntervalNum = Math.max(1, Number(updateInterval) || 1)
+    batchSizeRef.current = updateIntervalNum
 
     const randomSeed = Math.floor(Math.random() * 1000000)
 
@@ -405,11 +419,10 @@ export default function SimPageClientView() {
     // Keep the stats-recording cadence (used by the chart) in sync with
     // the visual refresh cadence below, so a transient state like FREE
     // is just as likely to show up on the graph as on the lattice.
-    const batchSize = updateIntervalNum
-    wasmModule._set_stats_interval(batchSize)
+    wasmModule._set_stats_interval(batchSizeRef.current)
     console.log(
       "Requested stats interval:",
-      batchSize,
+      batchSizeRef.current,
       "-- WASM confirms:",
       wasmModule._get_stats_interval()
     )
@@ -418,6 +431,10 @@ export default function SimPageClientView() {
 
     function tick() {
       if (!wasmModule || remaining <= 0) return
+
+      // Read fresh each iteration so live changes to Update Frequency
+      // (via the useEffect below) take effect without restarting the sim.
+      const batchSize = batchSizeRef.current
 
       if (remaining >= batchSize) {
         wasmModule._run_steps(batchSize)
@@ -436,8 +453,10 @@ export default function SimPageClientView() {
   }
 
   const toggleCarbonSite = (x: number, y: number) => {
+    const key = `${x},${y}`
+    const wasPresent = carbonSites.has(key)
+
     setCarbonSites((prev) => {
-      const key = `${x},${y}`
       const next = new Set(prev)
       if (next.has(key)) {
         next.delete(key)
@@ -446,6 +465,32 @@ export default function SimPageClientView() {
       }
       return next
     })
+
+    // Carbon placement is a structural draw action, not a physics
+    // parameter -- apply it to a running simulation immediately
+    // regardless of the Live Mode toggle (which only governs whether
+    // parameter sliders push live updates).
+    if (wasmModule && hasRunOnce) {
+      if (wasPresent) {
+        wasmModule._unmark_carbon(x, y)
+      } else {
+        wasmModule._mark_carbon(x, y)
+      }
+      wasmModule._finalize_carbon_placement()
+
+      // Patch the displayed lattice immediately so the click gives
+      // instant visual feedback instead of waiting for the next
+      // snapshot from run_steps() (which may be far off if Update
+      // Frequency is set high). The next real snapshot will overwrite
+      // this with the authoritative WASM state regardless.
+      setSimState((prev) => {
+        const idx = y * gridDimensions[0] + x
+        if (idx < 0 || idx >= prev.length) return prev
+        const next = prev.slice()
+        next[idx] = wasPresent ? 0 : CARBON_VALUE
+        return next
+      })
+    }
   }
 
   const handleSubmit = (e: React.SubmitEvent) => {
@@ -465,8 +510,16 @@ export default function SimPageClientView() {
     wasmModule.ccall(
       "update_simulation_params",
       null,
-      ["number", "number", "number", "number", "number", "number"],
-      [dropRate, temp, freeAttFreq, depAttFreq, passAttFreq, ePass]
+      ["number", "number", "number", "number", "number", "number", "number"],
+      [
+        dropRate,
+        temp,
+        freeAttFreq,
+        depAttFreq,
+        passAttFreq,
+        ePass,
+        carbonBondEnergy,
+      ]
     )
   }, [
     isLiveMode,
@@ -476,8 +529,19 @@ export default function SimPageClientView() {
     depAttFreq,
     passAttFreq,
     ePass,
+    carbonBondEnergy,
     wasmModule,
   ])
+
+  // Live-adjustable Update Frequency: pushes to both the running tick()
+  // loop (via batchSizeRef) and WASM's own stats-recording cadence.
+  useEffect(() => {
+    if (!wasmModule || !isLiveMode || !hasRunOnce) return
+
+    const updateIntervalNum = Math.max(1, Number(updateInterval) || 1)
+    batchSizeRef.current = updateIntervalNum
+    wasmModule._set_stats_interval(updateIntervalNum)
+  }, [isLiveMode, updateInterval, wasmModule, hasRunOnce])
 
   return (
     <>
