@@ -72,38 +72,38 @@ export default function DisplayHexGrid({
           return carbonSpeciesColors[species]
         }
       }
-      return resolvedTheme === "dark" ? "#DD2222" : "#CC2222"
+      return resolvedTheme === "dark" ? "#F87171" : "#DC2626"
     }
 
     if (resolvedTheme === "dark") {
       switch (value) {
         case 0:
-          return "#000000" // black (empty)
+          return "#18181B" // near-black (empty)
         case 1:
-          return "#005f78" // blue (free)
+          return "#38BDF8" // bright sky blue (free)
         case 2:
-          return "#f97316" // orange (deposited)
+          return "#FB923C" // bright orange (deposited)
         case 3:
-          return "#374151" // dark gray (substrate)
+          return "#52525B" // medium gray (substrate)
         case 4:
-          return "#22c55e" // green (passivated)
+          return "#4ADE80" // bright green (passivated)
         default:
-          return "#000000" // fallback black
+          return "#18181B" // fallback
       }
     } else {
       switch (value) {
         case 0:
-          return "#D1D1D1" // off-white (empty)
+          return "#E5E7EB" // light gray (empty)
         case 1:
-          return "#007596" // turquoise (free)
+          return "#2563EB" // vivid blue (free)
         case 2:
-          return "#FF974D" // orange (deposited)
+          return "#F97316" // orange (deposited)
         case 3:
-          return "#858585" // dark gray (substrate)
+          return "#6B7280" // medium gray (substrate)
         case 4:
-          return "#49E281" // green (passivated)
+          return "#16A34A" // green (passivated)
         default:
-          return "#000000" // fallback black
+          return "#000000" // fallback
       }
     }
   }

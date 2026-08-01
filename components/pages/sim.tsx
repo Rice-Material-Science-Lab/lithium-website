@@ -11,7 +11,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { ChevronDownIcon, CircleQuestionMarkIcon } from "lucide-react"
+import { ChevronDownIcon, CircleQuestionMarkIcon, XIcon } from "lucide-react"
 import {
   Collapsible,
   CollapsibleContent,
@@ -155,7 +155,7 @@ export default function SimPageClientView() {
   const [carbonSites, setCarbonSites] = useState<Map<string, number>>(new Map())
   const carbonUndoStackRef = useRef<Map<string, number>[]>([])
   const [carbonSpecies, setCarbonSpecies] = useState(0)
-  const CARBON_SPECIES_COLORS = ["#dd2222", "#22aadd", "#ddaa22", "#22dd66"]
+  const CARBON_SPECIES_COLORS = ["#D55E00", "#CC79A7", "#F0E442", "#8B5A2B"]
   const [carbonSpeciesEnergies, setCarbonSpeciesEnergies] = useState([
     -0.6, -0.4, -0.8, -0.3,
   ])
@@ -859,6 +859,7 @@ export default function SimPageClientView() {
   const [batchResults, setBatchResults] = useState<Record<string, number>[]>([])
   const [batchRunning, setBatchRunning] = useState(false)
   const [batchProgress, setBatchProgress] = useState({ done: 0, total: 0 })
+  const [batchOpen, setBatchOpen] = useState(true)
 
   const runBatch = () => {
     if (!wasmModule) return
@@ -1961,8 +1962,21 @@ export default function SimPageClientView() {
                 </Button>
               </div>
             </Card>
-            <Card className="flex shrink-0 flex-col gap-3 p-4">
-              <h3 className="text-lg font-semibold">Batch Run</h3>
+            {batchOpen ? (
+              <Card className="flex max-h-[45vh] shrink-0 flex-col gap-3 overflow-y-auto p-4">
+                <div className="flex shrink-0 items-center justify-between">
+                  <h3 className="text-lg font-semibold">Batch Run</h3>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={() => setBatchOpen(false)}
+                    aria-label="Close batch run panel"
+                  >
+                    <XIcon size={14} />
+                  </Button>
+                </div>
               <div className="flex flex-wrap items-end gap-2">
                 <div className="flex flex-col gap-1">
                   <Label className="text-xs">Sweep parameter</Label>
@@ -2031,7 +2045,7 @@ export default function SimPageClientView() {
                 )}
               </div>
               {batchResults.length > 0 && (
-                <div className="max-h-40 overflow-auto rounded-md border">
+                <div className="max-h-40 shrink-0 overflow-auto rounded-md border">
                   <table className="w-full text-xs">
                     <thead className="sticky top-0 bg-muted">
                       <tr>
@@ -2056,9 +2070,20 @@ export default function SimPageClientView() {
                       ))}
                     </tbody>
                   </table>
-                </div>
+               </div>
               )}
-            </Card>
+              </Card>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-fit shrink-0"
+                onClick={() => setBatchOpen(true)}
+              >
+                Show Batch Run
+              </Button>
+            )}
           </div>
         </div>
       </div>
