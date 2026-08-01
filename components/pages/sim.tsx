@@ -164,8 +164,8 @@ export default function SimPageClientView() {
   const [passAttFreq, setPassAttFreq] = useState(1000000)
   const [ePass, setEPass] = useState(0.3)
   const [carbonBondEnergy, setCarbonBondEnergy] = useState(-0.6)
-  const [stepsToRun, setStepsToRun] = useState(1000000)
-  const [updateInterval, setUpdateInterval] = useState(10000)
+  const [stepsToRun, setStepsToRun] = useState("1000000")
+  const [updateInterval, setUpdateInterval] = useState("10000")
 
   const [statsData, setStatsData] = useState<
     {
@@ -806,7 +806,7 @@ export default function SimPageClientView() {
                     type="number"
                     min={1}
                     value={stepsToRun}
-                    onChange={(e) => setStepsToRun(+e.target.value)}
+                    onChange={(e) => setStepsToRun(e.target.value)}
                   />
 
                   <Label
@@ -832,7 +832,7 @@ export default function SimPageClientView() {
                     type="number"
                     min={1}
                     value={updateInterval}
-                    onChange={(e) => setUpdateInterval(+e.target.value)}
+                    onChange={(e) => setUpdateInterval(e.target.value)}
                   />
 
                   {/* advanced options */}
