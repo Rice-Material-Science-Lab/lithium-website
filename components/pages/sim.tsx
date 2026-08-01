@@ -710,13 +710,15 @@ export default function SimPageClientView() {
     setSimState(latestLiveStateRef.current)
   }
 
-  const handleWheelZoom = (e: React.WheelEvent) => {
-    e.preventDefault()
-    const delta = -e.deltaY * 0.001
-    setZoom((z) => Math.min(4, Math.max(0.25, z + delta)))
+  const handleZoomIn = () => {
+    setZoom((z) => Math.min(4, z + 0.25))
   }
 
-  const handlePointerDown = (e: React.PointerEvent) => {
+  const handleZoomOut = () => {
+    setZoom((z) => Math.max(0.25, z - 0.25))
+  }
+
+  const handlePointerDown = (e: React.PointerEvent) => {f
     isDraggingRef.current = true
     lastPointerRef.current = { x: e.clientX, y: e.clientY }
   }
@@ -1568,7 +1570,6 @@ export default function SimPageClientView() {
                 <div
                   className="min-h-0 flex-1 overflow-hidden"
                   style={{ cursor: isDraggingRef.current ? "grabbing" : "grab" }}
-                  onWheel={handleWheelZoom}
                   onPointerDown={handlePointerDown}
                   onPointerMove={handlePointerMove}
                   onPointerUp={handlePointerUp}
@@ -1597,17 +1598,22 @@ export default function SimPageClientView() {
                 </div>
                 <AtomColorKey />
               </div>
-              {(zoom !== 1 || pan.x !== 0 || pan.y !== 0) && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="mt-1"
-                  onClick={resetView}
-                >
-                  Reset View ({Math.round(zoom * 100)}%)
+              <div className="mt-1 flex shrink-0 items-center gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={handleZoomOut}>
+                  Zoom Out
                 </Button>
-              )}
+                <span className="text-xs text-muted-foreground">
+                  {Math.round(zoom * 100)}%
+                </span>
+                <Button type="button" variant="outline" size="sm" onClick={handleZoomIn}>
+                  Zoom In
+                </Button>
+                {(zoom !== 1 || pan.x !== 0 || pan.y !== 0) && (
+                  <Button type="button" variant="outline" size="sm" onClick={resetView}>
+                    Reset View
+                  </Button>
+                )}
+              </div>
               {selectedCell && (
                 <div className="mt-2 w-full rounded-md border p-2 text-xs text-muted-foreground">
                   Cell ({selectedCell.x}, {selectedCell.y}):{" "}
@@ -1616,26 +1622,29 @@ export default function SimPageClientView() {
                     ` · coordination ${selectedCell.coordination}`}
                 </div>
               )}
-              {snapshotCount > 1 && (
-                <div className="mt-2 flex w-full items-center gap-2">
-                  <input
-                    type="range"
-                    min={0}
-                    max={snapshotCount - 1}
-                    value={historyMode ? snapshotIndex : snapshotCount - 1}
-                    onChange={(e) => loadSnapshot(Number(e.target.value))}
-                    className="flex-1"
-                  />
-                  <span className="whitespace-nowrap text-xs text-muted-foreground">
-                    {historyMode ? `step ${snapshotStep.toLocaleString()}` : "live"}
-                  </span>
-                  {historyMode && (
-                    <Button type="button" variant="outline" size="sm" onClick={returnToLive}>
-                      Back to Live
-                    </Button>
-                  )}
-                </div>
-              )}
+              <div
+                className={
+                  "mt-2 flex h-8 w-full shrink-0 items-center gap-2 " +
+                  (snapshotCount > 1 ? "visible" : "invisible")
+                }
+              >
+                <input
+                  type="range"
+                  min={0}
+                  max={Math.max(0, snapshotCount - 1)}
+                  value={historyMode ? snapshotIndex : Math.max(0, snapshotCount - 1)}
+                  onChange={(e) => loadSnapshot(Number(e.target.value))}
+                  className="flex-1"
+                />
+                <span className="whitespace-nowrap text-xs text-muted-foreground">
+                  {historyMode ? `step ${snapshotStep.toLocaleString()}` : "live"}
+                </span>
+                {historyMode && (
+                  <Button type="button" variant="outline" size="sm" onClick={returnToLive}>
+                    Back to Live
+                  </Button>
+                )}
+              </div>
             </Card>
             <Card className="flex min-h-0 flex-1 flex-col p-4">
               <AtomCountsChart data={statsData} />
