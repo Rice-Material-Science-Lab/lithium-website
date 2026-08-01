@@ -11,7 +11,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { ChevronDownIcon, CircleQuestionMarkIcon, XIcon } from "lucide-react"
+import { ChevronDownIcon, CircleQuestionMarkIcon, XIcon, Atom } from "lucide-react"
 import {
   Collapsible,
   CollapsibleContent,
@@ -1128,25 +1128,39 @@ export default function SimPageClientView() {
 
   return (
     <>
-      <div className="relative flex h-full w-full flex-col overflow-hidden p-5">
-        <div className="flex shrink-0 items-center gap-4 px-4">
-          <h1 className="text-2xl font-bold text-primary dark:text-cyan-500">
-            LKMC Electrodeposition Simulator
-          </h1>
-          <h2>Lattice Kinetic Monte Carlo - 2d Electrodeposition</h2>
-        </div>
-        <div className="flex min-h-0 flex-1 gap-4 p-4">
+      <div className="relative flex h-full w-full flex-col overflow-hidden bg-white dark:bg-black">
+        <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-primary/20 blur-[120px] dark:bg-cyan-500/20" />
+        <div className="pointer-events-none absolute -right-32 top-1/3 h-96 w-96 rounded-full bg-primary/10 blur-[120px] dark:bg-cyan-500/10" />
+
+        <div className="relative z-10 flex h-full w-full flex-col overflow-hidden p-5">
+          <div className="flex shrink-0 items-center gap-3 px-4 pb-2">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/30 dark:bg-cyan-500 dark:shadow-cyan-500/30">
+              <Atom className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-primary dark:text-cyan-500">
+                LKMC Electrodeposition Simulator
+              </h1>
+              <h2 className="text-xs text-muted-foreground">
+                Lattice Kinetic Monte Carlo &middot; 2D Electrodeposition
+              </h2>
+            </div>
+          </div>
+          <div className="flex min-h-0 flex-1 gap-4 p-4">
           <form
             onSubmit={handleSubmit}
             className="flex h-full w-[30%] shrink-0 flex-col justify-between gap-6"
           >
-            <Card className="flex h-full flex-col justify-start p-4">
+            <Card className="flex h-full flex-col justify-start rounded-2xl border border-black/5 bg-white/70 p-4 shadow-xl shadow-primary/5 backdrop-blur-xl dark:border-white/10 dark:bg-white/5 dark:shadow-cyan-500/5">
               <CardHeader className="pl-2">
-                <h3 className="text-2xl font-bold">Parameters</h3>
+                <h3 className="flex items-center gap-2 text-xl font-bold">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary dark:bg-cyan-500" />
+                  Parameters
+                </h3>
               </CardHeader>
 
               <div className="flex flex-col gap-4 overflow-y-auto px-2 py-4">
-                <Alert className="flex shrink-0 items-center justify-between overflow-hidden p-3!">
+                <Alert className="flex shrink-0 items-center justify-between overflow-hidden rounded-xl border-black/5 bg-black/[0.02] p-3! dark:border-white/10 dark:bg-white/[0.03]">
                   <div className="space-y-1">
                     <AlertTitle className="leading-none">
                       <Label
@@ -1198,6 +1212,7 @@ export default function SimPageClientView() {
                       type="button"
                       variant="outline"
                       size="sm"
+                      className="rounded-full border-primary/30 bg-primary/5 text-primary hover:bg-primary/15 dark:border-cyan-500/30 dark:bg-cyan-500/5 dark:text-cyan-400 dark:hover:bg-cyan-500/15"
                       onClick={() => applyPreset(name as keyof typeof PRESETS)}
                     >
                       {name}
@@ -1225,6 +1240,7 @@ export default function SimPageClientView() {
                     id="width-input"
                     type="number"
                     min={1}
+                    className="rounded-xl"
                     value={width}
                     onChange={(e) => setWidth(e.target.value)}
                   />
@@ -1248,13 +1264,14 @@ export default function SimPageClientView() {
                     id="height-input"
                     type="number"
                     min={1}
+                    className="rounded-xl"
                     value={height}
                     onChange={(e) => setHeight(e.target.value)}
                   />
 
-                  <Separator className="my-4" />
+                  <Separator className="my-4 bg-gradient-to-r from-transparent via-primary/20 to-transparent dark:via-cyan-500/20" />
 
-                  <Alert className="flex shrink-0 items-center justify-between overflow-hidden p-3!">
+                  <Alert className="flex shrink-0 items-center justify-between overflow-hidden rounded-xl border-black/5 bg-black/[0.02] p-3! dark:border-white/10 dark:bg-white/[0.03]">
                     <div className="space-y-1">
                       <AlertTitle className="leading-none">
                         <Label
@@ -1290,10 +1307,10 @@ export default function SimPageClientView() {
                             type="button"
                             onClick={() => setCarbonSpecies(sp)}
                             className={
-                              "h-7 w-7 rounded-full border-2 " +
+                              "h-7 w-7 rounded-full border-2 transition-all " +
                               (carbonSpecies === sp
-                                ? "border-primary"
-                                : "border-transparent")
+                                ? "border-primary scale-110 shadow-md shadow-primary/30 dark:border-cyan-500 dark:shadow-cyan-500/30"
+                                : "border-transparent opacity-70 hover:opacity-100")
                             }
                             style={{ backgroundColor: CARBON_SPECIES_COLORS[sp] }}
                             title={`Species ${sp + 1}`}
@@ -1332,7 +1349,7 @@ export default function SimPageClientView() {
                       <Button
                         type="button"
                         variant="outline"
-                        className="flex-1"
+                        className="flex-1 rounded-full"
                         onClick={() => {
                           carbonUndoStackRef.current.push(new Map(carbonSites))
                           setCarbonSites(new Map())
@@ -1343,6 +1360,7 @@ export default function SimPageClientView() {
                       <Button
                         type="button"
                         variant="outline"
+                        className="rounded-full"
                         onClick={undoCarbonSite}
                         disabled={carbonUndoStackRef.current.length === 0}
                       >
@@ -1444,6 +1462,7 @@ export default function SimPageClientView() {
                     id="steps-to-run-input"
                     type="number"
                     min={1}
+                    className="rounded-xl"
                     value={stepsToRun}
                     onChange={(e) => setStepsToRun(e.target.value)}
                   />
@@ -1470,6 +1489,7 @@ export default function SimPageClientView() {
                     id="update-interval-input"
                     type="number"
                     min={1}
+                    className="rounded-xl"
                     value={updateInterval}
                     onChange={(e) => setUpdateInterval(e.target.value)}
                   />
@@ -1495,6 +1515,7 @@ export default function SimPageClientView() {
                     id="seed-input"
                     type="number"
                     placeholder="random"
+                    className="rounded-xl"
                     value={seed}
                     onChange={(e) => setSeed(e.target.value)}
                   />
@@ -1780,7 +1801,11 @@ export default function SimPageClientView() {
                 </div>
               </div>
               <CardFooter className="mt-auto! flex gap-2 p-0">
-                <Button type="submit" className="flex-1" disabled={!wasmModule}>
+                <Button
+                  type="submit"
+                  className="flex-1 rounded-xl bg-primary shadow-lg shadow-primary/30 hover:bg-primary/90 dark:bg-cyan-500 dark:shadow-cyan-500/30 dark:hover:bg-cyan-400"
+                  disabled={!wasmModule}
+                >
                   {wasmModule
                     ? "Run " +
                       (Number(stepsToRun) || 0).toLocaleString() +
@@ -1791,6 +1816,7 @@ export default function SimPageClientView() {
                   <Button
                     type="button"
                     variant="outline"
+                    className="rounded-xl"
                     onClick={handleResumeSim}
                     disabled={!wasmModule}
                   >
@@ -1800,6 +1826,7 @@ export default function SimPageClientView() {
                   <Button
                     type="button"
                     variant="outline"
+                    className="rounded-xl"
                     onClick={handlePauseSim}
                     disabled={!wasmModule || !isRunning}
                   >
@@ -1809,6 +1836,7 @@ export default function SimPageClientView() {
                 <Button
                   type="button"
                   variant="destructive"
+                  className="rounded-xl"
                   onClick={handleStopSim}
                   disabled={!wasmModule || (!isRunning && !isPaused)}
                 >
@@ -1818,7 +1846,7 @@ export default function SimPageClientView() {
             </Card>
           </form>
           <div className="flex min-h-0 flex-1 flex-col gap-4">
-            <Card className="flex min-h-0 flex-1 flex-col items-center justify-center gap-0 p-4">
+            <Card className="flex min-h-0 flex-1 flex-col items-center justify-center gap-0 rounded-2xl border border-black/5 bg-white/70 p-4 shadow-xl shadow-primary/5 backdrop-blur-xl dark:border-white/10 dark:bg-white/5 dark:shadow-cyan-500/5">
               {simTerminated && (
                 <Alert variant="destructive" className="mb-2 w-full">
                   <AlertTitle>Simulation jammed</AlertTitle>
@@ -1830,7 +1858,7 @@ export default function SimPageClientView() {
               )}
               <div className="flex min-h-0 w-full flex-1 gap-4">
                 <div className="flex min-h-0 flex-1 flex-col items-center">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 rounded-full border border-black/5 bg-black/[0.02] px-3 py-1 dark:border-white/10 dark:bg-white/[0.03]">
                     <span
                       className={
                         "h-2 w-2 rounded-full " +
@@ -1839,7 +1867,7 @@ export default function SimPageClientView() {
                           : isPaused
                             ? "bg-yellow-500"
                             : isRunning
-                              ? "bg-green-500"
+                              ? "bg-green-500 animate-pulse"
                               : "bg-muted-foreground")
                       }
                     />
@@ -1890,27 +1918,27 @@ export default function SimPageClientView() {
                       />
                     </div>
                   </div>
+                  <div className="mt-1 flex shrink-0 items-center gap-2 rounded-full border border-black/5 bg-black/[0.02] px-2 py-1 dark:border-white/10 dark:bg-white/[0.03]">
+                    <Button type="button" variant="ghost" size="sm" className="rounded-full" onClick={handleZoomOut}>
+                      Zoom Out
+                    </Button>
+                    <span className="text-xs font-medium text-primary dark:text-cyan-500">
+                      {Math.round(zoom * 100)}%
+                    </span>
+                    <Button type="button" variant="ghost" size="sm" className="rounded-full" onClick={handleZoomIn}>
+                      Zoom In
+                    </Button>
+                    {(Math.abs(zoom - fitZoom) > 0.001 || pan.x !== 0 || pan.y !== 0) && (
+                      <Button type="button" variant="ghost" size="sm" className="rounded-full text-primary dark:text-cyan-500" onClick={resetView}>
+                        Reset View
+                      </Button>
+                    )}
+                  </div>
                 </div>
                 <AtomColorKey carbonSpeciesColors={CARBON_SPECIES_COLORS} />
               </div>
-              <div className="mt-1 flex shrink-0 items-center gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={handleZoomOut}>
-                  Zoom Out
-                </Button>
-                <span className="text-xs text-muted-foreground">
-                  {Math.round(zoom * 100)}%
-                </span>
-                <Button type="button" variant="outline" size="sm" onClick={handleZoomIn}>
-                  Zoom In
-                </Button>
-                {(Math.abs(zoom - fitZoom) > 0.001 || pan.x !== 0 || pan.y !== 0) && (
-                  <Button type="button" variant="outline" size="sm" onClick={resetView}>
-                    Reset View
-                  </Button>
-                )}
-              </div>
               {selectedCell && (
-                <div className="mt-2 w-full rounded-md border p-2 text-xs text-muted-foreground">
+                <div className="mt-2 w-full rounded-xl border border-primary/20 bg-primary/5 p-2 text-xs text-muted-foreground dark:border-cyan-500/20 dark:bg-cyan-500/5">
                   Cell ({selectedCell.x}, {selectedCell.y}):{" "}
                   {CELL_STATE_LABELS[selectedCell.state] ?? "Unknown"}
                   {selectedCell.coordination >= 0 &&
@@ -1935,19 +1963,26 @@ export default function SimPageClientView() {
                   {historyMode ? `step ${snapshotStep.toLocaleString()}` : "live"}
                 </span>
                 {historyMode && (
-                  <Button type="button" variant="outline" size="sm" onClick={returnToLive}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="rounded-full border-primary/30 text-primary dark:border-cyan-500/30 dark:text-cyan-400"
+                    onClick={returnToLive}
+                  >
                     Back to Live
                   </Button>
                 )}
               </div>
             </Card>
-            <Card className="flex min-h-0 flex-1 flex-col p-4">
+            <Card className="flex min-h-0 flex-1 flex-col rounded-2xl border border-black/5 bg-white/70 p-4 shadow-xl shadow-primary/5 backdrop-blur-xl dark:border-white/10 dark:bg-white/5 dark:shadow-cyan-500/5">
               <AtomCountsChart data={statsData} />
               <div className="mt-2 flex shrink-0 gap-2">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
+                  className="rounded-full"
                   onClick={exportStatsCSV}
                   disabled={statsData.length === 0}
                 >
@@ -1957,6 +1992,7 @@ export default function SimPageClientView() {
                   type="button"
                   variant="outline"
                   size="sm"
+                  className="rounded-full"
                   onClick={exportLatticeCSV}
                   disabled={simState.length === 0}
                 >
@@ -1965,7 +2001,7 @@ export default function SimPageClientView() {
               </div>
             </Card>
             {batchOpen ? (
-              <Card className="flex max-h-[45vh] shrink-0 flex-col gap-3 overflow-y-auto p-4">
+              <Card className="flex max-h-[45vh] shrink-0 flex-col gap-3 overflow-y-auto rounded-2xl border border-black/5 bg-white/70 p-4 shadow-xl shadow-primary/5 backdrop-blur-xl dark:border-white/10 dark:bg-white/5 dark:shadow-cyan-500/5">
                 <div className="flex shrink-0 items-center justify-between">
                   <h3 className="text-lg font-semibold">Batch Run</h3>
                   <Button
@@ -1983,7 +2019,7 @@ export default function SimPageClientView() {
                 <div className="flex flex-col gap-1">
                   <Label className="text-xs">Sweep parameter</Label>
                   <select
-                    className="rounded-md border bg-background px-2 py-1 text-sm"
+                    className="rounded-xl border border-black/10 bg-background px-2 py-1 text-sm dark:border-white/10"
                     value={batchParam}
                     onChange={(e) =>
                       setBatchParam(e.target.value as "temp" | "dropRate")
@@ -1996,7 +2032,7 @@ export default function SimPageClientView() {
                 <div className="flex flex-col gap-1">
                   <Label className="text-xs">Min</Label>
                   <Input
-                    className="w-24"
+                    className="w-24 rounded-xl"
                     type="number"
                     value={batchMin}
                     onChange={(e) => setBatchMin(e.target.value)}
@@ -2005,7 +2041,7 @@ export default function SimPageClientView() {
                 <div className="flex flex-col gap-1">
                   <Label className="text-xs">Max</Label>
                   <Input
-                    className="w-24"
+                    className="w-24 rounded-xl"
                     type="number"
                     value={batchMax}
                     onChange={(e) => setBatchMax(e.target.value)}
@@ -2014,7 +2050,7 @@ export default function SimPageClientView() {
                 <div className="flex flex-col gap-1">
                   <Label className="text-xs">Runs</Label>
                   <Input
-                    className="w-20"
+                    className="w-20 rounded-xl"
                     type="number"
                     min={1}
                     value={batchCount}
@@ -2024,7 +2060,7 @@ export default function SimPageClientView() {
                 <div className="flex flex-col gap-1">
                   <Label className="text-xs">Steps / run</Label>
                   <Input
-                    className="w-28"
+                    className="w-28 rounded-xl"
                     type="number"
                     min={1}
                     value={batchSteps}
@@ -2033,6 +2069,7 @@ export default function SimPageClientView() {
                 </div>
                 <Button
                   type="button"
+                  className="rounded-xl bg-primary hover:bg-primary/90 dark:bg-cyan-500 dark:hover:bg-cyan-400"
                   onClick={runBatch}
                   disabled={!wasmModule || batchRunning}
                 >
@@ -2041,15 +2078,15 @@ export default function SimPageClientView() {
                     : "Run Batch"}
                 </Button>
                 {batchResults.length > 0 && (
-                  <Button type="button" variant="outline" onClick={exportBatchCSV}>
+                  <Button type="button" variant="outline" className="rounded-full" onClick={exportBatchCSV}>
                     Export CSV
                   </Button>
                 )}
               </div>
               {batchResults.length > 0 && (
-                <div className="max-h-40 shrink-0 overflow-auto rounded-md border">
+                <div className="max-h-40 shrink-0 overflow-auto rounded-xl border border-black/10 dark:border-white/10">
                   <table className="w-full text-xs">
-                    <thead className="sticky top-0 bg-muted">
+                    <thead className="sticky top-0 bg-primary/10 dark:bg-cyan-500/10">
                       <tr>
                         <th className="p-1 text-left">#</th>
                         <th className="p-1 text-left">T</th>
@@ -2061,7 +2098,7 @@ export default function SimPageClientView() {
                     </thead>
                     <tbody>
                       {batchResults.map((r) => (
-                        <tr key={r.index} className="border-t">
+                        <tr key={r.index} className="border-t border-black/5 hover:bg-primary/5 dark:border-white/5 dark:hover:bg-cyan-500/5">
                           <td className="p-1">{r.index}</td>
                           <td className="p-1">{r.T}</td>
                           <td className="p-1">{r.d0}</td>
@@ -2080,12 +2117,13 @@ export default function SimPageClientView() {
                 type="button"
                 variant="outline"
                 size="sm"
-                className="w-fit shrink-0"
+                className="w-fit shrink-0 rounded-full border-primary/30 bg-primary/5 text-primary hover:bg-primary/15 dark:border-cyan-500/30 dark:bg-cyan-500/5 dark:text-cyan-400 dark:hover:bg-cyan-500/15"
                 onClick={() => setBatchOpen(true)}
               >
                 Show Batch Run
               </Button>
             )}
+          </div>
           </div>
         </div>
       </div>

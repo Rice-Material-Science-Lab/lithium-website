@@ -13,7 +13,7 @@ export default function AtomColorKey({
       : ["Carbon"]
 
   return (
-    <div className="flex h-full shrink-0 items-stretch">
+    <div className="flex h-full shrink-0 items-stretch rounded-2xl border border-black/5 bg-white/70 p-1 shadow-lg shadow-primary/5 backdrop-blur-xl dark:border-white/10 dark:bg-white/5 dark:shadow-cyan-500/5">
       <div className="m-2 flex h-[calc(100%-8px)] w-8 flex-col overflow-hidden rounded-xl border border-border">
         {carbonSwatches.map((color, i) => (
           <div key={i} className="flex-1" style={{ backgroundColor: color }} />
