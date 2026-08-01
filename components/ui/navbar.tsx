@@ -180,6 +180,7 @@ export default function Navbar() {
                 theme={resolvedTheme === "dark" ? "dark" : "light"}
                 onThemeChange={setTheme}
                 variant={"hexagon"}
+                duration={600}
               />
 
               {navLinks.map((link) => {
