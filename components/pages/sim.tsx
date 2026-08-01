@@ -1828,31 +1828,31 @@ export default function SimPageClientView() {
                   </AlertDescription>
                 </Alert>
               )}
-              <div className="flex items-center gap-2">
-                <span
-                  className={
-                    "h-2 w-2 rounded-full " +
-                    (simTerminated
-                      ? "bg-destructive"
-                      : isPaused
-                        ? "bg-yellow-500"
-                        : isRunning
-                          ? "bg-green-500"
-                          : "bg-muted-foreground")
-                  }
-                />
-                <span className="text-xs font-medium text-muted-foreground">
-                  {simTerminated
-                    ? "Jammed"
-                    : isPaused
-                      ? "Paused"
-                      : isRunning
-                        ? "Running"
-                        : "Stopped"}
-                </span>
-              </div>
               <div className="flex min-h-0 w-full flex-1 gap-4">
                 <div className="flex min-h-0 flex-1 flex-col items-center">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={
+                        "h-2 w-2 rounded-full " +
+                        (simTerminated
+                          ? "bg-destructive"
+                          : isPaused
+                            ? "bg-yellow-500"
+                            : isRunning
+                              ? "bg-green-500"
+                              : "bg-muted-foreground")
+                      }
+                    />
+                    <span className="text-xs font-medium text-muted-foreground">
+                      {simTerminated
+                        ? "Jammed"
+                        : isPaused
+                          ? "Paused"
+                          : isRunning
+                            ? "Running"
+                            : "Stopped"}
+                    </span>
+                  </div>
                   <h3 className="text-center text-sm font-medium text-muted-foreground">
                     After {stepsRan.toLocaleString()} steps and {runTime.toFixed(2)}{" "}
                     seconds
