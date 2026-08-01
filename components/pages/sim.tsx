@@ -76,6 +76,7 @@ interface CustomWasmModule {
   _get_stats_interval(): number
   _get_terminated(): number
   _mark_carbon(x: number, y: number): void
+  _unmark_carbon(x: number, y: number): void
   _finalize_carbon_placement(): void
 }
 
@@ -181,6 +182,9 @@ export default function SimPageClientView() {
   >([])
 
   const animFrameRef = useRef<number | null>(null)
+  const remainingStepsRef = useRef(0)
+  const batchSizeRef = useRef(10000)
+  const prevCarbonSitesRef = useRef<Set<string>>(new Set())
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function getWasmBuffer(mod: any): ArrayBuffer | null {
@@ -427,26 +431,29 @@ export default function SimPageClientView() {
     // Keep the stats-recording cadence (used by the chart) in sync with
     // the visual refresh cadence below, so a transient state like FREE
     // is just as likely to show up on the graph as on the lattice.
-    const batchSize = updateIntervalNum
-    wasmModule._set_stats_interval(batchSize)
+    batchSizeRef.current = updateIntervalNum
+    wasmModule._set_stats_interval(batchSizeRef.current)
 
-    let remaining = stepsToRunNum
+    remainingStepsRef.current = stepsToRunNum
 
     function tick() {
-      if (!wasmModule || remaining <= 0) return
+      if (!wasmModule || remainingStepsRef.current <= 0) return
 
       if (wasmModule._get_terminated()) {
-        remaining = 0
+        remainingStepsRef.current = 0
         setSimTerminated(true)
         return
       }
 
-      if (remaining >= batchSize) {
+      // Read live so Update Frequency changes apply mid-run.
+      const batchSize = Math.max(1, batchSizeRef.current)
+
+      if (remainingStepsRef.current >= batchSize) {
         wasmModule._run_steps(batchSize)
-        remaining -= batchSize
+        remainingStepsRef.current -= batchSize
       } else {
-        wasmModule._run_steps(remaining)
-        remaining = 0 // CRITICAL: Force countdown to zero so the loop can terminate
+        wasmModule._run_steps(remainingStepsRef.current)
+        remainingStepsRef.current = 0 // CRITICAL: Force countdown to zero so the loop can terminate
         wasmModule._force_update_frontend()
       }
 
@@ -503,6 +510,57 @@ export default function SimPageClientView() {
     atomSubstrate,
     wasmModule,
   ])
+
+  // Update Frequency: live-adjust the stats/visual batch cadence.
+  useEffect(() => {
+    if (!wasmModule || !isLiveMode) return
+    const updateIntervalNum = Math.max(1, Number(updateInterval) || 1)
+    batchSizeRef.current = updateIntervalNum
+    wasmModule._set_stats_interval(updateIntervalNum)
+  }, [isLiveMode, updateInterval, wasmModule])
+
+  // Steps: live-adjust how many more steps the current run will execute,
+  // treating a live edit as "steps remaining from now" rather than
+  // "total steps for this run" (the latter has no meaning mid-run).
+  useEffect(() => {
+    if (!wasmModule || !isLiveMode || !hasRunOnce) return
+    const stepsToRunNum = Math.max(1, Number(stepsToRun) || 0)
+    remainingStepsRef.current = stepsToRunNum
+  }, [isLiveMode, stepsToRun, hasRunOnce, wasmModule])
+
+  // Carbon sites: push added/removed sites to the running sim and rebuild
+  // rates once, instead of requiring a full restart to see new anode sites.
+  useEffect(() => {
+    if (!wasmModule || !isLiveMode || !hasRunOnce) {
+      prevCarbonSitesRef.current = carbonSites
+      return
+    }
+
+    const prev = prevCarbonSitesRef.current
+    let changed = false
+
+    for (const key of carbonSites) {
+      if (!prev.has(key)) {
+        const [cx, cy] = key.split(",").map(Number)
+        wasmModule._mark_carbon(cx, cy)
+        changed = true
+      }
+    }
+
+    for (const key of prev) {
+      if (!carbonSites.has(key)) {
+        const [cx, cy] = key.split(",").map(Number)
+        wasmModule._unmark_carbon(cx, cy)
+        changed = true
+      }
+    }
+
+    if (changed) {
+      wasmModule._finalize_carbon_placement()
+    }
+
+    prevCarbonSitesRef.current = carbonSites
+  }, [carbonSites, isLiveMode, hasRunOnce, wasmModule])
 
   return (
     <>
