@@ -406,7 +406,6 @@ export default function SimPageClientView() {
     // Apply user-drawn carbon (graphite anode) sites, then rebuild the
     // rate table once for all of them together.
 
-
     for (const key of carbonSites) {
       const [cx, cy] = key.split(",").map(Number)
       if (cx < nx && cy < ny) {
@@ -414,7 +413,6 @@ export default function SimPageClientView() {
       }
     }
     wasmModule._finalize_carbon_placement()
-
 
     // Keep the stats-recording cadence (used by the chart) in sync with
     // the visual refresh cadence below, so a transient state like FREE
@@ -581,6 +579,7 @@ export default function SimPageClientView() {
                   </div>
                   <AlertAction className="mt-0 shrink-0">
                     <Switch
+                      className="data-[state=checked]:bg-primary"
                       id="live-mode"
                       checked={isLiveMode}
                       onCheckedChange={setIsLiveMode}
