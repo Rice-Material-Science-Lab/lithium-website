@@ -11,7 +11,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { ChevronDownIcon, CircleQuestionMarkIcon, XIcon, Atom } from "lucide-react"
+import {
+  ChevronDownIcon,
+  CircleQuestionMarkIcon,
+  XIcon,
+  Atom,
+} from "lucide-react"
 import {
   Collapsible,
   CollapsibleContent,
@@ -30,6 +35,7 @@ import {
   AlertTitle,
 } from "@/components/ui/alert"
 import { BorderBeam } from "../ui/border-beam"
+import { ButtonGroup } from "../ui/button-group"
 
 interface CustomWasmModule {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -153,7 +159,8 @@ export default function SimPageClientView() {
   const [simTerminated, setSimTerminated] = useState(false)
   const [drawingCarbon, setDrawingCarbon] = useState(false)
   const [carbonSites, setCarbonSites] = useState<Map<string, number>>(new Map())
-  const carbonUndoStackRef = useRef<Map<string, number>[]>([])
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [carbonUndoStack, setCarbonUndoStack] = useState<any[]>([])
   const [carbonSpecies, setCarbonSpecies] = useState(0)
   const CARBON_SPECIES_COLORS = ["#D55E00", "#CC79A7", "#F0E442", "#8B5A2B"]
   const [carbonSpeciesEnergies, setCarbonSpeciesEnergies] = useState([
@@ -212,44 +219,59 @@ export default function SimPageClientView() {
   const [updateInterval, setUpdateInterval] = useState("10000")
   const [seed, setSeed] = useState("") // blank = random each run
 
-  const [statsData, setStatsData] = useState<{
-  deposited: number
-  empty: number
-  fill: number
-  free: number
-  passivated: number
-  step: number
-  substrate: number
-  time: number
-  total_rate: number
-}[]>([])
+  const [statsData, setStatsData] = useState<
+    {
+      deposited: number
+      empty: number
+      fill: number
+      free: number
+      passivated: number
+      step: number
+      substrate: number
+      time: number
+      total_rate: number
+    }[]
+  >([])
 
   const STORAGE_KEY = "lkmc-sim-params-v1"
 
   // Restore saved params on mount (skip grid size -- covered separately
   // by width/height inputs which already default sensibly).
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if (!raw) return
-      const saved = JSON.parse(raw)
-      if (typeof saved.temp === "number") setTemp(saved.temp)
-      if (typeof saved.dropRate === "number") setDropRate(saved.dropRate)
-      if (typeof saved.bondedEnergy === "number") setBondedEnergy(saved.bondedEnergy)
-      if (typeof saved.atomSubstrate === "number") setAtomSubstrate(saved.atomSubstrate)
-      if (typeof saved.freeAttFreq === "number") setFreeAttFreq(saved.freeAttFreq)
-      if (typeof saved.depAttFreq === "number") setDepAttFreq(saved.depAttFreq)
-      if (typeof saved.passAttFreq === "number") setPassAttFreq(saved.passAttFreq)
-      if (typeof saved.ePass === "number") setEPass(saved.ePass)
-      if (Array.isArray(saved.carbonSpeciesEnergies)) setCarbonSpeciesEnergies(saved.carbonSpeciesEnergies)
-      if (typeof saved.depassAttFreq === "number") setDepassAttFreq(saved.depassAttFreq)
-      if (typeof saved.eDepass === "number") setEDepass(saved.eDepass)
-      if (typeof saved.stepsToRun === "string") setStepsToRun(saved.stepsToRun)
-      if (typeof saved.updateInterval === "string") setUpdateInterval(saved.updateInterval)
-      if (typeof saved.seed === "string") setSeed(saved.seed)
-    } catch (e) {
-      console.error("Failed to restore saved parameters:", e)
+    function restoreLocalStorageParams() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY)
+        if (!raw) return
+        const saved = JSON.parse(raw)
+        if (typeof saved.temp === "number") setTemp(saved.temp)
+        if (typeof saved.dropRate === "number") setDropRate(saved.dropRate)
+        if (typeof saved.bondedEnergy === "number")
+          setBondedEnergy(saved.bondedEnergy)
+        if (typeof saved.atomSubstrate === "number")
+          setAtomSubstrate(saved.atomSubstrate)
+        if (typeof saved.freeAttFreq === "number")
+          setFreeAttFreq(saved.freeAttFreq)
+        if (typeof saved.depAttFreq === "number")
+          setDepAttFreq(saved.depAttFreq)
+        if (typeof saved.passAttFreq === "number")
+          setPassAttFreq(saved.passAttFreq)
+        if (typeof saved.ePass === "number") setEPass(saved.ePass)
+        if (Array.isArray(saved.carbonSpeciesEnergies))
+          setCarbonSpeciesEnergies(saved.carbonSpeciesEnergies)
+        if (typeof saved.depassAttFreq === "number")
+          setDepassAttFreq(saved.depassAttFreq)
+        if (typeof saved.eDepass === "number") setEDepass(saved.eDepass)
+        if (typeof saved.stepsToRun === "string")
+          setStepsToRun(saved.stepsToRun)
+        if (typeof saved.updateInterval === "string")
+          setUpdateInterval(saved.updateInterval)
+        if (typeof saved.seed === "string") setSeed(saved.seed)
+      } catch (e) {
+        console.error("Failed to restore saved parameters:", e)
+      }
     }
+
+    restoreLocalStorageParams()
   }, [])
 
   // Persist params whenever they change.
@@ -315,7 +337,7 @@ export default function SimPageClientView() {
 
   const [zoom, setZoom] = useState(1)
   const [pan, setPan] = useState({ x: 0, y: 0 })
-  const isDraggingRef = useRef(false)
+  const [isDragging, setIsDragging] = useState(false)
   const lastPointerRef = useRef({ x: 0, y: 0 })
   const [fitZoom, setFitZoom] = useState(1)
   const gridContainerRef = useRef<HTMLDivElement | null>(null)
@@ -361,7 +383,6 @@ export default function SimPageClientView() {
       resizeObserver.observe(gridContainerRef.current)
     }
     return () => resizeObserver.disconnect()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gridDimensions])
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -613,7 +634,6 @@ export default function SimPageClientView() {
     // Apply user-drawn carbon (graphite anode) sites, then rebuild the
     // rate table once for all of them together.
 
-
     carbonSpeciesEnergies.forEach((energy, sp) => {
       wasmModule.ccall(
         "set_carbon_species_energy",
@@ -630,7 +650,6 @@ export default function SimPageClientView() {
       }
     }
     wasmModule._finalize_carbon_placement()
-
 
     // Keep the stats-recording cadence (used by the chart) in sync with
     // the visual refresh cadence below, so a transient state like FREE
@@ -676,25 +695,6 @@ export default function SimPageClientView() {
     tick()
   }
 
-  const handlePauseSim = () => {
-    if (!wasmModule) return
-    isPausedRef.current = true
-    setIsPaused(true)
-    wasmModule._pause() // keeps backend playback_state_ in sync
-    if (animFrameRef.current) {
-      cancelAnimationFrame(animFrameRef.current)
-      animFrameRef.current = null
-    }
-  }
-
-  const handleResumeSim = () => {
-    if (!wasmModule) return
-    isPausedRef.current = false
-    setIsPaused(false)
-    wasmModule._play()
-    tickFnRef.current?.()
-  }
-
   const handleStopSim = () => {
     if (!wasmModule) return
     if (
@@ -717,7 +717,45 @@ export default function SimPageClientView() {
     wasmModule._force_update_frontend()
   }
 
+  const handlePauseSim = () => {
+    if (!wasmModule) return
+    isPausedRef.current = true
+    setIsPaused(true)
+    wasmModule._pause() // keeps backend playback_state_ in sync
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current)
+      animFrameRef.current = null
+    }
+  }
+
+  const handleResumeSim = () => {
+    if (!wasmModule) return
+    isPausedRef.current = false
+    setIsPaused(false)
+    wasmModule._play()
+    tickFnRef.current?.()
+  }
+
   useEffect(() => {
+    const handlePauseSim = () => {
+      if (!wasmModule) return
+      isPausedRef.current = true
+      setIsPaused(true)
+      wasmModule._pause() // keeps backend playback_state_ in sync
+      if (animFrameRef.current) {
+        cancelAnimationFrame(animFrameRef.current)
+        animFrameRef.current = null
+      }
+    }
+
+    const handleResumeSim = () => {
+      if (!wasmModule) return
+      isPausedRef.current = false
+      setIsPaused(false)
+      wasmModule._play()
+      tickFnRef.current?.()
+    }
+
     function onKeyDown(e: KeyboardEvent) {
       if (e.code !== "Space") return
       const target = e.target as HTMLElement | null
@@ -740,10 +778,15 @@ export default function SimPageClientView() {
 
   const toggleCarbonSite = (x: number, y: number) => {
     setCarbonSites((prev) => {
-      carbonUndoStackRef.current.push(new Map(prev))
-      if (carbonUndoStackRef.current.length > 100) {
-        carbonUndoStackRef.current.shift()
-      }
+      setCarbonUndoStack((currentStack) => {
+        const newStack = [...currentStack, new Map(prev)]
+
+        if (newStack.length > 100) {
+          newStack.shift()
+        }
+
+        return newStack
+      })
       const key = `${x},${y}`
       const next = new Map(prev)
       if (next.has(key)) {
@@ -756,9 +799,14 @@ export default function SimPageClientView() {
   }
 
   const undoCarbonSite = () => {
-    const prev = carbonUndoStackRef.current.pop()
+    if (carbonUndoStack.length === 0) return
+
+    const prev = carbonUndoStack[carbonUndoStack.length - 1]
+
     if (prev !== undefined) {
       setCarbonSites(prev)
+
+      setCarbonUndoStack((currentStack) => currentStack.slice(0, -1))
     }
   }
 
@@ -801,28 +849,32 @@ export default function SimPageClientView() {
   }
 
   const handlePointerDown = (e: React.PointerEvent) => {
-    isDraggingRef.current = true
+    setIsDragging(true)
     lastPointerRef.current = { x: e.clientX, y: e.clientY }
+
+    e.currentTarget.setPointerCapture(e.pointerId)
   }
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isDraggingRef.current) return
+    if (!isDragging) return
     const dx = e.clientX - lastPointerRef.current.x
     const dy = e.clientY - lastPointerRef.current.y
     lastPointerRef.current = { x: e.clientX, y: e.clientY }
     setPan((p) => ({ x: p.x + dx, y: p.y + dy }))
   }
 
-  const handlePointerUp = () => {
-    isDraggingRef.current = false
+  const handlePointerUp = (e: React.PointerEvent) => {
+    setIsDragging(false)
+    e.currentTarget.releasePointerCapture(e.pointerId)
   }
-
   const resetView = () => {
     setZoom(fitZoom)
     setPan({ x: 0, y: 0 })
   }
   const downloadCSV = (filename: string, rows: string[]) => {
-    const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" })
+    const blob = new Blob([rows.join("\n")], {
+      type: "text/csv;charset=utf-8;",
+    })
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
     link.href = url
@@ -833,7 +885,8 @@ export default function SimPageClientView() {
 
   const exportStatsCSV = () => {
     if (statsData.length === 0) return
-    const header = "step,time,empty,free,deposited,passivated,substrate,fill,total_rate"
+    const header =
+      "step,time,empty,free,deposited,passivated,substrate,fill,total_rate"
     const rows = statsData.map(
       (r) =>
         `${r.step},${r.time},${r.empty},${r.free},${r.deposited},${r.passivated},${r.substrate},${r.fill},${r.total_rate}`
@@ -948,7 +1001,7 @@ export default function SimPageClientView() {
     downloadCSV("lkmc-batch-results.csv", [header, ...rows])
   }
 
-  const PRESETS: Record <
+  const PRESETS: Record<
     string,
     {
       temp: number
@@ -1032,7 +1085,18 @@ export default function SimPageClientView() {
     wasmModule.ccall(
       "update_simulation_params",
       null,
-      ["number", "number", "number", "number", "number", "number", "number", "number", "number", "number"],
+      [
+        "number",
+        "number",
+        "number",
+        "number",
+        "number",
+        "number",
+        "number",
+        "number",
+        "number",
+        "number",
+      ],
       [
         dropRate,
         temp,
@@ -1128,13 +1192,13 @@ export default function SimPageClientView() {
 
   return (
     <>
-      <div className="relative flex h-full w-full flex-col overflow-hidden bg-white dark:bg-black">
-        <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-primary/20 blur-[120px] dark:bg-cyan-500/20" />
-        <div className="pointer-events-none absolute -right-32 top-1/3 h-96 w-96 rounded-full bg-primary/10 blur-[120px] dark:bg-cyan-500/10" />
+      <div className="relative flex h-full w-full flex-col overflow-hidden">
+        <div className="pointer-events-none absolute -top-32 -left-32 h-96 w-96 rounded-full bg-primary/20 blur-[120px] dark:bg-cyan-500/20" />
+        <div className="pointer-events-none absolute top-1/3 -right-32 h-96 w-96 rounded-full bg-primary/10 blur-[120px] dark:bg-cyan-500/10" />
 
         <div className="relative z-10 flex h-full w-full flex-col overflow-hidden p-5">
           <div className="flex shrink-0 items-center gap-3 px-4 pb-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/30 dark:bg-cyan-500 dark:shadow-cyan-500/30">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary dark:bg-cyan-500">
               <Atom className="h-5 w-5 text-white" />
             </div>
             <div>
@@ -1147,983 +1211,1056 @@ export default function SimPageClientView() {
             </div>
           </div>
           <div className="flex min-h-0 flex-1 gap-4 p-4">
-          <form
-            onSubmit={handleSubmit}
-            className="flex h-full w-[30%] shrink-0 flex-col justify-between gap-6"
-          >
-            <Card className="flex h-full flex-col justify-start rounded-2xl border border-black/5 bg-white/70 p-4 shadow-xl shadow-primary/5 backdrop-blur-xl dark:border-white/10 dark:bg-white/5 dark:shadow-cyan-500/5">
-              <CardHeader className="pl-2">
-                <h3 className="flex items-center gap-2 text-xl font-bold">
-                  <span className="h-1.5 w-1.5 rounded-full bg-primary dark:bg-cyan-500" />
-                  Parameters
-                </h3>
-              </CardHeader>
+            <form
+              onSubmit={handleSubmit}
+              className="flex h-full w-[30%] shrink-0 flex-col justify-between gap-6"
+            >
+              <Card className="flex h-full flex-col justify-start rounded-2xl border border-black/5 backdrop-blur-xl dark:border-white/10">
+                <CardHeader className="pl-2">
+                  <h3 className="flex items-center gap-2 text-xl font-bold">
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary dark:bg-cyan-500" />
+                    Parameters
+                  </h3>
+                </CardHeader>
 
-              <div className="flex flex-col gap-4 overflow-y-auto px-2 py-4">
-                <Alert className="flex shrink-0 items-center justify-between overflow-hidden rounded-xl border-black/5 bg-black/[0.02] p-3! dark:border-white/10 dark:bg-white/[0.03]">
-                  <div className="space-y-1">
-                    <AlertTitle className="leading-none">
-                      <Label
-                        htmlFor="live-mode"
-                        className="cursor-pointer text-sm font-medium"
-                      >
-                        Live Mode
-                      </Label>
-                    </AlertTitle>
-                    <AlertDescription>
-                      <p className="text-xs text-muted-foreground">
-                        Update WASM parameters in real time
-                      </p>
-                    </AlertDescription>
-                  </div>
-                  <AlertAction className="mt-0 shrink-0">
-                    <Switch
-                      id="live-mode"
-                      checked={isLiveMode}
-                      onCheckedChange={setIsLiveMode}
-                    />
-                  </AlertAction>
-                  <BorderBeam
-                    size={100}
-                    colorFrom={
-                      isLiveMode ? "var(--color-primary)" : "transparent"
-                    }
-                    colorTo={
-                      isLiveMode ? "var(--color-primary)" : "transparent"
-                    }
-                    borderWidth={2}
-                  />
-                  <BorderBeam
-                    size={100}
-                    colorFrom={
-                      isLiveMode ? "var(--color-primary)" : "transparent"
-                    }
-                    colorTo={
-                      isLiveMode ? "var(--color-primary)" : "transparent"
-                    }
-                    borderWidth={2}
-                    delay={3}
-                  />
-                </Alert>
-                <div className="flex flex-wrap gap-2">
-                  {Object.keys(PRESETS).map((name) => (
-                    <Button
-                      key={name}
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="rounded-full border-primary/30 bg-primary/5 text-primary hover:bg-primary/15 dark:border-cyan-500/30 dark:bg-cyan-500/5 dark:text-cyan-400 dark:hover:bg-cyan-500/15"
-                      onClick={() => applyPreset(name as keyof typeof PRESETS)}
-                    >
-                      {name}
-                    </Button>
-                  ))}
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Label
-                    htmlFor="width-input"
-                    className="flex items-center text-sm font-medium"
-                  >
-                    Width
-                    <Tooltip>
-                      <TooltipTrigger className="ml-2" type="button">
-                        <CircleQuestionMarkIcon
-                          size={17}
-                        ></CircleQuestionMarkIcon>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        The width of the simulation lattice
-                      </TooltipContent>
-                    </Tooltip>
-                  </Label>
-                  <Input
-                    id="width-input"
-                    type="number"
-                    min={1}
-                    className="rounded-xl"
-                    value={width}
-                    onChange={(e) => setWidth(e.target.value)}
-                  />
-                  <Label
-                    htmlFor="height-input"
-                    className="flex items-center text-sm font-medium"
-                  >
-                    Height
-                    <Tooltip>
-                      <TooltipTrigger className="ml-2" type="button">
-                        <CircleQuestionMarkIcon
-                          size={17}
-                        ></CircleQuestionMarkIcon>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        The height of the simulation lattice
-                      </TooltipContent>
-                    </Tooltip>
-                  </Label>
-                  <Input
-                    id="height-input"
-                    type="number"
-                    min={1}
-                    className="rounded-xl"
-                    value={height}
-                    onChange={(e) => setHeight(e.target.value)}
-                  />
-
-                  <Separator className="my-4 bg-gradient-to-r from-transparent via-primary/20 to-transparent dark:via-cyan-500/20" />
-
-                  <Alert className="flex shrink-0 items-center justify-between overflow-hidden rounded-xl border-black/5 bg-black/[0.02] p-3! dark:border-white/10 dark:bg-white/[0.03]">
+                <div className="flex flex-col gap-4 overflow-y-auto px-2 py-4">
+                  <Alert className="flex shrink-0 items-center justify-between overflow-hidden rounded-xl border-black/5 p-3! dark:border-white/10">
                     <div className="space-y-1">
                       <AlertTitle className="leading-none">
                         <Label
-                          htmlFor="draw-carbon"
+                          htmlFor="live-mode"
                           className="cursor-pointer text-sm font-medium"
                         >
-                          Draw Carbon (Anode)
+                          Live Mode
                         </Label>
                       </AlertTitle>
                       <AlertDescription>
                         <p className="text-xs text-muted-foreground">
-                          Click grid cells to place graphite anode sites
+                          Update WASM parameters in real time
                         </p>
                       </AlertDescription>
                     </div>
                     <AlertAction className="mt-0 shrink-0">
                       <Switch
-                        id="draw-carbon"
-                        checked={drawingCarbon}
-                        onCheckedChange={setDrawingCarbon}
+                        id="live-mode"
+                        checked={isLiveMode}
+                        onCheckedChange={setIsLiveMode}
                       />
                     </AlertAction>
+                    <BorderBeam
+                      size={100}
+                      colorFrom={
+                        isLiveMode ? "var(--color-primary)" : "transparent"
+                      }
+                      colorTo={
+                        isLiveMode ? "var(--color-primary)" : "transparent"
+                      }
+                      borderWidth={2}
+                    />
+                    <BorderBeam
+                      size={100}
+                      colorFrom={
+                        isLiveMode ? "var(--color-primary)" : "transparent"
+                      }
+                      colorTo={
+                        isLiveMode ? "var(--color-primary)" : "transparent"
+                      }
+                      borderWidth={2}
+                      delay={3}
+                    />
                   </Alert>
-                  {drawingCarbon && (
-                    <div className="flex flex-col gap-2">
-                      <Label className="text-sm font-medium">
-                        Anode species (drawing as)
-                      </Label>
-                      <div className="flex gap-2">
-                        {carbonSpeciesEnergies.map((_, sp) => (
-                          <button
-                            key={sp}
-                            type="button"
-                            onClick={() => setCarbonSpecies(sp)}
-                            className={
-                              "h-7 w-7 rounded-full border-2 transition-all " +
-                              (carbonSpecies === sp
-                                ? "border-primary scale-110 shadow-md shadow-primary/30 dark:border-cyan-500 dark:shadow-cyan-500/30"
-                                : "border-transparent opacity-70 hover:opacity-100")
-                            }
-                            style={{ backgroundColor: CARBON_SPECIES_COLORS[sp] }}
-                            title={`Species ${sp + 1}`}
-                          />
+                  <div className="flex flex-wrap gap-2">
+                    {Object.keys(PRESETS).map((name) => (
+                      <Button
+                        key={name}
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="rounded-full border-primary/30 bg-primary/5 text-primary hover:bg-primary/15 dark:border-cyan-500/30 dark:bg-cyan-500/5 dark:text-cyan-400 dark:hover:bg-cyan-500/15"
+                        onClick={() =>
+                          applyPreset(name as keyof typeof PRESETS)
+                        }
+                      >
+                        {name}
+                      </Button>
+                    ))}
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Label
+                      htmlFor="width-input"
+                      className="flex items-center text-sm font-medium"
+                    >
+                      Width
+                      <Tooltip>
+                        <TooltipTrigger className="ml-2" type="button">
+                          <CircleQuestionMarkIcon
+                            size={17}
+                          ></CircleQuestionMarkIcon>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          The width of the simulation lattice
+                        </TooltipContent>
+                      </Tooltip>
+                    </Label>
+                    <Input
+                      id="width-input"
+                      type="number"
+                      min={1}
+                      className="rounded-xl"
+                      value={width}
+                      onChange={(e) => setWidth(e.target.value)}
+                    />
+                    <Label
+                      htmlFor="height-input"
+                      className="flex items-center text-sm font-medium"
+                    >
+                      Height
+                      <Tooltip>
+                        <TooltipTrigger className="ml-2" type="button">
+                          <CircleQuestionMarkIcon
+                            size={17}
+                          ></CircleQuestionMarkIcon>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          The height of the simulation lattice
+                        </TooltipContent>
+                      </Tooltip>
+                    </Label>
+                    <Input
+                      id="height-input"
+                      type="number"
+                      min={1}
+                      className="rounded-xl"
+                      value={height}
+                      onChange={(e) => setHeight(e.target.value)}
+                    />
+
+                    <Separator className="my-4 bg-linear-to-r from-transparent via-primary/20 to-transparent dark:via-cyan-500/20" />
+
+                    <Alert className="flex shrink-0 items-center justify-between overflow-hidden rounded-xl border-black/5 p-3! dark:border-white/10">
+                      <div className="space-y-1">
+                        <AlertTitle className="leading-none">
+                          <Label
+                            htmlFor="draw-carbon"
+                            className="cursor-pointer text-sm font-medium"
+                          >
+                            Draw Carbon (Anode)
+                          </Label>
+                        </AlertTitle>
+                        <AlertDescription>
+                          <p className="text-xs text-muted-foreground">
+                            Click grid cells to place graphite anode sites
+                          </p>
+                        </AlertDescription>
+                      </div>
+                      <AlertAction className="mt-0 shrink-0">
+                        <Switch
+                          id="draw-carbon"
+                          checked={drawingCarbon}
+                          onCheckedChange={setDrawingCarbon}
+                        />
+                      </AlertAction>
+                    </Alert>
+                    {drawingCarbon && (
+                      <div className="flex flex-col gap-2">
+                        <Label className="text-sm font-medium">
+                          Anode species (drawing as)
+                        </Label>
+                        <div className="flex gap-2">
+                          {carbonSpeciesEnergies.map((_, sp) => (
+                            <button
+                              key={sp}
+                              type="button"
+                              onClick={() => setCarbonSpecies(sp)}
+                              className={
+                                "h-7 w-7 rounded-full border-2 transition-all " +
+                                (carbonSpecies === sp
+                                  ? "scale-110 border-primary shadow-primary/30 dark:border-primary"
+                                  : "border-transparent opacity-70 hover:opacity-100")
+                              }
+                              style={{
+                                backgroundColor: CARBON_SPECIES_COLORS[sp],
+                              }}
+                              title={`Species ${sp + 1}`}
+                            />
+                          ))}
+                        </div>
+                        {carbonSpeciesEnergies.map((energy, sp) => (
+                          <div key={sp} className="flex flex-col gap-1">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-medium">
+                                Species {sp + 1} bond energy (eV)
+                              </span>
+                              <span className="font-mono text-xs text-muted-foreground">
+                                {energy}
+                              </span>
+                            </div>
+                            <Slider
+                              min={-2.0}
+                              max={0}
+                              step={0.01}
+                              value={[energy]}
+                              onValueChange={(val) =>
+                                setCarbonSpeciesEnergies((prev) => {
+                                  const next = prev.slice()
+                                  next[sp] = val[0]
+                                  return next
+                                })
+                              }
+                            />
+                          </div>
                         ))}
                       </div>
-                      {carbonSpeciesEnergies.map((energy, sp) => (
-                        <div key={sp} className="flex flex-col gap-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-medium">
-                              Species {sp + 1} bond energy (eV)
-                            </span>
-                            <span className="font-mono text-xs text-muted-foreground">
-                              {energy}
-                            </span>
-                          </div>
-                          <Slider
-                            min={-2.0}
-                            max={0}
-                            step={0.01}
-                            value={[energy]}
-                            onValueChange={(val) =>
-                              setCarbonSpeciesEnergies((prev) => {
-                                const next = prev.slice()
-                                next[sp] = val[0]
-                                return next
-                              })
-                            }
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {carbonSites.size > 0 && (
-                    <div className="flex gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="flex-1 rounded-full"
-                        onClick={() => {
-                          carbonUndoStackRef.current.push(new Map(carbonSites))
-                          setCarbonSites(new Map())
-                        }}
-                      >
-                        Clear Carbon ({carbonSites.size})
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="rounded-full"
-                        onClick={undoCarbonSite}
-                        disabled={carbonUndoStackRef.current.length === 0}
-                      >
-                        Undo
-                      </Button>
-                    </div>
-                  )}
-
-                  <Separator className="my-4" />
-
-                  <div className="flex flex-col gap-4">
-                    {/* temp */}
-                    <div className="flex flex-col gap-2">
-                      <div className="flex items-center justify-between">
-                        <Label
-                          htmlFor="temp-input"
-                          className="flex items-center text-sm font-medium"
+                    )}
+                    {carbonSites.size > 0 && (
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="flex-1 rounded-full"
+                          onClick={() => {
+                            carbonUndoStack.push(new Map(carbonSites))
+                            setCarbonSites(new Map())
+                          }}
                         >
-                          <span>Temperature (K)</span>
-                          <Tooltip>
-                            <TooltipTrigger className="ml-2" type="button">
-                              <CircleQuestionMarkIcon size={17} />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              The temperature being simulated
-                            </TooltipContent>
-                          </Tooltip>
-                        </Label>
-                        <span className="font-mono text-sm text-muted-foreground">
-                          {temp} K
-                        </span>
+                          Clear Carbon ({carbonSites.size})
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="rounded-full"
+                          onClick={undoCarbonSite}
+                          disabled={carbonUndoStack.length === 0}
+                        >
+                          Undo
+                        </Button>
                       </div>
-                      <Slider
-                        id="temp-input"
-                        min={100}
-                        max={600}
-                        step={1}
-                        value={[temp]}
-                        onValueChange={(val) => setTemp(val[0])}
-                      />
-                    </div>
+                    )}
 
-                    {/* drop rate */}
-                    <div className="flex flex-col gap-2">
-                      <div className="flex items-center justify-between">
-                        <Label
-                          htmlFor="drop-rate-input"
-                          className="flex items-center text-sm font-medium"
-                        >
-                          <span>
-                            Drop Rate (d<sub>0</sub>)
+                    <Separator className="my-4" />
+
+                    <div className="flex flex-col gap-4">
+                      {/* temp */}
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center justify-between">
+                          <Label
+                            htmlFor="temp-input"
+                            className="flex items-center text-sm font-medium"
+                          >
+                            <span>Temperature (K)</span>
+                            <Tooltip>
+                              <TooltipTrigger className="ml-2" type="button">
+                                <CircleQuestionMarkIcon size={17} />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                The temperature being simulated
+                              </TooltipContent>
+                            </Tooltip>
+                          </Label>
+                          <span className="font-mono text-sm text-muted-foreground">
+                            {temp} K
                           </span>
-                          <Tooltip>
-                            <TooltipTrigger className="ml-2" type="button">
-                              <CircleQuestionMarkIcon size={17} />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              The rate at which atoms spawn
-                            </TooltipContent>
-                          </Tooltip>
-                        </Label>
-                        <span className="font-mono text-sm text-muted-foreground">
-                          {dropRate}
-                        </span>
+                        </div>
+                        <Slider
+                          id="temp-input"
+                          min={100}
+                          max={600}
+                          step={1}
+                          value={[temp]}
+                          onValueChange={(val) => setTemp(val[0])}
+                        />
                       </div>
-                      <Slider
-                        id="drop-rate-input"
-                        min={1}
-                        max={200000}
-                        step={100}
-                        value={[dropRate]}
-                        onValueChange={(val) => setDropRate(val[0])}
-                      />
+
+                      {/* drop rate */}
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center justify-between">
+                          <Label
+                            htmlFor="drop-rate-input"
+                            className="flex items-center text-sm font-medium"
+                          >
+                            <span>
+                              Drop Rate (d<sub>0</sub>)
+                            </span>
+                            <Tooltip>
+                              <TooltipTrigger className="ml-2" type="button">
+                                <CircleQuestionMarkIcon size={17} />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                The rate at which atoms spawn
+                              </TooltipContent>
+                            </Tooltip>
+                          </Label>
+                          <span className="font-mono text-sm text-muted-foreground">
+                            {dropRate}
+                          </span>
+                        </div>
+                        <Slider
+                          id="drop-rate-input"
+                          min={1}
+                          max={200000}
+                          step={100}
+                          value={[dropRate]}
+                          onValueChange={(val) => setDropRate(val[0])}
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  <Separator className="my-4" />
+                    <Separator className="my-4" />
 
-                  {/* play options */}
+                    {/* play options */}
 
-                  <Label
-                    htmlFor="steps-to-run-input"
-                    className="flex items-center text-sm font-medium"
-                  >
-                    Steps
-                    <Tooltip>
-                      <TooltipTrigger className="ml-2" type="button">
-                        <CircleQuestionMarkIcon
-                          size={17}
-                        ></CircleQuestionMarkIcon>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        The amount of steps that will be run upon starting the
-                        simulation
-                      </TooltipContent>
-                    </Tooltip>
-                  </Label>
-                  <Input
-                    id="steps-to-run-input"
-                    type="number"
-                    min={1}
-                    className="rounded-xl"
-                    value={stepsToRun}
-                    onChange={(e) => setStepsToRun(e.target.value)}
-                  />
-
-                  <Label
-                    htmlFor="update-interval-input"
-                    className="mt-2 flex items-center text-sm font-medium"
-                  >
-                    Update Frequency (steps)
-                    <Tooltip>
-                      <TooltipTrigger className="ml-2" type="button">
-                        <CircleQuestionMarkIcon
-                          size={17}
-                        ></CircleQuestionMarkIcon>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        How many simulated steps run between each visual and
-                        chart update. Lower values show short-lived states like
-                        free atoms more often, at the cost of performance.
-                      </TooltipContent>
-                    </Tooltip>
-                  </Label>
-                  <Input
-                    id="update-interval-input"
-                    type="number"
-                    min={1}
-                    className="rounded-xl"
-                    value={updateInterval}
-                    onChange={(e) => setUpdateInterval(e.target.value)}
-                  />
-
-                  <Label
-                    htmlFor="seed-input"
-                    className="mt-2 flex items-center text-sm font-medium"
-                  >
-                    Seed (optional)
-                    <Tooltip>
-                      <TooltipTrigger className="ml-2" type="button">
-                        <CircleQuestionMarkIcon
-                          size={17}
-                        ></CircleQuestionMarkIcon>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        Fix the RNG seed to reproduce an identical run. Leave
-                        blank for a new random seed each time.
-                      </TooltipContent>
-                    </Tooltip>
-                  </Label>
-                  <Input
-                    id="seed-input"
-                    type="number"
-                    placeholder="random"
-                    className="rounded-xl"
-                    value={seed}
-                    onChange={(e) => setSeed(e.target.value)}
-                  />
-
-                  {/* advanced options */}
-
-                  <Collapsible className="w-full rounded-md">
-                    <CollapsibleTrigger className="w-full">
-                      <Marker variant="separator" className="my-2 w-full">
-                        <MarkerContent className="flex items-center gap-2">
-                          Advanced <ChevronDownIcon />
-                        </MarkerContent>
-                      </Marker>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <div className="flex flex-col gap-4">
-                        {/* bonded energy */}
-                        <div className="flex flex-col gap-2">
-                          <div className="flex items-center justify-between">
-                            <Label
-                              htmlFor="bonded-energy-input"
-                              className="flex items-center text-sm font-medium"
-                            >
-                              <span>
-                                Bonded Energy e<sub>0</sub> (eV)
-                              </span>
-                              <Tooltip>
-                                <TooltipTrigger className="ml-2" type="button">
-                                  <CircleQuestionMarkIcon size={17} />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  The energy stored in bonds between atoms;
-                                  Farther negative values make bonds atoms&apos;
-                                  bonds stronger
-                                </TooltipContent>
-                              </Tooltip>
-                            </Label>
-                            <span className="font-mono text-sm text-muted-foreground">
-                              {bondedEnergy}
-                            </span>
-                          </div>
-                          <Slider
-                            id="bonded-energy-input"
-                            min={-2.0}
-                            max={0}
-                            step={0.01}
-                            value={[bondedEnergy]}
-                            onValueChange={(val) => setBondedEnergy(val[0])}
-                          />
-                        </div>
-
-                        {/* atom-substrate energy */}
-                        <div className="flex flex-col gap-2">
-                          <div className="flex items-center justify-between">
-                            <Label
-                              htmlFor="atom-substrate-input"
-                              className="flex items-center text-sm font-medium"
-                            >
-                              <span>
-                                Atom-substrate e<sub>1</sub> (eV)
-                              </span>
-                              <Tooltip>
-                                <TooltipTrigger className="ml-2" type="button">
-                                  <CircleQuestionMarkIcon size={17} />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  The energy stored in bonds between atoms and
-                                  the substrate; Being more negative than the
-                                  bonded energy promotes vertical growth
-                                </TooltipContent>
-                              </Tooltip>
-                            </Label>
-                            <span className="font-mono text-sm text-muted-foreground">
-                              {atomSubstrate}
-                            </span>
-                          </div>
-                          <Slider
-                            id="atom-substrate-input"
-                            min={-2.0}
-                            max={0}
-                            step={0.01}
-                            value={[atomSubstrate]}
-                            onValueChange={(val) => setAtomSubstrate(val[0])}
-                          />
-                        </div>
-
-                        {/* free att freq */}
-                        <div className="flex flex-col gap-2">
-                          <div className="flex items-center justify-between">
-                            <Label
-                              htmlFor="free-att-freq-input"
-                              className="flex items-center text-sm font-medium"
-                            >
-                              <span>Free Attempt Freq. (v_f)</span>
-                              <Tooltip>
-                                <TooltipTrigger className="ml-2" type="button">
-                                  <CircleQuestionMarkIcon size={17} />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  Vibrational frequency of isolated surface
-                                  atoms that may attempt displacement
-                                </TooltipContent>
-                              </Tooltip>
-                            </Label>
-                            <span className="font-mono text-sm text-muted-foreground">
-                              {freeAttFreq.toExponential(1)}
-                            </span>
-                          </div>
-                          <Slider
-                            id="free-att-freq-input"
-                            min={1e8}
-                            max={1e10}
-                            step={1e8}
-                            value={[freeAttFreq]}
-                            onValueChange={(val) => setFreeAttFreq(val[0])}
-                          />
-                        </div>
-
-                        {/* dep att freq */}
-                        <div className="flex flex-col gap-2">
-                          <div className="flex items-center justify-between">
-                            <Label
-                              htmlFor="dep-att-freq-input"
-                              className="flex items-center text-sm font-medium"
-                            >
-                              <span>Dep. Attempt Freq. (v_d)</span>
-                              <Tooltip>
-                                <TooltipTrigger className="ml-2" type="button">
-                                  <CircleQuestionMarkIcon size={17} />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  Vibrational frequency of bonded surface atoms
-                                  that may attempt displacement
-                                </TooltipContent>
-                              </Tooltip>
-                            </Label>
-                            <span className="font-mono text-sm text-muted-foreground">
-                              {depAttFreq.toExponential(1)}
-                            </span>
-                          </div>
-                          <Slider
-                            id="dep-att-freq-input"
-                            min={1e8}
-                            max={1e10}
-                            step={1e8}
-                            value={[depAttFreq]}
-                            onValueChange={(val) => setDepAttFreq(val[0])}
-                          />
-                        </div>
-
-                        {/* pass att freq */}
-                        <div className="flex flex-col gap-2">
-                          <div className="flex items-center justify-between">
-                            <Label
-                              htmlFor="pass-att-freq-input"
-                              className="flex items-center text-sm font-medium"
-                            >
-                              <span>Passivation Attempt Freq. (v_p)</span>
-                              <Tooltip>
-                                <TooltipTrigger className="ml-2" type="button">
-                                  <CircleQuestionMarkIcon size={17} />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  Vibrational frequency of isolated surface
-                                  atoms that are beneath the SEI layer
-                                </TooltipContent>
-                              </Tooltip>
-                            </Label>
-                            <span className="font-mono text-sm text-muted-foreground">
-                              {passAttFreq.toExponential(1)}
-                            </span>
-                          </div>
-                          <Slider
-                            id="pass-att-freq-input"
-                            min={1e1}
-                            max={1e9}
-                            step={1e5}
-                            value={[passAttFreq]}
-                            onValueChange={(val) => setPassAttFreq(val[0])}
-                          />
-                        </div>
-
-                        {/* pass energy barrier */}
-                        <div className="flex flex-col gap-2">
-                          <div className="flex items-center justify-between">
-                            <Label
-                              htmlFor="e-pass-input"
-                              className="flex items-center text-sm font-medium"
-                            >
-                              <span>Passivation Energy Barrier (E_pass)</span>
-                              <Tooltip>
-                                <TooltipTrigger className="ml-2" type="button">
-                                  <CircleQuestionMarkIcon size={17} />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  Activation energy penalizing lithium ion
-                                  trying to pass through SEI
-                                </TooltipContent>
-                              </Tooltip>
-                            </Label>
-                            <span className="font-mono text-sm text-muted-foreground">
-                              {ePass}
-                            </span>
-                          </div>
-                          <Slider
-                            id="e-pass-input"
-                            min={0}
-                            max={2.0}
-                            step={0.01}
-                            value={[ePass]}
-                            onValueChange={(val) => setEPass(val[0])}
-                          />
-                        </div>
-
-                        {/* de-passivation attempt freq */}
-                        <div className="flex flex-col gap-2">
-                          <div className="flex items-center justify-between">
-                            <Label
-                              htmlFor="depass-att-freq-input"
-                              className="flex items-center text-sm font-medium"
-                            >
-                              <span>De-passivation Attempt Freq. (v_dp)</span>
-                              <Tooltip>
-                                <TooltipTrigger className="ml-2" type="button">
-                                  <CircleQuestionMarkIcon size={17} />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  Vibrational frequency governing SEI
-                                  breakdown, reverting a passivated atom back
-                                  to deposited
-                                </TooltipContent>
-                              </Tooltip>
-                            </Label>
-                            <span className="font-mono text-sm text-muted-foreground">
-                              {depassAttFreq.toExponential(1)}
-                            </span>
-                          </div>
-                          <Slider
-                            id="depass-att-freq-input"
-                            min={1e1}
-                            max={1e9}
-                            step={1e5}
-                            value={[depassAttFreq]}
-                            onValueChange={(val) => setDepassAttFreq(val[0])}
-                          />
-                        </div>
-
-                        {/* de-passivation energy barrier */}
-                        <div className="flex flex-col gap-2">
-                          <div className="flex items-center justify-between">
-                            <Label
-                              htmlFor="e-depass-input"
-                              className="flex items-center text-sm font-medium"
-                            >
-                              <span>De-passivation Energy Barrier (E_dp)</span>
-                              <Tooltip>
-                                <TooltipTrigger className="ml-2" type="button">
-                                  <CircleQuestionMarkIcon size={17} />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  Activation energy penalizing SEI breakdown;
-                                  higher than E_pass keeps passivation dominant
-                                  by default
-                                </TooltipContent>
-                              </Tooltip>
-                            </Label>
-                            <span className="font-mono text-sm text-muted-foreground">
-                              {eDepass}
-                            </span>
-                          </div>
-                          <Slider
-                            id="e-depass-input"
-                            min={0}
-                            max={2.0}
-                            step={0.01}
-                            value={[eDepass]}
-                            onValueChange={(val) => setEDepass(val[0])}
-                          />
-                        </div>
-                      </div>
-                    </CollapsibleContent>
-                  </Collapsible>
-                </div>
-              </div>
-              <CardFooter className="mt-auto! flex gap-2 p-0">
-                <Button
-                  type="submit"
-                  className="flex-1 rounded-xl bg-primary shadow-lg shadow-primary/30 hover:bg-primary/90 dark:bg-cyan-500 dark:shadow-cyan-500/30 dark:hover:bg-cyan-400"
-                  disabled={!wasmModule}
-                >
-                  {wasmModule
-                    ? "Run " +
-                      (Number(stepsToRun) || 0).toLocaleString() +
-                      " steps"
-                    : "Loading WASM..."}
-                </Button>
-                {isPaused ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="rounded-xl"
-                    onClick={handleResumeSim}
-                    disabled={!wasmModule}
-                  >
-                    Resume
-                  </Button>
-                ) : (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="rounded-xl"
-                    onClick={handlePauseSim}
-                    disabled={!wasmModule || !isRunning}
-                  >
-                    Pause
-                  </Button>
-                )}
-                <Button
-                  type="button"
-                  variant="destructive"
-                  className="rounded-xl"
-                  onClick={handleStopSim}
-                  disabled={!wasmModule || (!isRunning && !isPaused)}
-                >
-                  Stop
-                </Button>
-              </CardFooter>
-            </Card>
-          </form>
-          <div className="flex min-h-0 flex-1 flex-col gap-4">
-            <Card className="flex min-h-0 flex-1 flex-col items-center justify-center gap-0 rounded-2xl border border-black/5 bg-white/70 p-4 shadow-xl shadow-primary/5 backdrop-blur-xl dark:border-white/10 dark:bg-white/5 dark:shadow-cyan-500/5">
-              {simTerminated && (
-                <Alert variant="destructive" className="mb-2 w-full">
-                  <AlertTitle>Simulation jammed</AlertTitle>
-                  <AlertDescription>
-                    Every entry column is full and no further event is
-                    possible. Adjust parameters and press Run to restart.
-                  </AlertDescription>
-                </Alert>
-              )}
-              <div className="flex min-h-0 w-full flex-1 gap-4">
-                <div className="flex min-h-0 flex-1 flex-col items-center">
-                  <div className="flex items-center gap-1.5 rounded-full border border-black/5 bg-black/[0.02] px-3 py-1 dark:border-white/10 dark:bg-white/[0.03]">
-                    <span
-                      className={
-                        "h-2 w-2 rounded-full " +
-                        (simTerminated
-                          ? "bg-destructive"
-                          : isPaused
-                            ? "bg-yellow-500"
-                            : isRunning
-                              ? "bg-green-500 animate-pulse"
-                              : "bg-muted-foreground")
-                      }
-                    />
-                    <span className="text-xs font-medium text-muted-foreground">
-                      {simTerminated
-                        ? "Jammed"
-                        : isPaused
-                          ? "Paused"
-                          : isRunning
-                            ? "Running"
-                            : "Stopped"}
-                    </span>
-                  </div>
-                  <h3 className="text-center text-sm font-medium text-muted-foreground">
-                    After {stepsRan.toLocaleString()} steps and {runTime.toFixed(2)}{" "}
-                    seconds
-                  </h3>
-                  <div
-                    ref={gridContainerRef}
-                    className="flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden"
-                    style={{ cursor: isDraggingRef.current ? "grabbing" : "grab" }}
-                    onPointerDown={handlePointerDown}
-                    onPointerMove={handlePointerMove}
-                    onPointerUp={handlePointerUp}
-                    onPointerLeave={handlePointerUp}
-                  >
-                    <div
-                      ref={gridContentRef}
-                      style={{
-                        transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-                        transformOrigin: "center center",
-                        transition: isDraggingRef.current ? "none" : "transform 0.05s linear",
-                      }}
+                    <Label
+                      htmlFor="steps-to-run-input"
+                      className="flex items-center text-sm font-medium"
                     >
-                      <DisplayHexGrid
-                        width={gridDimensions[0]}
-                        height={gridDimensions[1]}
-                        data={simState}
-                        carbonSpeciesMap={carbonSites}
-                        carbonSpeciesColors={CARBON_SPECIES_COLORS}
-                        onCellClick={
-                          historyMode
-                            ? undefined
-                            : drawingCarbon
-                              ? (x: number, y: number) => toggleCarbonSite(x, y)
-                              : (x: number, y: number) => inspectCell(x, y)
-                        }
-                      />
-                    </div>
+                      Steps
+                      <Tooltip>
+                        <TooltipTrigger className="ml-2" type="button">
+                          <CircleQuestionMarkIcon
+                            size={17}
+                          ></CircleQuestionMarkIcon>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          The amount of steps that will be run upon starting the
+                          simulation
+                        </TooltipContent>
+                      </Tooltip>
+                    </Label>
+                    <Input
+                      id="steps-to-run-input"
+                      type="number"
+                      min={1}
+                      className="rounded-xl"
+                      value={stepsToRun}
+                      onChange={(e) => setStepsToRun(e.target.value)}
+                    />
+
+                    <Label
+                      htmlFor="update-interval-input"
+                      className="mt-2 flex items-center text-sm font-medium"
+                    >
+                      Update Frequency (steps)
+                      <Tooltip>
+                        <TooltipTrigger className="ml-2" type="button">
+                          <CircleQuestionMarkIcon
+                            size={17}
+                          ></CircleQuestionMarkIcon>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          How many simulated steps run between each visual and
+                          chart update. Lower values show short-lived states
+                          like free atoms more often, at the cost of
+                          performance.
+                        </TooltipContent>
+                      </Tooltip>
+                    </Label>
+                    <Input
+                      id="update-interval-input"
+                      type="number"
+                      min={1}
+                      className="rounded-xl"
+                      value={updateInterval}
+                      onChange={(e) => setUpdateInterval(e.target.value)}
+                    />
+
+                    <Label
+                      htmlFor="seed-input"
+                      className="mt-2 flex items-center text-sm font-medium"
+                    >
+                      Seed (optional)
+                      <Tooltip>
+                        <TooltipTrigger className="ml-2" type="button">
+                          <CircleQuestionMarkIcon
+                            size={17}
+                          ></CircleQuestionMarkIcon>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Fix the RNG seed to reproduce an identical run. Leave
+                          blank for a new random seed each time.
+                        </TooltipContent>
+                      </Tooltip>
+                    </Label>
+                    <Input
+                      id="seed-input"
+                      type="number"
+                      placeholder="random"
+                      className="rounded-xl"
+                      value={seed}
+                      onChange={(e) => setSeed(e.target.value)}
+                    />
+
+                    {/* advanced options */}
+
+                    <Collapsible className="w-full rounded-md">
+                      <CollapsibleTrigger className="w-full">
+                        <Marker variant="separator" className="my-2 w-full">
+                          <MarkerContent className="flex items-center gap-2">
+                            Advanced <ChevronDownIcon />
+                          </MarkerContent>
+                        </Marker>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <div className="flex flex-col gap-4">
+                          {/* bonded energy */}
+                          <div className="flex flex-col gap-2">
+                            <div className="flex items-center justify-between">
+                              <Label
+                                htmlFor="bonded-energy-input"
+                                className="flex items-center text-sm font-medium"
+                              >
+                                <span>
+                                  Bonded Energy e<sub>0</sub> (eV)
+                                </span>
+                                <Tooltip>
+                                  <TooltipTrigger
+                                    className="ml-2"
+                                    type="button"
+                                  >
+                                    <CircleQuestionMarkIcon size={17} />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    The energy stored in bonds between atoms;
+                                    Farther negative values make bonds
+                                    atoms&apos; bonds stronger
+                                  </TooltipContent>
+                                </Tooltip>
+                              </Label>
+                              <span className="font-mono text-sm text-muted-foreground">
+                                {bondedEnergy}
+                              </span>
+                            </div>
+                            <Slider
+                              id="bonded-energy-input"
+                              min={-2.0}
+                              max={0}
+                              step={0.01}
+                              value={[bondedEnergy]}
+                              onValueChange={(val) => setBondedEnergy(val[0])}
+                            />
+                          </div>
+
+                          {/* atom-substrate energy */}
+                          <div className="flex flex-col gap-2">
+                            <div className="flex items-center justify-between">
+                              <Label
+                                htmlFor="atom-substrate-input"
+                                className="flex items-center text-sm font-medium"
+                              >
+                                <span>
+                                  Atom-substrate e<sub>1</sub> (eV)
+                                </span>
+                                <Tooltip>
+                                  <TooltipTrigger
+                                    className="ml-2"
+                                    type="button"
+                                  >
+                                    <CircleQuestionMarkIcon size={17} />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    The energy stored in bonds between atoms and
+                                    the substrate; Being more negative than the
+                                    bonded energy promotes vertical growth
+                                  </TooltipContent>
+                                </Tooltip>
+                              </Label>
+                              <span className="font-mono text-sm text-muted-foreground">
+                                {atomSubstrate}
+                              </span>
+                            </div>
+                            <Slider
+                              id="atom-substrate-input"
+                              min={-2.0}
+                              max={0}
+                              step={0.01}
+                              value={[atomSubstrate]}
+                              onValueChange={(val) => setAtomSubstrate(val[0])}
+                            />
+                          </div>
+
+                          {/* free att freq */}
+                          <div className="flex flex-col gap-2">
+                            <div className="flex items-center justify-between">
+                              <Label
+                                htmlFor="free-att-freq-input"
+                                className="flex items-center text-sm font-medium"
+                              >
+                                <span>Free Attempt Freq. (v_f)</span>
+                                <Tooltip>
+                                  <TooltipTrigger
+                                    className="ml-2"
+                                    type="button"
+                                  >
+                                    <CircleQuestionMarkIcon size={17} />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    Vibrational frequency of isolated surface
+                                    atoms that may attempt displacement
+                                  </TooltipContent>
+                                </Tooltip>
+                              </Label>
+                              <span className="font-mono text-sm text-muted-foreground">
+                                {freeAttFreq.toExponential(1)}
+                              </span>
+                            </div>
+                            <Slider
+                              id="free-att-freq-input"
+                              min={1e8}
+                              max={1e10}
+                              step={1e8}
+                              value={[freeAttFreq]}
+                              onValueChange={(val) => setFreeAttFreq(val[0])}
+                            />
+                          </div>
+
+                          {/* dep att freq */}
+                          <div className="flex flex-col gap-2">
+                            <div className="flex items-center justify-between">
+                              <Label
+                                htmlFor="dep-att-freq-input"
+                                className="flex items-center text-sm font-medium"
+                              >
+                                <span>Dep. Attempt Freq. (v_d)</span>
+                                <Tooltip>
+                                  <TooltipTrigger
+                                    className="ml-2"
+                                    type="button"
+                                  >
+                                    <CircleQuestionMarkIcon size={17} />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    Vibrational frequency of bonded surface
+                                    atoms that may attempt displacement
+                                  </TooltipContent>
+                                </Tooltip>
+                              </Label>
+                              <span className="font-mono text-sm text-muted-foreground">
+                                {depAttFreq.toExponential(1)}
+                              </span>
+                            </div>
+                            <Slider
+                              id="dep-att-freq-input"
+                              min={1e8}
+                              max={1e10}
+                              step={1e8}
+                              value={[depAttFreq]}
+                              onValueChange={(val) => setDepAttFreq(val[0])}
+                            />
+                          </div>
+
+                          {/* pass att freq */}
+                          <div className="flex flex-col gap-2">
+                            <div className="flex items-center justify-between">
+                              <Label
+                                htmlFor="pass-att-freq-input"
+                                className="flex items-center text-sm font-medium"
+                              >
+                                <span>Passivation Attempt Freq. (v_p)</span>
+                                <Tooltip>
+                                  <TooltipTrigger
+                                    className="ml-2"
+                                    type="button"
+                                  >
+                                    <CircleQuestionMarkIcon size={17} />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    Vibrational frequency of isolated surface
+                                    atoms that are beneath the SEI layer
+                                  </TooltipContent>
+                                </Tooltip>
+                              </Label>
+                              <span className="font-mono text-sm text-muted-foreground">
+                                {passAttFreq.toExponential(1)}
+                              </span>
+                            </div>
+                            <Slider
+                              id="pass-att-freq-input"
+                              min={1e1}
+                              max={1e9}
+                              step={1e5}
+                              value={[passAttFreq]}
+                              onValueChange={(val) => setPassAttFreq(val[0])}
+                            />
+                          </div>
+
+                          {/* pass energy barrier */}
+                          <div className="flex flex-col gap-2">
+                            <div className="flex items-center justify-between">
+                              <Label
+                                htmlFor="e-pass-input"
+                                className="flex items-center text-sm font-medium"
+                              >
+                                <span>Passivation Energy Barrier (E_pass)</span>
+                                <Tooltip>
+                                  <TooltipTrigger
+                                    className="ml-2"
+                                    type="button"
+                                  >
+                                    <CircleQuestionMarkIcon size={17} />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    Activation energy penalizing lithium ion
+                                    trying to pass through SEI
+                                  </TooltipContent>
+                                </Tooltip>
+                              </Label>
+                              <span className="font-mono text-sm text-muted-foreground">
+                                {ePass}
+                              </span>
+                            </div>
+                            <Slider
+                              id="e-pass-input"
+                              min={0}
+                              max={2.0}
+                              step={0.01}
+                              value={[ePass]}
+                              onValueChange={(val) => setEPass(val[0])}
+                            />
+                          </div>
+
+                          {/* de-passivation attempt freq */}
+                          <div className="flex flex-col gap-2">
+                            <div className="flex items-center justify-between">
+                              <Label
+                                htmlFor="depass-att-freq-input"
+                                className="flex items-center text-sm font-medium"
+                              >
+                                <span>De-passivation Attempt Freq. (v_dp)</span>
+                                <Tooltip>
+                                  <TooltipTrigger
+                                    className="ml-2"
+                                    type="button"
+                                  >
+                                    <CircleQuestionMarkIcon size={17} />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    Vibrational frequency governing SEI
+                                    breakdown, reverting a passivated atom back
+                                    to deposited
+                                  </TooltipContent>
+                                </Tooltip>
+                              </Label>
+                              <span className="font-mono text-sm text-muted-foreground">
+                                {depassAttFreq.toExponential(1)}
+                              </span>
+                            </div>
+                            <Slider
+                              id="depass-att-freq-input"
+                              min={1e1}
+                              max={1e9}
+                              step={1e5}
+                              value={[depassAttFreq]}
+                              onValueChange={(val) => setDepassAttFreq(val[0])}
+                            />
+                          </div>
+
+                          {/* de-passivation energy barrier */}
+                          <div className="flex flex-col gap-2">
+                            <div className="flex items-center justify-between">
+                              <Label
+                                htmlFor="e-depass-input"
+                                className="flex items-center text-sm font-medium"
+                              >
+                                <span>
+                                  De-passivation Energy Barrier (E_dp)
+                                </span>
+                                <Tooltip>
+                                  <TooltipTrigger
+                                    className="ml-2"
+                                    type="button"
+                                  >
+                                    <CircleQuestionMarkIcon size={17} />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    Activation energy penalizing SEI breakdown;
+                                    higher than E_pass keeps passivation
+                                    dominant by default
+                                  </TooltipContent>
+                                </Tooltip>
+                              </Label>
+                              <span className="font-mono text-sm text-muted-foreground">
+                                {eDepass}
+                              </span>
+                            </div>
+                            <Slider
+                              id="e-depass-input"
+                              min={0}
+                              max={2.0}
+                              step={0.01}
+                              value={[eDepass]}
+                              onValueChange={(val) => setEDepass(val[0])}
+                            />
+                          </div>
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
                   </div>
-                  <div className="mt-1 flex shrink-0 items-center gap-2 rounded-full border border-black/5 bg-black/[0.02] px-2 py-1 dark:border-white/10 dark:bg-white/[0.03]">
-                    <Button type="button" variant="ghost" size="sm" className="rounded-full" onClick={handleZoomOut}>
-                      Zoom Out
+                </div>
+                <CardFooter className="mt-auto! flex gap-2 p-0">
+                  <ButtonGroup className="w-full" aria-label="Button group">
+                    <Button
+                      type="submit"
+                      variant="default"
+                      className="dark:hover:bg-primary-400 w-1/2 flex-1 rounded-xl hover:bg-primary/90"
+                      disabled={!wasmModule}
+                    >
+                      {wasmModule
+                        ? "Run " +
+                          (Number(stepsToRun) || 0).toLocaleString() +
+                          " steps"
+                        : "Loading WASM..."}
                     </Button>
-                    <span className="text-xs font-medium text-primary dark:text-cyan-500">
-                      {Math.round(zoom * 100)}%
-                    </span>
-                    <Button type="button" variant="ghost" size="sm" className="rounded-full" onClick={handleZoomIn}>
-                      Zoom In
-                    </Button>
-                    {(Math.abs(zoom - fitZoom) > 0.001 || pan.x !== 0 || pan.y !== 0) && (
-                      <Button type="button" variant="ghost" size="sm" className="rounded-full text-primary dark:text-cyan-500" onClick={resetView}>
-                        Reset View
+                    {isPaused ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-1/4"
+                        onClick={handleResumeSim}
+                        disabled={!wasmModule}
+                      >
+                        Resume
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handlePauseSim}
+                        disabled={!wasmModule || !isRunning}
+                      >
+                        Pause
                       </Button>
                     )}
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      onClick={handleStopSim}
+                      disabled={!wasmModule || (!isRunning && !isPaused)}
+                    >
+                      Stop
+                    </Button>
+                  </ButtonGroup>
+                </CardFooter>
+              </Card>
+            </form>
+            <div className="flex min-h-0 flex-1 flex-col gap-4">
+              <Card className="flex min-h-0 flex-1 flex-col items-center justify-center gap-0 rounded-2xl border border-black/5 bg-white/70 p-4 shadow-xl shadow-primary/5 backdrop-blur-xl dark:border-white/10 dark:bg-white/5 dark:shadow-cyan-500/5">
+                {simTerminated && (
+                  <Alert variant="destructive" className="mb-2 w-full">
+                    <AlertTitle>Simulation jammed</AlertTitle>
+                    <AlertDescription>
+                      Every entry column is full and no further event is
+                      possible. Adjust parameters and press Run to restart.
+                    </AlertDescription>
+                  </Alert>
+                )}
+                <div className="flex min-h-0 w-full flex-1 gap-4">
+                  <div className="flex min-h-0 flex-1 flex-col items-center">
+                    <div className="flex items-center gap-1.5 rounded-full border border-black/5 px-3 py-1 dark:border-white/10">
+                      <span
+                        className={
+                          "h-2 w-2 rounded-full " +
+                          (simTerminated
+                            ? "bg-destructive"
+                            : isPaused
+                              ? "bg-yellow-500"
+                              : isRunning
+                                ? "animate-pulse bg-green-500"
+                                : "bg-muted-foreground")
+                        }
+                      />
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {simTerminated
+                          ? "Jammed"
+                          : isPaused
+                            ? "Paused"
+                            : isRunning
+                              ? "Running"
+                              : "Stopped"}
+                      </span>
+                    </div>
+                    <h3 className="text-center text-sm font-medium text-muted-foreground">
+                      After {stepsRan.toLocaleString()} steps and{" "}
+                      {runTime.toFixed(2)} seconds
+                    </h3>
+                    <div
+                      ref={gridContainerRef}
+                      className="flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden"
+                      style={{
+                        cursor: isDragging ? "grabbing" : "grab",
+                      }}
+                      onPointerDown={handlePointerDown}
+                      onPointerMove={handlePointerMove}
+                      onPointerUp={handlePointerUp}
+                      onPointerLeave={handlePointerUp}
+                    >
+                      <div
+                        ref={gridContentRef}
+                        style={{
+                          transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                          transformOrigin: "center center",
+                          transition: isDragging
+                            ? "none"
+                            : "transform 0.05s linear",
+                        }}
+                      >
+                        <DisplayHexGrid
+                          width={gridDimensions[0]}
+                          height={gridDimensions[1]}
+                          data={simState}
+                          carbonSpeciesMap={carbonSites}
+                          carbonSpeciesColors={CARBON_SPECIES_COLORS}
+                          onCellClick={
+                            historyMode
+                              ? undefined
+                              : drawingCarbon
+                                ? (x: number, y: number) =>
+                                    toggleCarbonSite(x, y)
+                                : (x: number, y: number) => inspectCell(x, y)
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div className="mt-1 flex shrink-0 items-center gap-2 rounded-full border border-black/5 px-2 py-1 dark:border-white/10">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="rounded-full"
+                        onClick={handleZoomOut}
+                      >
+                        Zoom Out
+                      </Button>
+                      <span className="text-xs font-medium text-primary dark:text-cyan-500">
+                        {Math.round(zoom * 100)}%
+                      </span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="rounded-full"
+                        onClick={handleZoomIn}
+                      >
+                        Zoom In
+                      </Button>
+                      {(Math.abs(zoom - fitZoom) > 0.001 ||
+                        pan.x !== 0 ||
+                        pan.y !== 0) && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="rounded-full text-primary dark:text-cyan-500"
+                          onClick={resetView}
+                        >
+                          Reset View
+                        </Button>
+                      )}
+                    </div>
                   </div>
+                  <AtomColorKey carbonSpeciesColors={CARBON_SPECIES_COLORS} />
                 </div>
-                <AtomColorKey carbonSpeciesColors={CARBON_SPECIES_COLORS} />
-              </div>
-              {selectedCell && (
-                <div className="mt-2 w-full rounded-xl border border-primary/20 bg-primary/5 p-2 text-xs text-muted-foreground dark:border-cyan-500/20 dark:bg-cyan-500/5">
-                  Cell ({selectedCell.x}, {selectedCell.y}):{" "}
-                  {CELL_STATE_LABELS[selectedCell.state] ?? "Unknown"}
-                  {selectedCell.coordination >= 0 &&
-                    ` · coordination ${selectedCell.coordination}`}
+                {selectedCell && (
+                  <div className="mt-2 w-full rounded-xl border border-primary/20 bg-primary/5 p-2 text-xs text-muted-foreground dark:border-cyan-500/20 dark:bg-cyan-500/5">
+                    Cell ({selectedCell.x}, {selectedCell.y}):{" "}
+                    {CELL_STATE_LABELS[selectedCell.state] ?? "Unknown"}
+                    {selectedCell.coordination >= 0 &&
+                      ` · coordination ${selectedCell.coordination}`}
+                  </div>
+                )}
+                <div
+                  className={
+                    "mt-2 flex h-8 w-full shrink-0 items-center gap-2 " +
+                    (snapshotCount > 1 ? "visible" : "invisible")
+                  }
+                >
+                  <input
+                    type="range"
+                    min={0}
+                    max={Math.max(0, snapshotCount - 1)}
+                    value={
+                      historyMode
+                        ? snapshotIndex
+                        : Math.max(0, snapshotCount - 1)
+                    }
+                    onChange={(e) => loadSnapshot(Number(e.target.value))}
+                    className="flex-1"
+                  />
+                  <span className="text-xs whitespace-nowrap text-muted-foreground">
+                    {historyMode
+                      ? `step ${snapshotStep.toLocaleString()}`
+                      : "live"}
+                  </span>
+                  {historyMode && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="rounded-full border-primary/30 text-primary dark:border-cyan-500/30 dark:text-cyan-400"
+                      onClick={returnToLive}
+                    >
+                      Back to Live
+                    </Button>
+                  )}
                 </div>
-              )}
-              <div
-                className={
-                  "mt-2 flex h-8 w-full shrink-0 items-center gap-2 " +
-                  (snapshotCount > 1 ? "visible" : "invisible")
-                }
-              >
-                <input
-                  type="range"
-                  min={0}
-                  max={Math.max(0, snapshotCount - 1)}
-                  value={historyMode ? snapshotIndex : Math.max(0, snapshotCount - 1)}
-                  onChange={(e) => loadSnapshot(Number(e.target.value))}
-                  className="flex-1"
-                />
-                <span className="whitespace-nowrap text-xs text-muted-foreground">
-                  {historyMode ? `step ${snapshotStep.toLocaleString()}` : "live"}
-                </span>
-                {historyMode && (
+              </Card>
+              <Card className="flex min-h-0 flex-1 flex-col rounded-2xl border border-black/5 bg-white/70 p-4 shadow-xl shadow-primary/5 backdrop-blur-xl dark:border-white/10 dark:bg-white/5 dark:shadow-cyan-500/5">
+                <AtomCountsChart data={statsData} />
+                <div className="mt-2 flex shrink-0 gap-2">
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="rounded-full border-primary/30 text-primary dark:border-cyan-500/30 dark:text-cyan-400"
-                    onClick={returnToLive}
+                    className="rounded-full"
+                    onClick={exportStatsCSV}
+                    disabled={statsData.length === 0}
                   >
-                    Back to Live
+                    Export Stats CSV
                   </Button>
-                )}
-              </div>
-            </Card>
-            <Card className="flex min-h-0 flex-1 flex-col rounded-2xl border border-black/5 bg-white/70 p-4 shadow-xl shadow-primary/5 backdrop-blur-xl dark:border-white/10 dark:bg-white/5 dark:shadow-cyan-500/5">
-              <AtomCountsChart data={statsData} />
-              <div className="mt-2 flex shrink-0 gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="rounded-full"
-                  onClick={exportStatsCSV}
-                  disabled={statsData.length === 0}
-                >
-                  Export Stats CSV
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="rounded-full"
-                  onClick={exportLatticeCSV}
-                  disabled={simState.length === 0}
-                >
-                  Export Lattice CSV
-                </Button>
-              </div>
-            </Card>
-            {batchOpen ? (
-              <Card className="flex max-h-[45vh] shrink-0 flex-col gap-3 overflow-y-auto rounded-2xl border border-black/5 bg-white/70 p-4 shadow-xl shadow-primary/5 backdrop-blur-xl dark:border-white/10 dark:bg-white/5 dark:shadow-cyan-500/5">
-                <div className="flex shrink-0 items-center justify-between">
-                  <h3 className="text-lg font-semibold">Batch Run</h3>
                   <Button
                     type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={() => setBatchOpen(false)}
-                    aria-label="Close batch run panel"
+                    variant="outline"
+                    size="sm"
+                    className="rounded-full"
+                    onClick={exportLatticeCSV}
+                    disabled={simState.length === 0}
                   >
-                    <XIcon size={14} />
+                    Export Lattice CSV
                   </Button>
                 </div>
-              <div className="flex flex-wrap items-end gap-2">
-                <div className="flex flex-col gap-1">
-                  <Label className="text-xs">Sweep parameter</Label>
-                  <select
-                    className="rounded-xl border border-black/10 bg-background px-2 py-1 text-sm dark:border-white/10"
-                    value={batchParam}
-                    onChange={(e) =>
-                      setBatchParam(e.target.value as "temp" | "dropRate")
-                    }
-                  >
-                    <option value="temp">Temperature</option>
-                    <option value="dropRate">Drop Rate</option>
-                  </select>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <Label className="text-xs">Min</Label>
-                  <Input
-                    className="w-24 rounded-xl"
-                    type="number"
-                    value={batchMin}
-                    onChange={(e) => setBatchMin(e.target.value)}
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <Label className="text-xs">Max</Label>
-                  <Input
-                    className="w-24 rounded-xl"
-                    type="number"
-                    value={batchMax}
-                    onChange={(e) => setBatchMax(e.target.value)}
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <Label className="text-xs">Runs</Label>
-                  <Input
-                    className="w-20 rounded-xl"
-                    type="number"
-                    min={1}
-                    value={batchCount}
-                    onChange={(e) => setBatchCount(e.target.value)}
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <Label className="text-xs">Steps / run</Label>
-                  <Input
-                    className="w-28 rounded-xl"
-                    type="number"
-                    min={1}
-                    value={batchSteps}
-                    onChange={(e) => setBatchSteps(e.target.value)}
-                  />
-                </div>
+              </Card>
+              {batchOpen ? (
+                <Card className="flex max-h-[45vh] shrink-0 flex-col gap-3 overflow-y-auto rounded-2xl border border-black/5 bg-white/70 p-4 shadow-xl shadow-primary/5 backdrop-blur-xl dark:border-white/10 dark:bg-white/5 dark:shadow-cyan-500/5">
+                  <div className="flex shrink-0 items-center justify-between">
+                    <h3 className="text-lg font-semibold">Batch Run</h3>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => setBatchOpen(false)}
+                      aria-label="Close batch run panel"
+                    >
+                      <XIcon size={14} />
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap items-end gap-2">
+                    <div className="flex flex-col gap-1">
+                      <Label className="text-xs">Sweep parameter</Label>
+                      <select
+                        className="rounded-xl border border-black/10 bg-background px-2 py-1 text-sm dark:border-white/10"
+                        value={batchParam}
+                        onChange={(e) =>
+                          setBatchParam(e.target.value as "temp" | "dropRate")
+                        }
+                      >
+                        <option value="temp">Temperature</option>
+                        <option value="dropRate">Drop Rate</option>
+                      </select>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <Label className="text-xs">Min</Label>
+                      <Input
+                        className="w-24 rounded-xl"
+                        type="number"
+                        value={batchMin}
+                        onChange={(e) => setBatchMin(e.target.value)}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <Label className="text-xs">Max</Label>
+                      <Input
+                        className="w-24 rounded-xl"
+                        type="number"
+                        value={batchMax}
+                        onChange={(e) => setBatchMax(e.target.value)}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <Label className="text-xs">Runs</Label>
+                      <Input
+                        className="w-20 rounded-xl"
+                        type="number"
+                        min={1}
+                        value={batchCount}
+                        onChange={(e) => setBatchCount(e.target.value)}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <Label className="text-xs">Steps / run</Label>
+                      <Input
+                        className="w-28 rounded-xl"
+                        type="number"
+                        min={1}
+                        value={batchSteps}
+                        onChange={(e) => setBatchSteps(e.target.value)}
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      className="rounded-xl bg-primary hover:bg-primary/90 dark:bg-cyan-500 dark:hover:bg-cyan-400"
+                      onClick={runBatch}
+                      disabled={!wasmModule || batchRunning}
+                    >
+                      {batchRunning
+                        ? `Running ${batchProgress.done}/${batchProgress.total}...`
+                        : "Run Batch"}
+                    </Button>
+                    {batchResults.length > 0 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="rounded-full"
+                        onClick={exportBatchCSV}
+                      >
+                        Export CSV
+                      </Button>
+                    )}
+                  </div>
+                  {batchResults.length > 0 && (
+                    <div className="max-h-40 shrink-0 overflow-auto rounded-xl border border-black/10 dark:border-white/10">
+                      <table className="w-full text-xs">
+                        <thead className="sticky top-0 bg-primary/10 dark:bg-cyan-500/10">
+                          <tr>
+                            <th className="p-1 text-left">#</th>
+                            <th className="p-1 text-left">T</th>
+                            <th className="p-1 text-left">d0</th>
+                            <th className="p-1 text-left">Fill %</th>
+                            <th className="p-1 text-left">Passivated</th>
+                            <th className="p-1 text-left">Jammed</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {batchResults.map((r) => (
+                            <tr
+                              key={r.index}
+                              className="border-t border-black/5 hover:bg-primary/5 dark:border-white/5 dark:hover:bg-cyan-500/5"
+                            >
+                              <td className="p-1">{r.index}</td>
+                              <td className="p-1">{r.T}</td>
+                              <td className="p-1">{r.d0}</td>
+                              <td className="p-1">{r.fill_pct?.toFixed(1)}</td>
+                              <td className="p-1">{r.passivated}</td>
+                              <td className="p-1">
+                                {r.terminated ? "yes" : "no"}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </Card>
+              ) : (
                 <Button
                   type="button"
-                  className="rounded-xl bg-primary hover:bg-primary/90 dark:bg-cyan-500 dark:hover:bg-cyan-400"
-                  onClick={runBatch}
-                  disabled={!wasmModule || batchRunning}
+                  variant="outline"
+                  size="sm"
+                  className="w-fit shrink-0 rounded-full border-primary/30 bg-primary/5 text-primary hover:bg-primary/15 dark:border-cyan-500/30 dark:bg-cyan-500/5 dark:text-cyan-400 dark:hover:bg-cyan-500/15"
+                  onClick={() => setBatchOpen(true)}
                 >
-                  {batchRunning
-                    ? `Running ${batchProgress.done}/${batchProgress.total}...`
-                    : "Run Batch"}
+                  Show Batch Run
                 </Button>
-                {batchResults.length > 0 && (
-                  <Button type="button" variant="outline" className="rounded-full" onClick={exportBatchCSV}>
-                    Export CSV
-                  </Button>
-                )}
-              </div>
-              {batchResults.length > 0 && (
-                <div className="max-h-40 shrink-0 overflow-auto rounded-xl border border-black/10 dark:border-white/10">
-                  <table className="w-full text-xs">
-                    <thead className="sticky top-0 bg-primary/10 dark:bg-cyan-500/10">
-                      <tr>
-                        <th className="p-1 text-left">#</th>
-                        <th className="p-1 text-left">T</th>
-                        <th className="p-1 text-left">d0</th>
-                        <th className="p-1 text-left">Fill %</th>
-                        <th className="p-1 text-left">Passivated</th>
-                        <th className="p-1 text-left">Jammed</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {batchResults.map((r) => (
-                        <tr key={r.index} className="border-t border-black/5 hover:bg-primary/5 dark:border-white/5 dark:hover:bg-cyan-500/5">
-                          <td className="p-1">{r.index}</td>
-                          <td className="p-1">{r.T}</td>
-                          <td className="p-1">{r.d0}</td>
-                          <td className="p-1">{r.fill_pct?.toFixed(1)}</td>
-                          <td className="p-1">{r.passivated}</td>
-                          <td className="p-1">{r.terminated ? "yes" : "no"}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-               </div>
               )}
-              </Card>
-            ) : (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="w-fit shrink-0 rounded-full border-primary/30 bg-primary/5 text-primary hover:bg-primary/15 dark:border-cyan-500/30 dark:bg-cyan-500/5 dark:text-cyan-400 dark:hover:bg-cyan-500/15"
-                onClick={() => setBatchOpen(true)}
-              >
-                Show Batch Run
-              </Button>
-            )}
-          </div>
+            </div>
           </div>
         </div>
       </div>

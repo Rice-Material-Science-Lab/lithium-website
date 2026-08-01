@@ -72,7 +72,7 @@ function NewsPanel() {
       </Button>
 
       {open && (
-        <div className="absolute top-full right-0 z-50 mt-3 flex max-h-130 w-96 flex-col rounded-2xl border border-border bg-card text-card-foreground shadow-xl">
+        <div className="absolute top-full right-0 z-50 mt-3 flex max-h-130 w-96 flex-col rounded-2xl border border-border bg-card text-card-foreground">
           <div className="px-5 pt-5 pb-3">
             <p className="text-base font-bold text-foreground">Recent News</p>
           </div>
@@ -217,7 +217,7 @@ export default function Navbar() {
               className="mr-10 flex h-10 w-fit cursor-pointer items-center justify-center rounded-b-2xl bg-primary p-2 focus:outline-none"
             >
               <ChevronDown
-                className={`h-6 w-6 text-white transition-transform duration-300 ${
+                className={`relative z-130 h-6 w-6 text-white transition-transform duration-300 ${
                   navBarOpen ? "rotate-180" : "rotate-0"
                 }`}
               />
