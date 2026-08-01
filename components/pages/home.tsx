@@ -51,7 +51,7 @@ export default function HomepageClientView() {
                 </Highlighter>
               </h1>
               <h2 className="text-4xl text-primary">
-                A demo by the Rice University Material Science Lab
+                A demo by the <Highlighter color="var(--color-accent-foreground)">Rice University</Highlighter> Material Science Lab
               </h2>
             </div>
           </div>
