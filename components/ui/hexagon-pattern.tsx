@@ -1,4 +1,5 @@
-import { useId } from "react"
+import { useId, useEffect, useState } from "react"
+import { useTheme } from "next-themes"
 
 import { cn } from "@/lib/utils"
 
@@ -49,6 +50,15 @@ interface HexagonPatternProps extends React.SVGProps<SVGSVGElement> {
 
 type HexPoint = readonly [number, number]
 
+const COLOR_PALETTE = [
+  { light: "#CC2222", dark: "#DD2222" },
+  { light: "#49E281", dark: "#22c55e" },
+  { light: "#858585", dark: "#374151" },
+  { light: "#FF974D", dark: "#f97316" },
+  { light: "#007596", dark: "#005f78" },
+  { light: "#D1D1D1", dark: "#000000" },
+]
+
 function hexVertexList(
   cx: number,
   cy: number,
@@ -76,7 +86,9 @@ function hexPoints(
 function edgeLexKey(a: HexPoint, b: HexPoint): string {
   const [p, q] =
     a[0] < b[0] || (a[0] === b[0] && a[1] <= b[1]) ? [a, b] : [b, a]
-  return `${p[0].toFixed(6)},${p[1].toFixed(6)}|${q[0].toFixed(6)},${q[1].toFixed(6)}`
+  return `${p[0].toFixed(6)},${p[1].toFixed(6)}|${q[0].toFixed(
+    6
+  )},${q[1].toFixed(6)}`
 }
 
 function collectUniqueHexEdges(
@@ -227,6 +239,14 @@ function hashCoord(col: number, row: number): number {
   return Math.abs(h % 100)
 }
 
+function pseudoRandom(col: number, row: number, seed: number): number {
+  let h = (col * 0x119de1f3) ^ (row * 0x45d9f3b + seed)
+  h = ((h >>> 16) ^ h) * 0x119de1f3
+  h = ((h >>> 16) ^ h) * 0x119de1f3
+  h = (h >>> 16) ^ h
+  return (Math.abs(h) % 1000) / 1000
+}
+
 export function HexagonPattern({
   radius = 40,
   gap = 0,
@@ -240,6 +260,15 @@ export function HexagonPattern({
   ...props
 }: HexagonPatternProps) {
   const id = useId()
+  // Generate a strictly valid CSS identifier without numbers at the start
+  const safeId = "hex-pattern-" + id.replace(/[^a-zA-Z0-9]/g, "")
+
+  const { resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    ;(() => setMounted(true))()
+  }, [])
 
   const { tileW, tileH, centers } = getTileGeometry(radius, direction, gap)
   const solidStroke = isSolidStrokeDasharray(strokeDasharray)
@@ -249,27 +278,60 @@ export function HexagonPattern({
 
   const strokeAndFillColor = color ?? "rgba(156, 163, 175, 0.3)"
 
-  const filledHexagons: [number, number][] = []
+  const animatedHexagons: {
+    col: number
+    row: number
+    duration: number
+    delay: number
+  }[] = []
+
   if (colored > 0) {
     const chance = Math.min(100, Math.max(0, colored))
+
     for (let c = -10; c <= 60; c++) {
       for (let r = -10; r <= 60; r++) {
         if (hashCoord(c, r) < chance) {
-          filledHexagons.push([c, r])
+          const duration = 20 + pseudoRandom(c, r, 0x12345) * 40
+          const delay = pseudoRandom(c, r, 0x67890) * 60
+          animatedHexagons.push({ col: c, row: r, duration, delay })
         }
       }
     }
   }
 
-  return (
+  // Safe default for SSR, switches to correct theme color once hydrated on client
+  const currentTheme = mounted && resolvedTheme === "dark" ? "dark" : "light"
+
+  // Resolve actual hex colors rather than relying on standard CSS var injection
+  const themeColors = COLOR_PALETTE.map((c) => c[currentTheme])
+
+  return (mounted &&
     <svg
       aria-hidden="true"
-      className={cn("pointer-events-none absolute inset-0 h-full w-full", className)}
+      className={cn(
+        "pointer-events-none absolute inset-0 h-full w-full",
+        className
+      )}
       fill={strokeAndFillColor}
       stroke={strokeAndFillColor}
       {...props}
     >
       <defs>
+        {/* Output actual hex colors into the keyframes, sidestepping variable scope issues */}
+        <style>
+          {`
+            @keyframes hexFade-${safeId} {
+              0%, 14% { fill: ${themeColors[0]}; }
+              16.6%, 31% { fill: ${themeColors[1]}; }
+              33.3%, 48% { fill: ${themeColors[2]}; }
+              50%, 64% { fill: ${themeColors[3]}; }
+              66.6%, 81% { fill: ${themeColors[4]}; }
+              83.3%, 98% { fill: ${themeColors[5]}; }
+              100% { fill: ${themeColors[0]}; }
+            }
+          `}
+        </style>
+
         <pattern
           id={id}
           width={tileW}
@@ -303,15 +365,26 @@ export function HexagonPattern({
 
       <rect width="100%" height="100%" fill={`url(#${id})`} stroke="none" />
 
-      {filledHexagons.length > 0 && (
+      {animatedHexagons.length > 0 && (
         <svg aria-hidden="true" className="overflow-visible" x={x} y={y}>
-          {filledHexagons.map(([col, row]) => {
+          {animatedHexagons.map(({ col, row, duration, delay }) => {
             const [cx, cy] = hexCenter(col, row, radius, direction, gap)
+            // Statically determine an initial starting color for stable SSR,
+            // though the keyframes will immediately override this on the client.
+            const initialColorIndex = Math.floor(
+              pseudoRandom(col, row, 123) * 6
+            )
+
             return (
               <polygon
                 key={`${col}-${row}`}
                 points={hexPoints(cx, cy, radius - 1, direction)}
                 strokeWidth="0"
+                style={{
+                  fill: themeColors[initialColorIndex],
+                  animation: `hexFade-${safeId} ${duration}s infinite linear`,
+                  animationDelay: `-${delay}s`,
+                }}
               />
             )
           })}
