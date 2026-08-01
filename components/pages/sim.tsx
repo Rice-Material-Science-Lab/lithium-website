@@ -78,6 +78,9 @@ interface CustomWasmModule {
   _mark_carbon(x: number, y: number): void
   _unmark_carbon(x: number, y: number): void
   _finalize_carbon_placement(): void
+  _pause(): void
+  _play(): void
+  _stop(): void
 }
 
 function generateStartingLattice(w: number, h: number) {
@@ -185,6 +188,10 @@ export default function SimPageClientView() {
   const remainingStepsRef = useRef(0)
   const batchSizeRef = useRef(10000)
   const prevCarbonSitesRef = useRef<Set<string>>(new Set())
+  const isPausedRef = useRef(false)
+  const tickFnRef = useRef<(() => void) | null>(null)
+  const [isRunning, setIsRunning] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function getWasmBuffer(mod: any): ArrayBuffer | null {
@@ -411,6 +418,9 @@ export default function SimPageClientView() {
 
     setHasRunOnce(true)
     setSimTerminated(false)
+    setIsRunning(true)
+    setIsPaused(false)
+    isPausedRef.current = false
     setSimState(generateStartingLattice(nx, ny))
 
     wasmModule._init_simulation()
@@ -439,9 +449,15 @@ export default function SimPageClientView() {
     function tick() {
       if (!wasmModule || remainingStepsRef.current <= 0) return
 
+      // Paused: freeze in place. Resume calls tickFnRef.current() to
+      // restart the loop -- we don't reschedule ourselves here so the
+      // loop doesn't spin uselessly every frame while paused.
+      if (isPausedRef.current) return
+
       if (wasmModule._get_terminated()) {
         remainingStepsRef.current = 0
         setSimTerminated(true)
+        setIsRunning(false)
         return
       }
 
@@ -455,13 +471,48 @@ export default function SimPageClientView() {
         wasmModule._run_steps(remainingStepsRef.current)
         remainingStepsRef.current = 0 // CRITICAL: Force countdown to zero so the loop can terminate
         wasmModule._force_update_frontend()
+        setIsRunning(false)
       }
 
       // store frame id to cancel if needed
       animFrameRef.current = requestAnimationFrame(tick)
     }
 
+    tickFnRef.current = tick
     tick()
+  }
+
+  const handlePauseSim = () => {
+    if (!wasmModule) return
+    isPausedRef.current = true
+    setIsPaused(true)
+    wasmModule._pause() // keeps backend playback_state_ in sync
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current)
+      animFrameRef.current = null
+    }
+  }
+
+  const handleResumeSim = () => {
+    if (!wasmModule) return
+    isPausedRef.current = false
+    setIsPaused(false)
+    wasmModule._play()
+    tickFnRef.current?.()
+  }
+
+  const handleStopSim = () => {
+    if (!wasmModule) return
+    wasmModule._stop()
+    isPausedRef.current = false
+    setIsPaused(false)
+    setIsRunning(false)
+    remainingStepsRef.current = 0
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current)
+      animFrameRef.current = null
+    }
+    wasmModule._force_update_frontend()
   }
 
   const toggleCarbonSite = (x: number, y: number) => {
@@ -477,7 +528,7 @@ export default function SimPageClientView() {
     })
   }
 
-  const handleSubmit = (e: React.SubmitEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
     const nx = Math.max(1, Number(width) || 0)
@@ -634,7 +685,7 @@ export default function SimPageClientView() {
                   >
                     Width
                     <Tooltip>
-                      <TooltipTrigger className="ml-2">
+                      <TooltipTrigger className="ml-2" type="button">
                         <CircleQuestionMarkIcon
                           size={17}
                         ></CircleQuestionMarkIcon>
@@ -657,7 +708,7 @@ export default function SimPageClientView() {
                   >
                     Height
                     <Tooltip>
-                      <TooltipTrigger className="ml-2">
+                      <TooltipTrigger className="ml-2" type="button">
                         <CircleQuestionMarkIcon
                           size={17}
                         ></CircleQuestionMarkIcon>
@@ -790,7 +841,7 @@ export default function SimPageClientView() {
                   >
                     Steps
                     <Tooltip>
-                      <TooltipTrigger className="ml-2">
+                      <TooltipTrigger className="ml-2" type="button">
                         <CircleQuestionMarkIcon
                           size={17}
                         ></CircleQuestionMarkIcon>
@@ -815,7 +866,7 @@ export default function SimPageClientView() {
                   >
                     Update Frequency (steps)
                     <Tooltip>
-                      <TooltipTrigger className="ml-2">
+                      <TooltipTrigger className="ml-2" type="button">
                         <CircleQuestionMarkIcon
                           size={17}
                         ></CircleQuestionMarkIcon>
@@ -1084,13 +1135,40 @@ export default function SimPageClientView() {
                   </Collapsible>
                 </div>
               </div>
-              <CardFooter className="mt-auto! p-0">
-                <Button type="submit" className="w-full" disabled={!wasmModule}>
+              <CardFooter className="mt-auto! flex gap-2 p-0">
+                <Button type="submit" className="flex-1" disabled={!wasmModule}>
                   {wasmModule
                     ? "Run " +
                       (Number(stepsToRun) || 0).toLocaleString() +
                       " steps"
                     : "Loading WASM..."}
+                </Button>
+                {isPaused ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleResumeSim}
+                    disabled={!wasmModule}
+                  >
+                    Resume
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handlePauseSim}
+                    disabled={!wasmModule || !isRunning}
+                  >
+                    Pause
+                  </Button>
+                )}
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={handleStopSim}
+                  disabled={!wasmModule || (!isRunning && !isPaused)}
+                >
+                  Stop
                 </Button>
               </CardFooter>
             </Card>
