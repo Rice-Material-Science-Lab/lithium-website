@@ -9,11 +9,15 @@ export default function DisplayHexGrid({
   width,
   height,
   onCellClick,
+  carbonSpeciesMap,
+  carbonSpeciesColors,
 }: {
   data: number[]
   width: number
   height: number
   onCellClick?: (x: number, y: number) => void
+  carbonSpeciesMap?: Map<string, number>
+  carbonSpeciesColors?: string[]
 }) {
   const { resolvedTheme } = useTheme()
 
@@ -60,7 +64,17 @@ export default function DisplayHexGrid({
     }
   }
 
-  const getColor = (value: number) => {
+  const getColor = (value: number, x: number, y: number) => {
+    if (value === 5) {
+      if (carbonSpeciesMap && carbonSpeciesColors) {
+        const species = carbonSpeciesMap.get(`${x},${y}`)
+        if (species !== undefined && carbonSpeciesColors[species]) {
+          return carbonSpeciesColors[species]
+        }
+      }
+      return resolvedTheme === "dark" ? "#DD2222" : "#CC2222"
+    }
+
     if (resolvedTheme === "dark") {
       switch (value) {
         case 0:
@@ -73,8 +87,6 @@ export default function DisplayHexGrid({
           return "#374151" // dark gray (substrate)
         case 4:
           return "#22c55e" // green (passivated)
-        case 5:
-          return "#DD2222" // red (carbon / graphite anode)
         default:
           return "#000000" // fallback black
       }
@@ -90,8 +102,6 @@ export default function DisplayHexGrid({
           return "#858585" // dark gray (substrate)
         case 4:
           return "#49E281" // green (passivated)
-        case 5:
-          return "#CC2222" // red (carbon / graphite anode)
         default:
           return "#000000" // fallback black
       }
@@ -145,7 +155,7 @@ export default function DisplayHexGrid({
                       : undefined
                   }
                   style={{
-                    fill: getColor(hex.value),
+                    fill: getColor(hex.value, hex.latX, hex.latY),
                     stroke: "#ffffff",
                     strokeWidth: 0.3,
                     strokeLinejoin: "round",

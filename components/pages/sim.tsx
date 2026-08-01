@@ -60,6 +60,9 @@ interface CustomWasmModule {
   _get_lattice(): number
   _get_width(): number
   _get_height(): number
+  _get_carbon_species_grid(): number
+  _malloc(size: number): number
+  _free(ptr: number): void
 
   _init_simulation(): void
   _run_steps(steps: number): void
@@ -75,7 +78,7 @@ interface CustomWasmModule {
   _set_stats_interval(interval: number): void
   _get_stats_interval(): number
   _get_terminated(): number
-  _mark_carbon(x: number, y: number): void
+  _mark_carbon(x: number, y: number, species: number): void
   _unmark_carbon(x: number, y: number): void
   _finalize_carbon_placement(): void
   _pause(): void
@@ -106,10 +109,10 @@ const CARBON_VALUE = 5
 function applyCarbonOverlay(
   base: number[],
   w: number,
-  carbonSites: Set<string>
+  carbonSites: Map<string, number>
 ) {
   const out = base.slice()
-  for (const key of carbonSites) {
+  for (const key of carbonSites.keys()) {
     const [x, y] = key.split(",").map(Number)
     const idx = y * w + x
     if (idx >= 0 && idx < out.length) {
@@ -138,8 +141,13 @@ export default function SimPageClientView() {
   const [hasRunOnce, setHasRunOnce] = useState(false)
   const [simTerminated, setSimTerminated] = useState(false)
   const [drawingCarbon, setDrawingCarbon] = useState(false)
-  const [carbonSites, setCarbonSites] = useState<Set<string>>(new Set())
-  const carbonUndoStackRef = useRef<Set<string>[]>([])
+  const [carbonSites, setCarbonSites] = useState<Map<string, number>>(new Map())
+  const carbonUndoStackRef = useRef<Map<string, number>[]>([])
+  const [carbonSpecies, setCarbonSpecies] = useState(0)
+  const CARBON_SPECIES_COLORS = ["#dd2222", "#22aadd", "#ddaa22", "#22dd66"]
+  const [carbonSpeciesEnergies, setCarbonSpeciesEnergies] = useState([
+    -0.6, -0.4, -0.8, -0.3,
+  ])
   const [selectedCell, setSelectedCell] = useState<{
     x: number
     y: number
@@ -186,7 +194,6 @@ export default function SimPageClientView() {
   // mathematically unreachable at any slider position.
   const [passAttFreq, setPassAttFreq] = useState(1000000)
   const [ePass, setEPass] = useState(0.3)
-  const [carbonBondEnergy, setCarbonBondEnergy] = useState(-0.6)
   const [depassAttFreq, setDepassAttFreq] = useState(100000) // nu_dp
   const [eDepass, setEDepass] = useState(0.5) // e_dp -- higher than e_pass
   // by default so passivation dominates unless tuned otherwise
@@ -225,7 +232,7 @@ export default function SimPageClientView() {
       if (typeof saved.depAttFreq === "number") setDepAttFreq(saved.depAttFreq)
       if (typeof saved.passAttFreq === "number") setPassAttFreq(saved.passAttFreq)
       if (typeof saved.ePass === "number") setEPass(saved.ePass)
-      if (typeof saved.carbonBondEnergy === "number") setCarbonBondEnergy(saved.carbonBondEnergy)
+      if (Array.isArray(saved.carbonSpeciesEnergies)) setCarbonSpeciesEnergies(saved.carbonSpeciesEnergies)
       if (typeof saved.depassAttFreq === "number") setDepassAttFreq(saved.depassAttFreq)
       if (typeof saved.eDepass === "number") setEDepass(saved.eDepass)
       if (typeof saved.stepsToRun === "string") setStepsToRun(saved.stepsToRun)
@@ -250,7 +257,7 @@ export default function SimPageClientView() {
           depAttFreq,
           passAttFreq,
           ePass,
-          carbonBondEnergy,
+          carbonSpeciesEnergies,
           depassAttFreq,
           eDepass,
           stepsToRun,
@@ -270,7 +277,7 @@ export default function SimPageClientView() {
     depAttFreq,
     passAttFreq,
     ePass,
-    carbonBondEnergy,
+    carbonSpeciesEnergies,
     depassAttFreq,
     eDepass,
     stepsToRun,
@@ -281,7 +288,7 @@ export default function SimPageClientView() {
   const animFrameRef = useRef<number | null>(null)
   const remainingStepsRef = useRef(0)
   const batchSizeRef = useRef(10000)
-  const prevCarbonSitesRef = useRef<Set<string>>(new Set())
+  const prevCarbonSitesRef = useRef<Map<string, number>>(new Map())
   const isPausedRef = useRef(false)
   const tickFnRef = useRef<(() => void) | null>(null)
   const [isRunning, setIsRunning] = useState(false)
@@ -563,7 +570,6 @@ export default function SimPageClientView() {
         "number",
         "number",
         "number",
-        "number",
       ],
       [
         nx, // width
@@ -572,7 +578,6 @@ export default function SimPageClientView() {
         temp, // T
         bondedEnergy, // e0
         atomSubstrate, // e1
-        carbonBondEnergy, // e_c
         freeAttFreq, // nu_f
         depAttFreq, // nu_d
         passAttFreq, // nu_p
@@ -600,10 +605,19 @@ export default function SimPageClientView() {
     // rate table once for all of them together.
 
 
-    for (const key of carbonSites) {
+    carbonSpeciesEnergies.forEach((energy, sp) => {
+      wasmModule.ccall(
+        "set_carbon_species_energy",
+        null,
+        ["number", "number"],
+        [sp, energy]
+      )
+    })
+
+    for (const [key, species] of carbonSites) {
       const [cx, cy] = key.split(",").map(Number)
       if (cx < nx && cy < ny) {
-        wasmModule._mark_carbon(cx, cy)
+        wasmModule._mark_carbon(cx, cy, species)
       }
     }
     wasmModule._finalize_carbon_placement()
@@ -717,16 +731,16 @@ export default function SimPageClientView() {
 
   const toggleCarbonSite = (x: number, y: number) => {
     setCarbonSites((prev) => {
-      carbonUndoStackRef.current.push(new Set(prev))
+      carbonUndoStackRef.current.push(new Map(prev))
       if (carbonUndoStackRef.current.length > 100) {
         carbonUndoStackRef.current.shift()
       }
       const key = `${x},${y}`
-      const next = new Set(prev)
+      const next = new Map(prev)
       if (next.has(key)) {
         next.delete(key)
       } else {
-        next.add(key)
+        next.set(key, carbonSpecies)
       }
       return next
     })
@@ -839,7 +853,6 @@ export default function SimPageClientView() {
       depAttFreq: number
       passAttFreq: number
       ePass: number
-      carbonBondEnergy: number
       depassAttFreq: number
       eDepass: number
     }
@@ -853,7 +866,6 @@ export default function SimPageClientView() {
       depAttFreq: 8e9,
       passAttFreq: 1e5,
       ePass: 0.4,
-      carbonBondEnergy: -0.6,
       depassAttFreq: 1e5,
       eDepass: 0.6,
     },
@@ -866,7 +878,6 @@ export default function SimPageClientView() {
       depAttFreq: 2e9,
       passAttFreq: 1e5,
       ePass: 0.3,
-      carbonBondEnergy: -0.4,
       depassAttFreq: 1e5,
       eDepass: 0.6,
     },
@@ -879,7 +890,6 @@ export default function SimPageClientView() {
       depAttFreq: 5e9,
       passAttFreq: 5e7,
       ePass: 0.15,
-      carbonBondEnergy: -0.6,
       depassAttFreq: 1e6,
       eDepass: 0.4, // lower barrier than usual -- SEI actively cycles
     },
@@ -895,7 +905,6 @@ export default function SimPageClientView() {
     setDepAttFreq(p.depAttFreq)
     setPassAttFreq(p.passAttFreq)
     setEPass(p.ePass)
-    setCarbonBondEnergy(p.carbonBondEnergy)
     setDepassAttFreq(p.depassAttFreq)
     setEDepass(p.eDepass)
   }
@@ -917,7 +926,7 @@ export default function SimPageClientView() {
     wasmModule.ccall(
       "update_simulation_params",
       null,
-      ["number", "number", "number", "number", "number", "number", "number", "number", "number", "number", "number"],
+      ["number", "number", "number", "number", "number", "number", "number", "number", "number", "number"],
       [
         dropRate,
         temp,
@@ -925,7 +934,6 @@ export default function SimPageClientView() {
         depAttFreq,
         passAttFreq,
         ePass,
-        carbonBondEnergy,
         bondedEnergy,
         atomSubstrate,
         depassAttFreq,
@@ -940,13 +948,26 @@ export default function SimPageClientView() {
     depAttFreq,
     passAttFreq,
     ePass,
-    carbonBondEnergy,
     bondedEnergy,
     atomSubstrate,
     depassAttFreq,
     eDepass,
     wasmModule,
   ])
+
+  // Carbon species energies: push live so mid-run tuning of anode bond
+  // strength doesn't require a restart.
+  useEffect(() => {
+    if (!wasmModule || !isLiveMode || !hasRunOnce) return
+    carbonSpeciesEnergies.forEach((energy, sp) => {
+      wasmModule.ccall(
+        "set_carbon_species_energy",
+        null,
+        ["number", "number"],
+        [sp, energy]
+      )
+    })
+  }, [isLiveMode, hasRunOnce, carbonSpeciesEnergies, wasmModule])
 
   // Update Frequency: live-adjust the stats/visual batch cadence.
   useEffect(() => {
@@ -976,15 +997,15 @@ export default function SimPageClientView() {
     const prev = prevCarbonSitesRef.current
     let changed = false
 
-    for (const key of carbonSites) {
+    for (const [key, species] of carbonSites) {
       if (!prev.has(key)) {
         const [cx, cy] = key.split(",").map(Number)
-        wasmModule._mark_carbon(cx, cy)
+        wasmModule._mark_carbon(cx, cy, species)
         changed = true
       }
     }
 
-    for (const key of prev) {
+    for (const key of prev.keys()) {
       if (!carbonSites.has(key)) {
         const [cx, cy] = key.split(",").map(Number)
         wasmModule._unmark_carbon(cx, cy)
@@ -1151,6 +1172,55 @@ export default function SimPageClientView() {
                       />
                     </AlertAction>
                   </Alert>
+                  {drawingCarbon && (
+                    <div className="flex flex-col gap-2">
+                      <Label className="text-sm font-medium">
+                        Anode species (drawing as)
+                      </Label>
+                      <div className="flex gap-2">
+                        {carbonSpeciesEnergies.map((_, sp) => (
+                          <button
+                            key={sp}
+                            type="button"
+                            onClick={() => setCarbonSpecies(sp)}
+                            className={
+                              "h-7 w-7 rounded-full border-2 " +
+                              (carbonSpecies === sp
+                                ? "border-primary"
+                                : "border-transparent")
+                            }
+                            style={{ backgroundColor: CARBON_SPECIES_COLORS[sp] }}
+                            title={`Species ${sp + 1}`}
+                          />
+                        ))}
+                      </div>
+                      {carbonSpeciesEnergies.map((energy, sp) => (
+                        <div key={sp} className="flex flex-col gap-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-medium">
+                              Species {sp + 1} bond energy (eV)
+                            </span>
+                            <span className="font-mono text-xs text-muted-foreground">
+                              {energy}
+                            </span>
+                          </div>
+                          <Slider
+                            min={-2.0}
+                            max={0}
+                            step={0.01}
+                            value={[energy]}
+                            onValueChange={(val) =>
+                              setCarbonSpeciesEnergies((prev) => {
+                                const next = prev.slice()
+                                next[sp] = val[0]
+                                return next
+                              })
+                            }
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   {carbonSites.size > 0 && (
                     <div className="flex gap-2">
                       <Button
@@ -1158,8 +1228,8 @@ export default function SimPageClientView() {
                         variant="outline"
                         className="flex-1"
                         onClick={() => {
-                          carbonUndoStackRef.current.push(new Set(carbonSites))
-                          setCarbonSites(new Set())
+                          carbonUndoStackRef.current.push(new Map(carbonSites))
+                          setCarbonSites(new Map())
                         }}
                       >
                         Clear Carbon ({carbonSites.size})
@@ -1598,41 +1668,6 @@ export default function SimPageClientView() {
                             onValueChange={(val) => setEDepass(val[0])}
                           />
                         </div>
-
-                        {/* carbon bond energy */}
-                        <div className="flex flex-col gap-2">
-                          <div className="flex items-center justify-between">
-                            <Label
-                              htmlFor="carbon-bond-energy-input"
-                              className="flex items-center text-sm font-medium"
-                            >
-                              <span>
-                                Carbon Bond Energy e<sub>c</sub> (eV)
-                              </span>
-                              <Tooltip>
-                                <TooltipTrigger className="ml-2" type="button">
-                                  <CircleQuestionMarkIcon size={17} />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  The Li-C bond energy at graphite anode sites;
-                                  more negative values make lithium bind more
-                                  strongly to drawn carbon
-                                </TooltipContent>
-                              </Tooltip>
-                            </Label>
-                            <span className="font-mono text-sm text-muted-foreground">
-                              {carbonBondEnergy}
-                            </span>
-                          </div>
-                          <Slider
-                            id="carbon-bond-energy-input"
-                            min={-2.0}
-                            max={0}
-                            step={0.01}
-                            value={[carbonBondEnergy]}
-                            onValueChange={(val) => setCarbonBondEnergy(val[0])}
-                          />
-                        </div>
                       </div>
                     </CollapsibleContent>
                   </Collapsible>
@@ -1736,6 +1771,8 @@ export default function SimPageClientView() {
                       width={gridDimensions[0]}
                       height={gridDimensions[1]}
                       data={simState}
+                      carbonSpeciesMap={carbonSites}
+                      carbonSpeciesColors={CARBON_SPECIES_COLORS}
                       onCellClick={
                         historyMode
                           ? undefined
@@ -1746,7 +1783,7 @@ export default function SimPageClientView() {
                     />
                   </div>
                 </div>
-                <AtomColorKey />
+                <AtomColorKey carbonSpeciesColors={CARBON_SPECIES_COLORS} />
               </div>
               <div className="mt-1 flex shrink-0 items-center gap-2">
                 <Button type="button" variant="outline" size="sm" onClick={handleZoomOut}>
