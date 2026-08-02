@@ -14,7 +14,6 @@ import {
 import {
   ChevronDownIcon,
   CircleQuestionMarkIcon,
-  XIcon,
   Atom,
   HelpCircle,
 } from "lucide-react"
@@ -44,6 +43,14 @@ import {
 } from "@/components/ui/alert"
 import { BorderBeam } from "../ui/border-beam"
 import { ButtonGroup } from "../ui/button-group"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select"
 
 interface CustomWasmModule {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -947,7 +954,6 @@ export default function SimPageClientView() {
   const [batchResults, setBatchResults] = useState<Record<string, number>[]>([])
   const [batchRunning, setBatchRunning] = useState(false)
   const [batchProgress, setBatchProgress] = useState({ done: 0, total: 0 })
-  const [batchOpen, setBatchOpen] = useState(true)
   const [helpOpen, setHelpOpen] = useState(false)
 
   const runBatch = () => {
@@ -1678,7 +1684,9 @@ export default function SimPageClientView() {
                               max={0}
                               step={0.01}
                               value={[bondedEnergy]}
-                              onValueChange={(val: number[]) => setBondedEnergy(val[0])}
+                              onValueChange={(val: number[]) =>
+                                setBondedEnergy(val[0])
+                              }
                             />
                           </div>
 
@@ -1716,7 +1724,9 @@ export default function SimPageClientView() {
                               max={0}
                               step={0.01}
                               value={[atomSubstrate]}
-                              onValueChange={(val: number[]) => setAtomSubstrate(val[0])}
+                              onValueChange={(val: number[]) =>
+                                setAtomSubstrate(val[0])
+                              }
                             />
                           </div>
 
@@ -1751,7 +1761,9 @@ export default function SimPageClientView() {
                               max={1e10}
                               step={1e8}
                               value={[freeAttFreq]}
-                              onValueChange={(val: number[]) => setFreeAttFreq(val[0])}
+                              onValueChange={(val: number[]) =>
+                                setFreeAttFreq(val[0])
+                              }
                             />
                           </div>
 
@@ -1786,7 +1798,9 @@ export default function SimPageClientView() {
                               max={1e10}
                               step={1e8}
                               value={[depAttFreq]}
-                              onValueChange={(val: number[]) => setDepAttFreq(val[0])}
+                              onValueChange={(val: number[]) =>
+                                setDepAttFreq(val[0])
+                              }
                             />
                           </div>
 
@@ -1821,7 +1835,9 @@ export default function SimPageClientView() {
                               max={1e9}
                               step={1e5}
                               value={[passAttFreq]}
-                              onValueChange={(val: number[]) => setPassAttFreq(val[0])}
+                              onValueChange={(val: number[]) =>
+                                setPassAttFreq(val[0])
+                              }
                             />
                           </div>
 
@@ -1856,7 +1872,9 @@ export default function SimPageClientView() {
                               max={2.0}
                               step={0.01}
                               value={[ePass]}
-                              onValueChange={(val: number[]) => setEPass(val[0])}
+                              onValueChange={(val: number[]) =>
+                                setEPass(val[0])
+                              }
                             />
                           </div>
 
@@ -1892,7 +1910,9 @@ export default function SimPageClientView() {
                               max={1e9}
                               step={1e5}
                               value={[depassAttFreq]}
-                              onValueChange={(val: number[]) => setDepassAttFreq(val[0])}
+                              onValueChange={(val: number[]) =>
+                                setDepassAttFreq(val[0])
+                              }
                             />
                           </div>
 
@@ -1930,7 +1950,9 @@ export default function SimPageClientView() {
                               max={2.0}
                               step={0.01}
                               value={[eDepass]}
-                              onValueChange={(val: number[]) => setEDepass(val[0])}
+                              onValueChange={(val: number[]) =>
+                                setEDepass(val[0])
+                              }
                             />
                           </div>
                         </div>
@@ -1985,7 +2007,7 @@ export default function SimPageClientView() {
               </Card>
             </form>
             <div className="flex min-h-0 flex-1 flex-col gap-4">
-              <Card className="flex min-h-0 flex-1 flex-col items-center justify-center gap-0 rounded-2xl border p-4 backdrop-blur-xl ">
+              <Card className="flex min-h-0 flex-1 flex-col items-center justify-center gap-0 rounded-2xl border p-4 backdrop-blur-xl">
                 {simTerminated && (
                   <Alert variant="destructive" className="mb-2 w-full">
                     <AlertTitle>Simulation jammed</AlertTitle>
@@ -1997,47 +2019,52 @@ export default function SimPageClientView() {
                 )}
                 <div className="flex min-h-0 w-full flex-1 gap-4">
                   <div className="flex min-h-0 flex-1 flex-col items-center">
-                    <div className="flex items-center gap-1.5 rounded-full border border-black/5 px-3 py-1 dark:border-white/10">
-                      <span
-                        className={
-                          "h-2 w-2 rounded-full " +
-                          (simTerminated
-                            ? "bg-destructive"
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 rounded-full border border-black/5 px-3 py-1 dark:border-white/10">
+                        <span
+                          className={
+                            "h-2 w-2 rounded-full " +
+                            (simTerminated
+                              ? "bg-destructive"
+                              : isPaused
+                                ? "bg-yellow-500"
+                                : isRunning
+                                  ? "animate-pulse bg-green-500"
+                                  : "bg-muted-foreground")
+                          }
+                        />
+                        <span className="text-xs font-medium text-muted-foreground">
+                          {simTerminated
+                            ? "Jammed"
                             : isPaused
-                              ? "bg-yellow-500"
+                              ? "Paused"
                               : isRunning
-                                ? "animate-pulse bg-green-500"
-                                : "bg-muted-foreground")
-                        }
-                      />
-                      <span className="text-xs font-medium text-muted-foreground">
-                        {simTerminated
-                          ? "Jammed"
-                          : isPaused
-                            ? "Paused"
-                            : isRunning
-                              ? "Running"
-                              : "Stopped"}
-                      </span>
+                                ? "Running"
+                                : "Stopped"}
+                        </span>
+                      </div>
+                      <h3 className="text-center text-sm font-medium text-muted-foreground">
+                        After {stepsRan.toLocaleString()} steps and{" "}
+                        {runTime.toFixed(2)} seconds
+                      </h3>
                     </div>
-                    <h3 className="text-center text-sm font-medium text-muted-foreground">
-                      After {stepsRan.toLocaleString()} steps and{" "}
-                      {runTime.toFixed(2)} seconds
-                    </h3>
+
                     <div
                       ref={gridContainerRef}
                       className="flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden"
-                      style={{
-                        cursor: isDragging ? "grabbing" : "grab",
-                        touchAction: "none",
-                        WebkitUserSelect: "none",
-                        userSelect: "none",
-                        // Chrome/Firefox allow native HTML5 drag-and-drop
-                        // on SVG content by default; this disables it so a
-                        // pointerdown+move never gets hijacked into a
-                        // native drag gesture (which cancels the click).
-                        WebkitUserDrag: "none",
-                      } as React.CSSProperties}
+                      style={
+                        {
+                          cursor: isDragging ? "grabbing" : "grab",
+                          touchAction: "none",
+                          WebkitUserSelect: "none",
+                          userSelect: "none",
+                          // Chrome/Firefox allow native HTML5 drag-and-drop
+                          // on SVG content by default; this disables it so a
+                          // pointerdown+move never gets hijacked into a
+                          // native drag gesture (which cancels the click).
+                          WebkitUserDrag: "none",
+                        } as React.CSSProperties
+                      }
                       draggable={false}
                       onDragStart={(e) => e.preventDefault()}
                       onPointerDown={handlePointerDown}
@@ -2156,164 +2183,163 @@ export default function SimPageClientView() {
                   )}
                 </div>
               </Card>
-              <Card className="flex min-h-0 flex-1 flex-col rounded-2xl border border-black/5 p-4  backdrop-blur-xl dark:border-white/10">
-                <AtomCountsChart data={statsData} />
-                <div className="mt-2 flex shrink-0 gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="rounded-full"
-                    onClick={exportStatsCSV}
-                    disabled={statsData.length === 0}
+              <Card className="flex h-1/2 min-h-0 flex-1 flex-col rounded-2xl border border-black/5 p-4 backdrop-blur-xl dark:border-white/10">
+                <Tabs defaultValue="atom-counts" className="h-full w-full">
+                  <TabsList>
+                    <TabsTrigger value="atom-counts">Atom Counts</TabsTrigger>
+                    <TabsTrigger value="batch-run">Batch Run</TabsTrigger>
+                  </TabsList>
+                  <TabsContent
+                    value="atom-counts"
+                    className="flex h-full flex-col"
                   >
-                    Export Stats CSV
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="rounded-full"
-                    onClick={exportLatticeCSV}
-                    disabled={simState.length === 0}
-                  >
-                    Export Lattice CSV
-                  </Button>
-                </div>
-              </Card>
-              {batchOpen ? (
-                <Card className="flex max-h-[45vh] shrink-0 flex-col gap-3 overflow-y-auto rounded-2xl border p-4  backdrop-blur-xl">
-                  <div className="flex shrink-0 items-center justify-between">
-                    <h3 className="text-lg font-semibold">Batch Run</h3>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={() => setBatchOpen(false)}
-                      aria-label="Close batch run panel"
-                    >
-                      <XIcon size={14} />
-                    </Button>
-                  </div>
-                  <div className="flex flex-wrap items-end gap-2">
-                    <div className="flex flex-col gap-1">
-                      <Label className="text-xs">Sweep parameter</Label>
-                      <select
-                        className="rounded-xl border border-black/10 bg-background px-2 py-1 text-sm dark:border-white/10"
-                        value={batchParam}
-                        onChange={(e) =>
-                          setBatchParam(e.target.value as "temp" | "dropRate")
-                        }
-                      >
-                        <option value="temp">Temperature</option>
-                        <option value="dropRate">Drop Rate</option>
-                      </select>
+                    <div className="min-h-0 flex-1">
+                      <AtomCountsChart data={statsData} />
                     </div>
-                    <div className="flex flex-col gap-1">
-                      <Label className="text-xs">Min</Label>
-                      <Input
-                        className="w-24 rounded-xl"
-                        type="number"
-                        value={batchMin}
-                        onChange={(e) => setBatchMin(e.target.value)}
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <Label className="text-xs">Max</Label>
-                      <Input
-                        className="w-24 rounded-xl"
-                        type="number"
-                        value={batchMax}
-                        onChange={(e) => setBatchMax(e.target.value)}
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <Label className="text-xs">Runs</Label>
-                      <Input
-                        className="w-20 rounded-xl"
-                        type="number"
-                        min={1}
-                        value={batchCount}
-                        onChange={(e) => setBatchCount(e.target.value)}
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <Label className="text-xs">Steps / run</Label>
-                      <Input
-                        className="w-28 rounded-xl"
-                        type="number"
-                        min={1}
-                        value={batchSteps}
-                        onChange={(e) => setBatchSteps(e.target.value)}
-                      />
-                    </div>
-                    <Button
-                      type="button"
-                      className="rounded-xl"
-                      onClick={runBatch}
-                      disabled={!wasmModule || batchRunning}
-                    >
-                      {batchRunning
-                        ? `Running ${batchProgress.done}/${batchProgress.total}...`
-                        : "Run Batch"}
-                    </Button>
-                    {batchResults.length > 0 && (
+
+                    <div className="mt-4 flex shrink-0 gap-2 pb-4">
                       <Button
                         type="button"
                         variant="outline"
+                        size="sm"
                         className="rounded-full"
-                        onClick={exportBatchCSV}
+                        onClick={exportStatsCSV}
+                        disabled={statsData.length === 0}
                       >
-                        Export CSV
+                        Export Stats CSV
                       </Button>
-                    )}
-                  </div>
-                  {batchResults.length > 0 && (
-                    <div className="max-h-40 shrink-0 overflow-auto rounded-xl border border-black/10 dark:border-white/10">
-                      <table className="w-full text-xs">
-                        <thead className="sticky top-0 bg-primary/30">
-                          <tr>
-                            <th className="p-1 text-left">#</th>
-                            <th className="p-1 text-left">T</th>
-                            <th className="p-1 text-left">d0</th>
-                            <th className="p-1 text-left">Fill %</th>
-                            <th className="p-1 text-left">Passivated</th>
-                            <th className="p-1 text-left">Jammed</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {batchResults.map((r) => (
-                            <tr
-                              key={r.index}
-                              className="border-t border-black/5 hover:bg-primary/5 dark:border-white/5 dark:hover:bg-primary/5"
-                            >
-                              <td className="p-1">{r.index}</td>
-                              <td className="p-1">{r.T}</td>
-                              <td className="p-1">{r.d0}</td>
-                              <td className="p-1">{r.fill_pct?.toFixed(1)}</td>
-                              <td className="p-1">{r.passivated}</td>
-                              <td className="p-1">
-                                {r.terminated ? "yes" : "no"}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="rounded-full"
+                        onClick={exportLatticeCSV}
+                        disabled={simState.length === 0}
+                      >
+                        Export Lattice CSV
+                      </Button>
                     </div>
-                  )}
-                </Card>
-              ) : (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="w-fit shrink-0 rounded-full border-primary/30 bg-primary/5 text-primary hover:bg-primary/15"
-                  onClick={() => setBatchOpen(true)}
-                >
-                  Show Batch Run
-                </Button>
-              )}
+                  </TabsContent>
+                  <TabsContent value="batch-run">
+                    <div className="flex shrink-0 items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold">Batch Run</h3>
+                    </div>
+                    <div className="flex flex-wrap items-end gap-2">
+                      <div className="flex flex-col gap-1">
+                        <Label className="text-xs">Sweep parameter</Label>
+                        <Select
+                          value={batchParam}
+                          onValueChange={(value) =>
+                            setBatchParam(value as "temp" | "dropRate")
+                          }
+                        >
+                          <SelectTrigger className="rounded-xl px-2 py-1 text-sm">
+                            <SelectValue placeholder="Theme" />
+                          </SelectTrigger>
+
+                          <SelectContent>
+                            <SelectItem value="temp">Temperature</SelectItem>
+                            <SelectItem value="dropRate">Drop Rate</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <Label className="text-xs">Min</Label>
+                        <Input
+                          className="w-24 rounded-xl"
+                          type="number"
+                          value={batchMin}
+                          onChange={(e) => setBatchMin(e.target.value)}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <Label className="text-xs">Max</Label>
+                        <Input
+                          className="w-24 rounded-xl"
+                          type="number"
+                          value={batchMax}
+                          onChange={(e) => setBatchMax(e.target.value)}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <Label className="text-xs">Runs</Label>
+                        <Input
+                          className="w-20 rounded-xl"
+                          type="number"
+                          min={1}
+                          value={batchCount}
+                          onChange={(e) => setBatchCount(e.target.value)}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <Label className="text-xs">Steps / run</Label>
+                        <Input
+                          className="w-28 rounded-xl"
+                          type="number"
+                          min={1}
+                          value={batchSteps}
+                          onChange={(e) => setBatchSteps(e.target.value)}
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        className="rounded-xl"
+                        onClick={runBatch}
+                        disabled={!wasmModule || batchRunning}
+                      >
+                        {batchRunning
+                          ? `Running ${batchProgress.done}/${batchProgress.total}...`
+                          : "Run Batch"}
+                      </Button>
+                      {batchResults.length > 0 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="rounded-full"
+                          onClick={exportBatchCSV}
+                        >
+                          Export CSV
+                        </Button>
+                      )}
+                    </div>
+                    {batchResults.length > 0 && (
+                      <div className="mt-2 max-h-40 shrink-0 overflow-auto rounded-xl border border-black/10 dark:border-white/10">
+                        <table className="w-full text-xs">
+                          <thead className="sticky top-0 bg-primary/30">
+                            <tr>
+                              <th className="p-1 text-left">#</th>
+                              <th className="p-1 text-left">T</th>
+                              <th className="p-1 text-left">d0</th>
+                              <th className="p-1 text-left">Fill %</th>
+                              <th className="p-1 text-left">Passivated</th>
+                              <th className="p-1 text-left">Jammed</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {batchResults.map((r) => (
+                              <tr
+                                key={r.index}
+                                className="border-t border-black/5 hover:bg-primary/5 dark:border-white/5 dark:hover:bg-primary/5"
+                              >
+                                <td className="p-1">{r.index}</td>
+                                <td className="p-1">{r.T}</td>
+                                <td className="p-1">{r.d0}</td>
+                                <td className="p-1">
+                                  {r.fill_pct?.toFixed(1)}
+                                </td>
+                                <td className="p-1">{r.passivated}</td>
+                                <td className="p-1">
+                                  {r.terminated ? "yes" : "no"}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </TabsContent>
+                </Tabs>
+              </Card>
             </div>
           </div>
         </div>
@@ -2323,7 +2349,10 @@ export default function SimPageClientView() {
         <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <HelpCircle size={18} className="text-primary dark:text-cyan-500" />
+              <HelpCircle
+                size={18}
+                className="text-primary dark:text-cyan-500"
+              />
               How the simulator works
             </DialogTitle>
             <DialogDescription>
@@ -2339,8 +2368,8 @@ export default function SimPageClientView() {
                 lattice using Kinetic Monte Carlo (KMC): atoms drop onto the
                 lattice, hop between sites, bond to neighbors, and can be
                 passivated by a growing SEI (solid-electrolyte interphase)
-                layer. Every parameter below feeds into the rate equations
-                that decide which event happens next and how quickly.
+                layer. Every parameter below feeds into the rate equations that
+                decide which event happens next and how quickly.
               </p>
             </section>
 
@@ -2350,37 +2379,43 @@ export default function SimPageClientView() {
                 <div className="flex items-start gap-2">
                   <span className="mt-1 h-3 w-3 shrink-0 rounded-full bg-[#E5E7EB] dark:bg-[#18181B]" />
                   <span>
-                    <span className="font-medium">Empty</span> &mdash; unoccupied site.
+                    <span className="font-medium">Empty</span> &mdash;
+                    unoccupied site.
                   </span>
                 </div>
                 <div className="flex items-start gap-2">
                   <span className="mt-1 h-3 w-3 shrink-0 rounded-full bg-[#2563EB] dark:bg-[#38BDF8]" />
                   <span>
-                    <span className="font-medium">Free</span> &mdash; mobile atom, not yet bonded to a neighbor.
+                    <span className="font-medium">Free</span> &mdash; mobile
+                    atom, not yet bonded to a neighbor.
                   </span>
                 </div>
                 <div className="flex items-start gap-2">
                   <span className="mt-1 h-3 w-3 shrink-0 rounded-full bg-[#F97316] dark:bg-[#FB923C]" />
                   <span>
-                    <span className="font-medium">Deposited</span> &mdash; bonded to at least one neighbor.
+                    <span className="font-medium">Deposited</span> &mdash;
+                    bonded to at least one neighbor.
                   </span>
                 </div>
                 <div className="flex items-start gap-2">
                   <span className="mt-1 h-3 w-3 shrink-0 rounded-full bg-[#6B7280] dark:bg-[#52525B]" />
                   <span>
-                    <span className="font-medium">Substrate</span> &mdash; the fixed bottom row atoms grow from.
+                    <span className="font-medium">Substrate</span> &mdash; the
+                    fixed bottom row atoms grow from.
                   </span>
                 </div>
                 <div className="flex items-start gap-2">
                   <span className="mt-1 h-3 w-3 shrink-0 rounded-full bg-[#16A34A] dark:bg-[#4ADE80]" />
                   <span>
-                    <span className="font-medium">Passivated</span> &mdash; a deposited atom coated by SEI; can revert via de-passivation.
+                    <span className="font-medium">Passivated</span> &mdash; a
+                    deposited atom coated by SEI; can revert via de-passivation.
                   </span>
                 </div>
                 <div className="flex items-start gap-2">
                   <span className="mt-1 h-3 w-3 shrink-0 rounded-full bg-[#DC2626] dark:bg-[#F87171]" />
                   <span>
-                    <span className="font-medium">Carbon</span> &mdash; a user-drawn graphite anode site.
+                    <span className="font-medium">Carbon</span> &mdash; a
+                    user-drawn graphite anode site.
                   </span>
                 </div>
               </div>
@@ -2389,35 +2424,100 @@ export default function SimPageClientView() {
             <section>
               <h4 className="mb-2 font-semibold">Core parameters</h4>
               <ul className="flex flex-col gap-2 text-muted-foreground">
-                <li><span className="font-medium text-foreground">Width / Height</span> &mdash; lattice dimensions in cells.</li>
-                <li><span className="font-medium text-foreground">Temperature (K)</span> &mdash; sets the Boltzmann factor in every rate; higher T makes energy differences matter less.</li>
-                <li><span className="font-medium text-foreground">Drop Rate (d&#8320;)</span> &mdash; how often new atoms spawn at the top row.</li>
-                <li><span className="font-medium text-foreground">Steps</span> &mdash; total KMC steps to run when you press Run.</li>
-                <li><span className="font-medium text-foreground">Update Frequency</span> &mdash; how many steps run between each visual/chart refresh; lower values show short-lived states (like Free) more often, at a performance cost.</li>
-                <li><span className="font-medium text-foreground">Seed</span> &mdash; fixes the RNG for a reproducible run; leave blank for a random seed each time.</li>
+                <li>
+                  <span className="font-medium text-foreground">
+                    Width / Height
+                  </span>{" "}
+                  &mdash; lattice dimensions in cells.
+                </li>
+                <li>
+                  <span className="font-medium text-foreground">
+                    Temperature (K)
+                  </span>{" "}
+                  &mdash; sets the Boltzmann factor in every rate; higher T
+                  makes energy differences matter less.
+                </li>
+                <li>
+                  <span className="font-medium text-foreground">
+                    Drop Rate (d&#8320;)
+                  </span>{" "}
+                  &mdash; how often new atoms spawn at the top row.
+                </li>
+                <li>
+                  <span className="font-medium text-foreground">Steps</span>{" "}
+                  &mdash; total KMC steps to run when you press Run.
+                </li>
+                <li>
+                  <span className="font-medium text-foreground">
+                    Update Frequency
+                  </span>{" "}
+                  &mdash; how many steps run between each visual/chart refresh;
+                  lower values show short-lived states (like Free) more often,
+                  at a performance cost.
+                </li>
+                <li>
+                  <span className="font-medium text-foreground">Seed</span>{" "}
+                  &mdash; fixes the RNG for a reproducible run; leave blank for
+                  a random seed each time.
+                </li>
               </ul>
             </section>
 
             <section>
               <h4 className="mb-2 font-semibold">Advanced parameters</h4>
               <ul className="flex flex-col gap-2 text-muted-foreground">
-                <li><span className="font-medium text-foreground">Bonded Energy e&#8320;</span> &mdash; atom-atom bond strength; more negative = stronger bonds = slower diffusion.</li>
-                <li><span className="font-medium text-foreground">Atom-substrate e&#8321;</span> &mdash; bond strength to the substrate; more negative than e&#8320; promotes vertical growth.</li>
-                <li><span className="font-medium text-foreground">Free / Dep. Attempt Freq. (v_f, v_d)</span> &mdash; how often free vs. bonded atoms attempt to hop.</li>
-                <li><span className="font-medium text-foreground">Passivation Attempt Freq. / Barrier (v_p, E_pass)</span> &mdash; governs how readily exposed deposited atoms get coated by SEI.</li>
-                <li><span className="font-medium text-foreground">De-passivation Attempt Freq. / Barrier (v_dp, E_dp)</span> &mdash; governs SEI breakdown, reverting Passivated back to Deposited. Keeping E_dp higher than E_pass keeps passivation dominant by default.</li>
+                <li>
+                  <span className="font-medium text-foreground">
+                    Bonded Energy e&#8320;
+                  </span>{" "}
+                  &mdash; atom-atom bond strength; more negative = stronger
+                  bonds = slower diffusion.
+                </li>
+                <li>
+                  <span className="font-medium text-foreground">
+                    Atom-substrate e&#8321;
+                  </span>{" "}
+                  &mdash; bond strength to the substrate; more negative than
+                  e&#8320; promotes vertical growth.
+                </li>
+                <li>
+                  <span className="font-medium text-foreground">
+                    Free / Dep. Attempt Freq. (v_f, v_d)
+                  </span>{" "}
+                  &mdash; how often free vs. bonded atoms attempt to hop.
+                </li>
+                <li>
+                  <span className="font-medium text-foreground">
+                    Passivation Attempt Freq. / Barrier (v_p, E_pass)
+                  </span>{" "}
+                  &mdash; governs how readily exposed deposited atoms get coated
+                  by SEI.
+                </li>
+                <li>
+                  <span className="font-medium text-foreground">
+                    De-passivation Attempt Freq. / Barrier (v_dp, E_dp)
+                  </span>{" "}
+                  &mdash; governs SEI breakdown, reverting Passivated back to
+                  Deposited. Keeping E_dp higher than E_pass keeps passivation
+                  dominant by default.
+                </li>
               </ul>
             </section>
 
             <section>
-              <h4 className="mb-2 font-semibold">Drawing carbon (graphite anode)</h4>
+              <h4 className="mb-2 font-semibold">
+                Drawing carbon (graphite anode)
+              </h4>
               <p className="text-muted-foreground">
-                Toggle <span className="font-medium text-foreground">Draw Carbon</span>, pick a species swatch, then
-                click lattice cells to mark them as anode sites before
-                pressing Run. Each species has its own independently
-                tunable bond energy slider. Use{" "}
+                Toggle{" "}
+                <span className="font-medium text-foreground">Draw Carbon</span>
+                , pick a species swatch, then click lattice cells to mark them
+                as anode sites before pressing Run. Each species has its own
+                independently tunable bond energy slider. Use{" "}
                 <span className="font-medium text-foreground">Undo</span> or{" "}
-                <span className="font-medium text-foreground">Clear Carbon</span>{" "}
+                <span className="font-medium text-foreground">
+                  Clear Carbon
+                </span>{" "}
                 to fix mistakes.
               </p>
             </section>
@@ -2427,21 +2527,27 @@ export default function SimPageClientView() {
               <p className="text-muted-foreground">
                 When enabled, changing any slider (including carbon energies,
                 Steps, and Update Frequency) applies instantly to a running
-                simulation instead of requiring a restart. Carbon sites you
-                add or remove while Live Mode is on are also pushed to the
-                running sim immediately.
+                simulation instead of requiring a restart. Carbon sites you add
+                or remove while Live Mode is on are also pushed to the running
+                sim immediately.
               </p>
             </section>
 
             <section>
               <h4 className="mb-2 font-semibold">Presets</h4>
               <p className="text-muted-foreground">
-                <span className="font-medium text-foreground">Dense growth</span>,{" "}
-                <span className="font-medium text-foreground">Sparse / dendritic</span>, and{" "}
+                <span className="font-medium text-foreground">
+                  Dense growth
+                </span>
+                ,{" "}
+                <span className="font-medium text-foreground">
+                  Sparse / dendritic
+                </span>
+                , and{" "}
                 <span className="font-medium text-foreground">SEI-heavy</span>{" "}
                 are ready-made parameter sets that produce visually distinct
-                growth regimes &mdash; a fast way to explore the model
-                without hand-tuning every slider.
+                growth regimes &mdash; a fast way to explore the model without
+                hand-tuning every slider.
               </p>
             </section>
 
@@ -2449,20 +2555,30 @@ export default function SimPageClientView() {
               <h4 className="mb-2 font-semibold">Batch Run</h4>
               <p className="text-muted-foreground">
                 Sweeps Temperature or Drop Rate across a Min&ndash;Max range
-                over several independent runs (each with its own random
-                seed), holding everything else fixed. Useful for seeing how
-                fill % or passivation trends with one parameter. Results are
-                exportable as CSV, and the panel can be collapsed with the
-                &times; button when you don&apos;t need it.
+                over several independent runs (each with its own random seed),
+                holding everything else fixed. Useful for seeing how fill % or
+                passivation trends with one parameter. Results are exportable as
+                CSV, and the panel can be collapsed with the &times; button when
+                you don&apos;t need it.
               </p>
             </section>
 
             <section>
               <h4 className="mb-2 font-semibold">Grid controls</h4>
               <ul className="flex flex-col gap-2 text-muted-foreground">
-                <li>Click-drag the lattice to pan; use Zoom In/Out or Reset View to adjust scale.</li>
-                <li>Click any cell (outside of Draw Carbon mode) to inspect its state and coordination number.</li>
-                <li>The slider beneath the grid scrubs through saved lattice snapshots &mdash; use &ldquo;Back to Live&rdquo; to return to the current step.</li>
+                <li>
+                  Click-drag the lattice to pan; use Zoom In/Out or Reset View
+                  to adjust scale.
+                </li>
+                <li>
+                  Click any cell (outside of Draw Carbon mode) to inspect its
+                  state and coordination number.
+                </li>
+                <li>
+                  The slider beneath the grid scrubs through saved lattice
+                  snapshots &mdash; use &ldquo;Back to Live&rdquo; to return to
+                  the current step.
+                </li>
                 <li>
                   Press{" "}
                   <kbd className="rounded border border-black/10 bg-black/5 px-1.5 py-0.5 font-mono text-xs dark:border-white/10 dark:bg-white/10">
@@ -2476,10 +2592,16 @@ export default function SimPageClientView() {
             <section>
               <h4 className="mb-2 font-semibold">Exporting data</h4>
               <p className="text-muted-foreground">
-                Use <span className="font-medium text-foreground">Export Stats CSV</span> for
-                the step-by-step counts chart, and{" "}
-                <span className="font-medium text-foreground">Export Lattice CSV</span> for
-                a snapshot of the current grid state as a grid of cell codes.
+                Use{" "}
+                <span className="font-medium text-foreground">
+                  Export Stats CSV
+                </span>{" "}
+                for the step-by-step counts chart, and{" "}
+                <span className="font-medium text-foreground">
+                  Export Lattice CSV
+                </span>{" "}
+                for a snapshot of the current grid state as a grid of cell
+                codes.
               </p>
             </section>
           </div>
