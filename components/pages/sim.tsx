@@ -221,12 +221,7 @@ export default function SimPageClientView() {
   const [atomSubstrate, setAtomSubstrate] = useState(-0.5)
   const [freeAttFreq, setFreeAttFreq] = useState(5000000000)
   const [depAttFreq, setDepAttFreq] = useState(5000000000)
-  // nu_p raised to be within reach of hop-rate order of magnitude, and
-  // e_pass lowered closer to the literature-cited ~0.36 eV SEI barrier,
-  // so passivation is rare-but-reachable by default instead of
-  // mathematically unreachable at any slider position.
   const [passAttFreq, setPassAttFreq] = useState(1000000)
-  const [ePass, setEPass] = useState(0.3)
   const [depassAttFreq, setDepassAttFreq] = useState(100000) // nu_dp
   const [eDepass, setEDepass] = useState(0.5) // e_dp -- higher than e_pass
   // by default so passivation dominates unless tuned otherwise
@@ -270,7 +265,6 @@ export default function SimPageClientView() {
           setDepAttFreq(saved.depAttFreq)
         if (typeof saved.passAttFreq === "number")
           setPassAttFreq(saved.passAttFreq)
-        if (typeof saved.ePass === "number") setEPass(saved.ePass)
         if (Array.isArray(saved.carbonSpeciesEnergies))
           setCarbonSpeciesEnergies(saved.carbonSpeciesEnergies)
         if (typeof saved.depassAttFreq === "number")
@@ -302,7 +296,6 @@ export default function SimPageClientView() {
           freeAttFreq,
           depAttFreq,
           passAttFreq,
-          ePass,
           carbonSpeciesEnergies,
           depassAttFreq,
           eDepass,
@@ -322,7 +315,6 @@ export default function SimPageClientView() {
     freeAttFreq,
     depAttFreq,
     passAttFreq,
-    ePass,
     carbonSpeciesEnergies,
     depassAttFreq,
     eDepass,
@@ -483,7 +475,7 @@ export default function SimPageClientView() {
                 if (statsData.length > 0) {
                   const row = statsData[statsData.length - 1]
                   console.log(
-                    `step=${row.step} time=${row.time} empty=${row.empty} free=${row.free} deposited=${row.deposited} passivated=${row.passivated} e_pass_used=${row.e_pass_used} nu_p_used=${row.nu_p_used}`
+                    `step=${row.step} time=${row.time} empty=${row.empty} free=${row.free} deposited=${row.deposited} passivated=${row.passivated} nu_p_used=${row.nu_p_used}`
                   )
                 }
               } catch (e) {
@@ -567,7 +559,6 @@ export default function SimPageClientView() {
         "number",
         "number",
         "number",
-        "number",
       ],
       [
         nx, // width
@@ -579,7 +570,6 @@ export default function SimPageClientView() {
         freeAttFreq, // nu_f
         depAttFreq, // nu_d
         passAttFreq, // nu_p
-        ePass, // e_pass
         depassAttFreq, // nu_dp
         eDepass, // e_dp
         randomSeed, // seed
@@ -948,7 +938,6 @@ export default function SimPageClientView() {
       freeAttFreq: number
       depAttFreq: number
       passAttFreq: number
-      ePass: number
       depassAttFreq: number
       eDepass: number
     }
@@ -961,7 +950,6 @@ export default function SimPageClientView() {
       freeAttFreq: 8e9,
       depAttFreq: 8e9,
       passAttFreq: 1e5,
-      ePass: 0.4,
       depassAttFreq: 1e5,
       eDepass: 0.6,
     },
@@ -973,7 +961,6 @@ export default function SimPageClientView() {
       freeAttFreq: 2e9,
       depAttFreq: 2e9,
       passAttFreq: 1e5,
-      ePass: 0.3,
       depassAttFreq: 1e5,
       eDepass: 0.6,
     },
@@ -985,7 +972,6 @@ export default function SimPageClientView() {
       freeAttFreq: 5e9,
       depAttFreq: 5e9,
       passAttFreq: 5e7,
-      ePass: 0.15,
       depassAttFreq: 1e6,
       eDepass: 0.4, // lower barrier than usual -- SEI actively cycles
     },
@@ -1000,7 +986,6 @@ export default function SimPageClientView() {
     setFreeAttFreq(p.freeAttFreq)
     setDepAttFreq(p.depAttFreq)
     setPassAttFreq(p.passAttFreq)
-    setEPass(p.ePass)
     setDepassAttFreq(p.depassAttFreq)
     setEDepass(p.eDepass)
   }
@@ -1032,7 +1017,6 @@ export default function SimPageClientView() {
         "number",
         "number",
         "number",
-        "number",
       ],
       [
         dropRate,
@@ -1040,7 +1024,6 @@ export default function SimPageClientView() {
         freeAttFreq,
         depAttFreq,
         passAttFreq,
-        ePass,
         bondedEnergy,
         atomSubstrate,
         depassAttFreq,
@@ -1054,7 +1037,6 @@ export default function SimPageClientView() {
     freeAttFreq,
     depAttFreq,
     passAttFreq,
-    ePass,
     bondedEnergy,
     atomSubstrate,
     depassAttFreq,
@@ -1736,43 +1718,6 @@ export default function SimPageClientView() {
                             />
                           </div>
 
-                          {/* pass energy barrier */}
-                          <div className="flex flex-col gap-2">
-                            <div className="flex items-center justify-between">
-                              <Label
-                                htmlFor="e-pass-input"
-                                className="flex items-center text-sm font-medium"
-                              >
-                                <span>Passivation Energy Barrier (E_pass)</span>
-                                <Tooltip>
-                                  <TooltipTrigger
-                                    className="ml-2"
-                                    type="button"
-                                  >
-                                    <CircleQuestionMarkIcon size={17} />
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    Activation energy penalizing lithium ion
-                                    trying to pass through SEI
-                                  </TooltipContent>
-                                </Tooltip>
-                              </Label>
-                              <span className="font-mono text-sm text-muted-foreground">
-                                {ePass}
-                              </span>
-                            </div>
-                            <Slider
-                              id="e-pass-input"
-                              min={0}
-                              max={2.0}
-                              step={0.01}
-                              value={[ePass]}
-                              onValueChange={(val: number[]) =>
-                                setEPass(val[0])
-                              }
-                            />
-                          </div>
-
                           {/* de-passivation attempt freq */}
                           <div className="flex flex-col gap-2">
                             <div className="flex items-center justify-between">
@@ -1949,8 +1894,20 @@ export default function SimPageClientView() {
                         <div
                           ref={gridContainerRef}
                           className="relative flex w-full flex-1 grow items-center justify-center overflow-hidden"
+                          style={{
+                            touchAction: "manipulation",
+                            WebkitUserSelect: "none",
+                            userSelect: "none",
+                            // Chrome/Firefox try to start a native HTML5
+                            // drag gesture on mousedown over SVG content,
+                            // which swallows the click before it reaches
+                            // the hexagon's onClick. Safari doesn't do
+                            // this, so this is a no-op there.
+                            WebkitUserDrag: "none",
+                          } as React.CSSProperties}
                           draggable={false}
                           onDragStart={(e) => e.preventDefault()}
+                          onPointerDown={(e) => e.preventDefault()}
                         >
                           <div
                             ref={gridContentRef}
@@ -2328,7 +2285,7 @@ export default function SimPageClientView() {
                 </li>
                 <li>
                   <span className="font-medium text-foreground">
-                    Passivation Attempt Freq. / Barrier (v_p, E_pass)
+                    Passivation Attempt Freq. (v_p)
                   </span>{" "}
                   &mdash; governs how readily exposed deposited atoms get coated
                   by SEI.
@@ -2338,8 +2295,7 @@ export default function SimPageClientView() {
                     De-passivation Attempt Freq. / Barrier (v_dp, E_dp)
                   </span>{" "}
                   &mdash; governs SEI breakdown, reverting Passivated back to
-                  Deposited. Keeping E_dp higher than E_pass keeps passivation
-                  dominant by default.
+                  Deposited.
                 </li>
               </ul>
             </section>
