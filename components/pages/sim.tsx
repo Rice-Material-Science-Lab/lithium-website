@@ -177,7 +177,10 @@ export default function SimPageClientView() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [carbonUndoStack, setCarbonUndoStack] = useState<any[]>([])
   const [carbonSpecies, setCarbonSpecies] = useState(0)
-  const CARBON_SPECIES_COLORS = ["#D55E00", "#CC79A7", "#F0E442", "#8B5A2B"]
+  // Chosen to stay visually distinct from Deposited (orange) and
+  // Passivated (green) as well as from each other: red, violet, amber,
+  // cyan span separate hue families rather than clustering near orange.
+  const CARBON_SPECIES_COLORS = ["#DC2626", "#7C3AED", "#CA8A04", "#0891B2"]
   const [carbonSpeciesEnergies, setCarbonSpeciesEnergies] = useState([
     -0.6, -0.4, -0.8, -0.3,
   ])
@@ -449,8 +452,13 @@ export default function SimPageClientView() {
                   )
                   statsData = JSON.parse(decodedJsonString)
                 } catch (e) {
-                  console.error(
-                    "Failed to read/parse stats JSON from WASM memory:",
+                  // A malformed stats frame (e.g. a transient nan/inf
+                  // value during simulation jamming) is recoverable --
+                  // we already fall back to the empty statsData default
+                  // above, so this doesn't need to surface as a
+                  // dev-overlay-triggering error, just a quiet warning.
+                  console.warn(
+                    "Skipped malformed stats frame from WASM memory:",
                     e
                   )
                 }
@@ -1942,7 +1950,7 @@ export default function SimPageClientView() {
                       </div>
                     )}
                   </div>
-                  <AtomColorKey />
+                  <AtomColorKey carbonSpeciesColors={CARBON_SPECIES_COLORS} />
                 </div>
                 <div
                   className={

@@ -6,7 +6,7 @@ export default function AtomColorKey({
   const carbonSwatches =
     carbonSpeciesColors && carbonSpeciesColors.length > 0
       ? carbonSpeciesColors
-      : ["#DC2626"]
+      : ["#DC2626"] // matches species-1 red in sim.tsx's CARBON_SPECIES_COLORS
   const carbonLabels =
     carbonSwatches.length > 1
       ? carbonSwatches.map((_, i) => `Carbon ${i + 1}`)
