@@ -122,7 +122,7 @@ export default function DisplayHexGrid({
 
   return (
     mounted ? (
-      <div className="flex h-full items-center">
+      <div className="flex h-full items-center grow">
         <HexGrid width="100%" height="100%" viewBox={viewBox}>
           <defs>
             <clipPath id="side-clip">

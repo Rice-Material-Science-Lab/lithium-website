@@ -350,55 +350,8 @@ export default function SimPageClientView() {
     historyModeRef.current = historyMode
   }, [historyMode])
 
-  const [zoom, setZoom] = useState(1)
-  const [pan, setPan] = useState({ x: 0, y: 0 })
-  const [isDragging, setIsDragging] = useState(false)
-  const lastPointerRef = useRef({ x: 0, y: 0 })
-  const [fitZoom, setFitZoom] = useState(1)
   const gridContainerRef = useRef<HTMLDivElement | null>(null)
   const gridContentRef = useRef<HTMLDivElement | null>(null)
-
-  // Recompute the scale that fits the whole lattice in the visible
-  // container, since the lattice's natural rendered size grows/shrinks
-  // with Nx/Ny -- a fixed zoom of 1 only happens to fit one particular
-  // grid size. transform: scale() doesn't affect offsetWidth/Height, so
-  // these measurements reflect the content's true, unscaled size.
-  useEffect(() => {
-    function recomputeFit() {
-      const container = gridContainerRef.current
-      const content = gridContentRef.current
-      if (!container || !content) return
-
-      // Read the transform's current scale directly rather than trusting
-      // React state, since this can run inside a ResizeObserver callback
-      // that fires before a pending setZoom has committed.
-      const style = window.getComputedStyle(content)
-      const matrix = new DOMMatrixReadOnly(style.transform)
-      const currentScale = matrix.a || 1
-
-      const naturalWidth = content.offsetWidth / currentScale
-      const naturalHeight = content.offsetHeight / currentScale
-      if (naturalWidth === 0 || naturalHeight === 0) return
-
-      const fit = Math.min(
-        container.clientWidth / naturalWidth,
-        container.clientHeight / naturalHeight,
-        1 // never zoom in past 100% by default, only shrink to fit
-      )
-
-      setFitZoom(fit)
-      setZoom(fit)
-      setPan({ x: 0, y: 0 })
-    }
-
-    recomputeFit()
-
-    const resizeObserver = new ResizeObserver(recomputeFit)
-    if (gridContainerRef.current) {
-      resizeObserver.observe(gridContainerRef.current)
-    }
-    return () => resizeObserver.disconnect()
-  }, [gridDimensions])
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function getWasmBuffer(mod: any): ArrayBuffer | null {
@@ -855,64 +808,6 @@ export default function SimPageClientView() {
     setSimState(latestLiveStateRef.current)
   }
 
-  const handleZoomIn = () => {
-    setZoom((z) => Math.min(4, z + 0.25))
-  }
-
-  const handleZoomOut = () => {
-    setZoom((z) => Math.max(0.25, z - 0.25))
-  }
-
-  // Movement threshold (px) before a pointer-down is treated as a pan
-  // rather than a click. Without this, Chrome's native HTML5 drag
-  // detection can hijack even a 1-2px jitter and swallow the click
-  // event entirely before it reaches the hexagon's onClick -- Safari
-  // is far more lenient here, which is why drawing carbon worked
-  // there but not in Chrome.
-  const DRAG_THRESHOLD = 4
-  const pointerDownPosRef = useRef({ x: 0, y: 0 })
-  const hasExceededThresholdRef = useRef(false)
-
-  const handlePointerDown = (e: React.PointerEvent) => {
-    // Stop Chrome/Firefox from initiating a native drag-and-drop
-    // gesture on the SVG, which otherwise cancels the click event.
-    e.preventDefault()
-    setIsDragging(true)
-    hasExceededThresholdRef.current = false
-    pointerDownPosRef.current = { x: e.clientX, y: e.clientY }
-    lastPointerRef.current = { x: e.clientX, y: e.clientY }
-
-    e.currentTarget.setPointerCapture(e.pointerId)
-  }
-
-  const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isDragging) return
-
-    if (!hasExceededThresholdRef.current) {
-      const totalDx = e.clientX - pointerDownPosRef.current.x
-      const totalDy = e.clientY - pointerDownPosRef.current.y
-      if (Math.hypot(totalDx, totalDy) < DRAG_THRESHOLD) {
-        // Still within click tolerance -- don't pan yet, so a simple
-        // click never triggers even a 1px pan.
-        return
-      }
-      hasExceededThresholdRef.current = true
-    }
-
-    const dx = e.clientX - lastPointerRef.current.x
-    const dy = e.clientY - lastPointerRef.current.y
-    lastPointerRef.current = { x: e.clientX, y: e.clientY }
-    setPan((p) => ({ x: p.x + dx, y: p.y + dy }))
-  }
-
-  const handlePointerUp = (e: React.PointerEvent) => {
-    setIsDragging(false)
-    e.currentTarget.releasePointerCapture(e.pointerId)
-  }
-  const resetView = () => {
-    setZoom(fitZoom)
-    setPan({ x: 0, y: 0 })
-  }
   const downloadCSV = (filename: string, rows: string[]) => {
     const blob = new Blob([rows.join("\n")], {
       type: "text/csv;charset=utf-8;",
@@ -1264,7 +1159,7 @@ export default function SimPageClientView() {
               onSubmit={handleSubmit}
               className="flex h-full w-[30%] shrink-0 flex-col justify-between gap-6"
             >
-              <Card className="flex h-full flex-col justify-start rounded-2xl border border-black/5 backdrop-blur-xl dark:border-white/10">
+              <Card className="flex h-full flex-col justify-start rounded-2xl border border-border backdrop-blur-xl">
                 <CardHeader className="pl-2">
                   <h3 className="flex items-center gap-2 text-xl font-bold">
                     <span className="h-1.5 w-1.5 rounded-full bg-primary" />
@@ -1273,7 +1168,7 @@ export default function SimPageClientView() {
                 </CardHeader>
 
                 <div className="flex flex-col gap-4 overflow-y-auto px-2 py-4">
-                  <Alert className="flex shrink-0 items-center justify-between overflow-hidden rounded-xl border-black/5 p-3! dark:border-white/10">
+                  <Alert className="flex shrink-0 items-center justify-between overflow-hidden rounded-xl border-border p-3!">
                     <div className="space-y-1">
                       <AlertTitle className="leading-none">
                         <Label
@@ -1386,7 +1281,7 @@ export default function SimPageClientView() {
 
                     <Separator className="my-4 bg-linear-to-r from-transparent via-primary/50 to-transparent dark:via-primary/50" />
 
-                    <Alert className="flex shrink-0 items-center justify-between overflow-hidden rounded-xl border-black/5 p-3! dark:border-white/10">
+                    <Alert className="flex shrink-0 items-center justify-between overflow-hidden rounded-xl border-border p-3!">
                       <div className="space-y-1">
                         <AlertTitle className="leading-none">
                           <Label
@@ -2007,146 +1902,91 @@ export default function SimPageClientView() {
               </Card>
             </form>
             <div className="flex min-h-0 flex-1 flex-col gap-4">
-              <Card className="flex min-h-0 flex-1 flex-col items-center justify-center gap-0 rounded-2xl border p-4 backdrop-blur-xl">
-                {simTerminated && (
-                  <Alert variant="destructive" className="mb-2 w-full">
-                    <AlertTitle>Simulation jammed</AlertTitle>
-                    <AlertDescription>
-                      Every entry column is full and no further event is
-                      possible. Adjust parameters and press Run to restart.
-                    </AlertDescription>
-                  </Alert>
-                )}
-                <div className="flex min-h-0 w-full flex-1 gap-4">
-                  <div className="flex min-h-0 flex-1 flex-col items-center">
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1.5 rounded-full border border-black/5 px-3 py-1 dark:border-white/10">
-                        <span
-                          className={
-                            "h-2 w-2 rounded-full " +
-                            (simTerminated
-                              ? "bg-destructive"
-                              : isPaused
-                                ? "bg-yellow-500"
-                                : isRunning
-                                  ? "animate-pulse bg-green-500"
-                                  : "bg-muted-foreground")
-                          }
-                        />
-                        <span className="text-xs font-medium text-muted-foreground">
-                          {simTerminated
-                            ? "Jammed"
-                            : isPaused
-                              ? "Paused"
-                              : isRunning
-                                ? "Running"
-                                : "Stopped"}
-                        </span>
-                      </div>
-                      <h3 className="text-center text-sm font-medium text-muted-foreground">
-                        After {stepsRan.toLocaleString()} steps and{" "}
-                        {runTime.toFixed(2)} seconds
-                      </h3>
-                    </div>
+              <Card className="flex min-h-0 flex-1 flex-col items-center justify-between gap-0 rounded-2xl border p-4 backdrop-blur-xl">
+                <div className="flex w-full grow flex-row justify-between gap-2 min-h-0">
+                  <div className="flex grow flex-col">
+                    {simTerminated && (
+                      <Alert variant="destructive" className="mb-2 w-full">
+                        <AlertTitle>Simulation jammed</AlertTitle>
+                        <AlertDescription>
+                          Every entry column is full and no further event is
+                          possible. Adjust parameters and press Run to restart.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    <div className="flex h-full w-full flex-1 gap-4">
+                      <div className="flex h-full flex-1 grow flex-col items-center">
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1.5 rounded-full border border-black/5 px-3 py-1 dark:border-white/10">
+                            <span
+                              className={
+                                "h-2 w-2 rounded-full " +
+                                (simTerminated
+                                  ? "bg-destructive"
+                                  : isPaused
+                                    ? "bg-yellow-500"
+                                    : isRunning
+                                      ? "animate-pulse bg-green-500"
+                                      : "bg-muted-foreground")
+                              }
+                            />
+                            <span className="text-xs font-medium text-muted-foreground">
+                              {simTerminated
+                                ? "Jammed"
+                                : isPaused
+                                  ? "Paused"
+                                  : isRunning
+                                    ? "Running"
+                                    : "Stopped"}
+                            </span>
+                          </div>
+                          <h3 className="text-center text-sm font-medium text-muted-foreground">
+                            After {stepsRan.toLocaleString()} steps and{" "}
+                            {runTime.toFixed(2)} seconds
+                          </h3>
+                        </div>
 
-                    <div
-                      ref={gridContainerRef}
-                      className="flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden"
-                      style={
-                        {
-                          cursor: isDragging ? "grabbing" : "grab",
-                          touchAction: "none",
-                          WebkitUserSelect: "none",
-                          userSelect: "none",
-                          // Chrome/Firefox allow native HTML5 drag-and-drop
-                          // on SVG content by default; this disables it so a
-                          // pointerdown+move never gets hijacked into a
-                          // native drag gesture (which cancels the click).
-                          WebkitUserDrag: "none",
-                        } as React.CSSProperties
-                      }
-                      draggable={false}
-                      onDragStart={(e) => e.preventDefault()}
-                      onPointerDown={handlePointerDown}
-                      onPointerMove={handlePointerMove}
-                      onPointerUp={handlePointerUp}
-                      onPointerCancel={handlePointerUp}
-                      onPointerLeave={handlePointerUp}
-                    >
-                      <div
-                        ref={gridContentRef}
-                        style={{
-                          transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-                          transformOrigin: "center center",
-                          transition: isDragging
-                            ? "none"
-                            : "transform 0.05s linear",
-                        }}
-                      >
-                        <DisplayHexGrid
-                          width={gridDimensions[0]}
-                          height={gridDimensions[1]}
-                          data={simState}
-                          carbonSpeciesMap={carbonSites}
-                          carbonSpeciesColors={CARBON_SPECIES_COLORS}
-                          onCellClick={
-                            historyMode
-                              ? undefined
-                              : drawingCarbon
-                                ? (x: number, y: number) =>
-                                    toggleCarbonSite(x, y)
-                                : (x: number, y: number) => inspectCell(x, y)
-                          }
-                        />
+                        <div
+                          ref={gridContainerRef}
+                          className="relative flex w-full flex-1 grow items-center justify-center overflow-hidden"
+                          draggable={false}
+                          onDragStart={(e) => e.preventDefault()}
+                        >
+                          <div
+                            ref={gridContentRef}
+                            className="h-full w-full grow"
+                          >
+                            <DisplayHexGrid
+                              width={gridDimensions[0]}
+                              height={gridDimensions[1]}
+                              data={simState}
+                              carbonSpeciesMap={carbonSites}
+                              carbonSpeciesColors={CARBON_SPECIES_COLORS}
+                              onCellClick={
+                                historyMode
+                                  ? undefined
+                                  : drawingCarbon
+                                    ? (x: number, y: number) =>
+                                        toggleCarbonSite(x, y)
+                                    : (x: number, y: number) =>
+                                        inspectCell(x, y)
+                              }
+                            />
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className="mt-1 flex shrink-0 items-center gap-2 rounded-full border border-black/5 px-2 py-1 dark:border-white/10">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="rounded-full"
-                        onClick={handleZoomOut}
-                      >
-                        Zoom Out
-                      </Button>
-                      <span className="text-xs font-medium text-primary dark:text-cyan-500">
-                        {Math.round(zoom * 100)}%
-                      </span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="rounded-full"
-                        onClick={handleZoomIn}
-                      >
-                        Zoom In
-                      </Button>
-                      {(Math.abs(zoom - fitZoom) > 0.001 ||
-                        pan.x !== 0 ||
-                        pan.y !== 0) && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="rounded-full text-primary dark:text-cyan-500"
-                          onClick={resetView}
-                        >
-                          Reset View
-                        </Button>
-                      )}
-                    </div>
+                    {selectedCell && (
+                      <div className="mt-2 w-full rounded-xl border border-primary/20 bg-primary/5 p-2 text-xs text-muted-foreground">
+                        Cell ({selectedCell.x}, {selectedCell.y}):{" "}
+                        {CELL_STATE_LABELS[selectedCell.state] ?? "Unknown"}
+                        {selectedCell.coordination >= 0 &&
+                          ` · coordination ${selectedCell.coordination}`}
+                      </div>
+                    )}
                   </div>
-                  <AtomColorKey carbonSpeciesColors={CARBON_SPECIES_COLORS} />
+                  <AtomColorKey />
                 </div>
-                {selectedCell && (
-                  <div className="mt-2 w-full rounded-xl border border-primary/20 bg-primary/5 p-2 text-xs text-muted-foreground">
-                    Cell ({selectedCell.x}, {selectedCell.y}):{" "}
-                    {CELL_STATE_LABELS[selectedCell.state] ?? "Unknown"}
-                    {selectedCell.coordination >= 0 &&
-                      ` · coordination ${selectedCell.coordination}`}
-                  </div>
-                )}
                 <div
                   className={
                     "mt-2 flex h-8 w-full shrink-0 items-center gap-2 " +
@@ -2183,7 +2023,7 @@ export default function SimPageClientView() {
                   )}
                 </div>
               </Card>
-              <Card className="flex h-1/2 min-h-0 flex-1 flex-col rounded-2xl border border-black/5 p-4 backdrop-blur-xl dark:border-white/10">
+              <Card className="flex h-1/2 min-h-0 flex-1 flex-col rounded-2xl p-4 backdrop-blur-xl">
                 <Tabs defaultValue="atom-counts" className="h-full w-full">
                   <TabsList>
                     <TabsTrigger value="atom-counts">Atom Counts</TabsTrigger>
@@ -2221,7 +2061,7 @@ export default function SimPageClientView() {
                     </div>
                   </TabsContent>
                   <TabsContent value="batch-run">
-                    <div className="flex shrink-0 items-center justify-between mb-4">
+                    <div className="mb-4 flex shrink-0 items-center justify-between">
                       <h3 className="text-lg font-semibold">Batch Run</h3>
                     </div>
                     <div className="flex flex-wrap items-end gap-2">
@@ -2303,7 +2143,7 @@ export default function SimPageClientView() {
                       )}
                     </div>
                     {batchResults.length > 0 && (
-                      <div className="mt-2 max-h-40 shrink-0 overflow-auto rounded-xl border border-black/10 dark:border-white/10">
+                      <div className="mt-2 max-h-40 shrink-0 overflow-auto rounded-xl border border-border">
                         <table className="w-full text-xs">
                           <thead className="sticky top-0 bg-primary/30">
                             <tr>
@@ -2319,7 +2159,7 @@ export default function SimPageClientView() {
                             {batchResults.map((r) => (
                               <tr
                                 key={r.index}
-                                className="border-t border-black/5 hover:bg-primary/5 dark:border-white/5 dark:hover:bg-primary/5"
+                                className="border-t border-border hover:bg-primary/5 dark:border-border dark:hover:bg-primary/5"
                               >
                                 <td className="p-1">{r.index}</td>
                                 <td className="p-1">{r.T}</td>
@@ -2566,10 +2406,7 @@ export default function SimPageClientView() {
             <section>
               <h4 className="mb-2 font-semibold">Grid controls</h4>
               <ul className="flex flex-col gap-2 text-muted-foreground">
-                <li>
-                  Click-drag the lattice to pan; use Zoom In/Out or Reset View
-                  to adjust scale.
-                </li>
+                <li>Click-drag the lattice to pan; to adjust scale.</li>
                 <li>
                   Click any cell (outside of Draw Carbon mode) to inspect its
                   state and coordination number.
@@ -2581,7 +2418,7 @@ export default function SimPageClientView() {
                 </li>
                 <li>
                   Press{" "}
-                  <kbd className="rounded border border-black/10 bg-black/5 px-1.5 py-0.5 font-mono text-xs dark:border-white/10 dark:bg-white/10">
+                  <kbd className="rounded border border-border bg-black/5 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">
                     Space
                   </kbd>{" "}
                   to pause/resume a running simulation.
