@@ -1858,15 +1858,6 @@ export default function SimPageClientView() {
               <Card className="flex min-h-0 flex-1 flex-col items-center justify-between gap-0 rounded-2xl border p-4 backdrop-blur-xl">
                 <div className="flex w-full grow flex-row justify-between gap-2 min-h-0">
                   <div className="flex grow flex-col">
-                    {simTerminated && (
-                      <Alert variant="destructive" className="mb-2 w-full">
-                        <AlertTitle>Simulation jammed</AlertTitle>
-                        <AlertDescription>
-                          Every entry column is full and no further event is
-                          possible. Adjust parameters and press Run to restart.
-                        </AlertDescription>
-                      </Alert>
-                    )}
                     <div className="flex h-full w-full flex-1 gap-4">
                       <div className="flex h-full flex-1 grow flex-col items-center">
                         <div className="flex items-center gap-2">
