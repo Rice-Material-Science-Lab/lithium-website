@@ -229,8 +229,10 @@ export default function SimPageClientView() {
   // barrier suppressing it.
   const [passAttFreq, setPassAttFreq] = useState(50)
   const [depassAttFreq, setDepassAttFreq] = useState(100000) // nu_dp
-  const [eDepass, setEDepass] = useState(0.5) // e_dp -- higher than e_pass
-  // by default so passivation dominates unless tuned otherwise
+  // Kept low (not the old 0.5) so de-passivation stays competitive with
+  // passivation instead of being suppressed into irrelevance -- see the
+  // PRESETS comments below for the underlying rate-balance reasoning.
+  const [eDepass, setEDepass] = useState(0.15)
   const [stepsToRun, setStepsToRun] = useState("1000000")
   const [updateInterval, setUpdateInterval] = useState("10000")
   const [seed, setSeed] = useState("") // blank = random each run
@@ -961,13 +963,18 @@ export default function SimPageClientView() {
       freeAttFreq: 8e9,
       depAttFreq: 8e9,
       // Rare relative to growth -- dense growth should mostly deposit,
-      // not passivate. (Rescaled down from a pre-barrier-removal value
-      // of 1e5, which -- now that nu_p has no exponential suppression
-      // of its own -- was orders of magnitude too high relative to
-      // hop/drop rates and caused passivation to dominate instantly.)
+      // not passivate.
       passAttFreq: 50,
       depassAttFreq: 1e5,
-      eDepass: 0.6,
+      // Passivation has no temperature suppression, but de-passivation
+      // still does (nu_dp * exp(-e_dp/kT)) -- so a barrier much above
+      // ~0.15-0.2 eV makes de-passivation astronomically rarer than
+      // passivation at these temperatures, turning even a small nu_p
+      // into an irreversible ratchet over the default ~1e6 steps
+      // instead of a steady-state SEI coverage. Keeping e_dp low here
+      // (0.15) makes de-passivation dominate at T=350K, reinforcing
+      // "dense growth should mostly deposit, not passivate."
+      eDepass: 0.15,
     },
     "Sparse / dendritic": {
       temp: 200,
@@ -978,7 +985,13 @@ export default function SimPageClientView() {
       depAttFreq: 2e9,
       passAttFreq: 50, // same rationale as Dense growth above
       depassAttFreq: 1e5,
-      eDepass: 0.6,
+      // At T=200K (this preset's lower temperature), the old 0.6 eV
+      // barrier suppressed de-passivation to ~6e-11 effective rate --
+      // functionally zero, so SEI only ever accumulated and never
+      // cleared. 0.15 eV keeps de-passivation (~17) roughly comparable
+      // to passivation (50) at this temperature, giving real turnover
+      // instead of one-way saturation.
+      eDepass: 0.15,
     },
     "SEI-heavy": {
       temp: 300,
@@ -987,13 +1000,16 @@ export default function SimPageClientView() {
       atomSubstrate: -0.5,
       freeAttFreq: 5e9,
       depAttFreq: 5e9,
-      // Meaningfully higher than the other two presets so SEI actually
-      // forms noticeably, but nowhere near the old 5e7 -- that value
-      // relied on e_pass's exponential suppression to stay in check,
-      // which no longer exists.
       passAttFreq: 2000,
       depassAttFreq: 1e6,
-      eDepass: 0.4, // lower barrier than usual -- SEI actively cycles
+      // The old 0.4 eV barrier at T=300K suppressed de-passivation to
+      // ~0.19 effective rate -- negligible next to passAttFreq=2000,
+      // so despite the "actively cycles" comment, nothing was actually
+      // cycling; SEI only ever grew. 0.2 eV brings de-passivation to
+      // ~440, meaningfully lower than passivation (still net SEI-heavy)
+      // but no longer negligible, so coverage now saturates to a high
+      // but non-total steady state with real turnover.
+      eDepass: 0.2,
     },
   }
 
