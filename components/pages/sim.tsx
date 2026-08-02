@@ -218,6 +218,18 @@ export default function SimPageClientView() {
     setDefaultSimState()
   }, [carbonSites, gridDimensions, hasRunOnce])
 
+  // Keep the displayed lattice in sync with the Width/Height inputs
+  // before the first run, so carbon can be drawn at the correct size
+  // without needing to press Run first (drawing happens on the grid as
+  // currently sized, not the size that would result from a future run).
+  useEffect(() => {
+    if (hasRunOnce) return
+    const nx = Math.max(1, Number(width) || 0)
+    const ny = Math.max(1, Number(height) || 0)
+    if (nx === gridDimensions[0] && ny === gridDimensions[1]) return
+    setGridDimensions([nx, ny])
+  }, [width, height, hasRunOnce, gridDimensions])
+
   const [temp, setTemp] = useState(300)
   const [dropRate, setDropRate] = useState(1000)
   const [bondedEnergy, setBondedEnergy] = useState(-0.28)
