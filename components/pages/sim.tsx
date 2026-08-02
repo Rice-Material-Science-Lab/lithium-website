@@ -252,42 +252,51 @@ export default function SimPageClientView() {
     }[]
   >([])
 
-  const STORAGE_KEY = "lkmc-sim-params-v1"
+  const STORAGE_KEY = "lkmc-sim-params-v2"
 
   // Restore saved params on mount (skip grid size -- covered separately
   // by width/height inputs which already default sensibly).
   useEffect(() => {
     function restoreLocalStorageParams() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY)
-        if (!raw) return
-        const saved = JSON.parse(raw)
-        if (typeof saved.temp === "number") setTemp(saved.temp)
-        if (typeof saved.dropRate === "number") setDropRate(saved.dropRate)
-        if (typeof saved.bondedEnergy === "number")
-          setBondedEnergy(saved.bondedEnergy)
-        if (typeof saved.atomSubstrate === "number")
-          setAtomSubstrate(saved.atomSubstrate)
-        if (typeof saved.freeAttFreq === "number")
-          setFreeAttFreq(saved.freeAttFreq)
-        if (typeof saved.depAttFreq === "number")
-          setDepAttFreq(saved.depAttFreq)
-        if (typeof saved.passAttFreq === "number")
-          setPassAttFreq(saved.passAttFreq)
-        if (Array.isArray(saved.carbonSpeciesEnergies))
-          setCarbonSpeciesEnergies(saved.carbonSpeciesEnergies)
-        if (typeof saved.depassAttFreq === "number")
-          setDepassAttFreq(saved.depassAttFreq)
-        if (typeof saved.eDepass === "number") setEDepass(saved.eDepass)
-        if (typeof saved.stepsToRun === "string")
-          setStepsToRun(saved.stepsToRun)
-        if (typeof saved.updateInterval === "string")
-          setUpdateInterval(saved.updateInterval)
-        if (typeof saved.seed === "string") setSeed(saved.seed)
-      } catch (e) {
-        console.error("Failed to restore saved parameters:", e)
-      }
-    }
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return
+    const saved = JSON.parse(raw)
+
+    const clamp = (val: number, min: number, max: number) =>
+      Math.min(max, Math.max(min, val))
+
+    if (typeof saved.temp === "number")
+      setTemp(clamp(saved.temp, 100, 600))
+    if (typeof saved.dropRate === "number")
+      setDropRate(clamp(saved.dropRate, 1, 200000))
+    if (typeof saved.bondedEnergy === "number")
+      setBondedEnergy(clamp(saved.bondedEnergy, -2.0, 0))
+    if (typeof saved.atomSubstrate === "number")
+      setAtomSubstrate(clamp(saved.atomSubstrate, -2.0, 0))
+    if (typeof saved.freeAttFreq === "number")
+      setFreeAttFreq(clamp(saved.freeAttFreq, 1e8, 1e10))
+    if (typeof saved.depAttFreq === "number")
+      setDepAttFreq(clamp(saved.depAttFreq, 1e8, 1e10))
+    if (typeof saved.passAttFreq === "number")
+      setPassAttFreq(clamp(saved.passAttFreq, 1e1, 1e5))
+    if (Array.isArray(saved.carbonSpeciesEnergies))
+      setCarbonSpeciesEnergies(
+        saved.carbonSpeciesEnergies.map((e: number) => clamp(e, -2.0, 0))
+      )
+    if (typeof saved.depassAttFreq === "number")
+      setDepassAttFreq(clamp(saved.depassAttFreq, 1e1, 1e9))
+    if (typeof saved.eDepass === "number")
+      setEDepass(clamp(saved.eDepass, 0, 2.0))
+    if (typeof saved.stepsToRun === "string")
+      setStepsToRun(saved.stepsToRun)
+    if (typeof saved.updateInterval === "string")
+      setUpdateInterval(saved.updateInterval)
+    if (typeof saved.seed === "string") setSeed(saved.seed)
+  } catch (e) {
+    console.error("Failed to restore saved parameters:", e)
+  }
+}
 
     restoreLocalStorageParams()
   }, [])
