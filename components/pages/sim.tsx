@@ -227,12 +227,13 @@ export default function SimPageClientView() {
   // Matches the Dense growth / Sparse presets' scale -- see PRESETS
   // below for why nu_p needs to stay low now that passivation has no
   // barrier suppressing it.
-  const [passAttFreq, setPassAttFreq] = useState(50)
+  // See PRESETS below for the equilibrium-fraction math -- kept low so
+  // an out-of-the-box run (no preset applied) doesn't passivate much.
+  const [passAttFreq, setPassAttFreq] = useState(10)
   const [depassAttFreq, setDepassAttFreq] = useState(100000) // nu_dp
-  // Kept low (not the old 0.5) so de-passivation stays competitive with
-  // passivation instead of being suppressed into irrelevance -- see the
-  // PRESETS comments below for the underlying rate-balance reasoning.
-  const [eDepass, setEDepass] = useState(0.15)
+  // Kept low so de-passivation stays strong relative to passivation --
+  // see the PRESETS comments below for the equilibrium-fraction math.
+  const [eDepass, setEDepass] = useState(0.1)
   const [stepsToRun, setStepsToRun] = useState("1000000")
   const [updateInterval, setUpdateInterval] = useState("10000")
   const [seed, setSeed] = useState("") // blank = random each run
@@ -955,6 +956,13 @@ export default function SimPageClientView() {
       eDepass: number
     }
   > = {
+    // Steady-state passivated fraction is roughly
+    //   nu_p / (nu_p + nu_dp * exp(-e_dp / (kB*T)))
+    // i.e. passivation rate vs. de-passivation's Boltzmann-suppressed
+    // rate. The previous pass (nu_p=50, e_dp=0.15-0.2) still landed
+    // that ratio around 70-80% -- "not runaway to 100%" but still "a
+    // lot." These values push nu_p much lower and/or de-passivation's
+    // effective rate much higher so the equilibrium itself sits low.
     "Dense growth": {
       temp: 350,
       dropRate: 50000,
@@ -962,19 +970,12 @@ export default function SimPageClientView() {
       atomSubstrate: -0.8,
       freeAttFreq: 8e9,
       depAttFreq: 8e9,
-      // Rare relative to growth -- dense growth should mostly deposit,
-      // not passivate.
-      passAttFreq: 50,
+      // kB*T=0.0302 eV, e_dp=0.1 -> nu_dp_eff = 1e5*exp(-0.1/0.0302)
+      // ≈ 3.6e3. Fraction ≈ 10/(10+3630) ≈ 0.3% -- essentially none,
+      // matching "dense growth should mostly deposit, not passivate."
+      passAttFreq: 10,
       depassAttFreq: 1e5,
-      // Passivation has no temperature suppression, but de-passivation
-      // still does (nu_dp * exp(-e_dp/kT)) -- so a barrier much above
-      // ~0.15-0.2 eV makes de-passivation astronomically rarer than
-      // passivation at these temperatures, turning even a small nu_p
-      // into an irreversible ratchet over the default ~1e6 steps
-      // instead of a steady-state SEI coverage. Keeping e_dp low here
-      // (0.15) makes de-passivation dominate at T=350K, reinforcing
-      // "dense growth should mostly deposit, not passivate."
-      eDepass: 0.15,
+      eDepass: 0.1,
     },
     "Sparse / dendritic": {
       temp: 200,
@@ -983,15 +984,13 @@ export default function SimPageClientView() {
       atomSubstrate: -0.3,
       freeAttFreq: 2e9,
       depAttFreq: 2e9,
-      passAttFreq: 50, // same rationale as Dense growth above
+      // kB*T=0.0172 eV (lower T than Dense growth), e_dp=0.1 ->
+      // nu_dp_eff = 1e5*exp(-0.1/0.0172) ≈ 302. Fraction ≈ 10/312 ≈
+      // 3% -- still low, a touch higher than Dense growth since lower
+      // T suppresses de-passivation more too.
+      passAttFreq: 10,
       depassAttFreq: 1e5,
-      // At T=200K (this preset's lower temperature), the old 0.6 eV
-      // barrier suppressed de-passivation to ~6e-11 effective rate --
-      // functionally zero, so SEI only ever accumulated and never
-      // cleared. 0.15 eV keeps de-passivation (~17) roughly comparable
-      // to passivation (50) at this temperature, giving real turnover
-      // instead of one-way saturation.
-      eDepass: 0.15,
+      eDepass: 0.1,
     },
     "SEI-heavy": {
       temp: 300,
@@ -1000,16 +999,13 @@ export default function SimPageClientView() {
       atomSubstrate: -0.5,
       freeAttFreq: 5e9,
       depAttFreq: 5e9,
+      // kB*T=0.0259 eV, e_dp=0.12 -> nu_dp_eff = 1e6*exp(-0.12/0.0259)
+      // ≈ 9.7e3. Fraction ≈ 2000/11660 ≈ 17% -- meaningfully more
+      // than the other two presets (this one's the point) but well
+      // short of dominating the lattice.
       passAttFreq: 2000,
       depassAttFreq: 1e6,
-      // The old 0.4 eV barrier at T=300K suppressed de-passivation to
-      // ~0.19 effective rate -- negligible next to passAttFreq=2000,
-      // so despite the "actively cycles" comment, nothing was actually
-      // cycling; SEI only ever grew. 0.2 eV brings de-passivation to
-      // ~440, meaningfully lower than passivation (still net SEI-heavy)
-      // but no longer negligible, so coverage now saturates to a high
-      // but non-total steady state with real turnover.
-      eDepass: 0.2,
+      eDepass: 0.12,
     },
   }
 
