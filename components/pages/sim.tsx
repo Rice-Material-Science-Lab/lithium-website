@@ -224,7 +224,10 @@ export default function SimPageClientView() {
   const [atomSubstrate, setAtomSubstrate] = useState(-0.5)
   const [freeAttFreq, setFreeAttFreq] = useState(5000000000)
   const [depAttFreq, setDepAttFreq] = useState(5000000000)
-  const [passAttFreq, setPassAttFreq] = useState(1000000)
+  // Matches the Dense growth / Sparse presets' scale -- see PRESETS
+  // below for why nu_p needs to stay low now that passivation has no
+  // barrier suppressing it.
+  const [passAttFreq, setPassAttFreq] = useState(50)
   const [depassAttFreq, setDepassAttFreq] = useState(100000) // nu_dp
   const [eDepass, setEDepass] = useState(0.5) // e_dp -- higher than e_pass
   // by default so passivation dominates unless tuned otherwise
@@ -957,7 +960,12 @@ export default function SimPageClientView() {
       atomSubstrate: -0.8,
       freeAttFreq: 8e9,
       depAttFreq: 8e9,
-      passAttFreq: 1e5,
+      // Rare relative to growth -- dense growth should mostly deposit,
+      // not passivate. (Rescaled down from a pre-barrier-removal value
+      // of 1e5, which -- now that nu_p has no exponential suppression
+      // of its own -- was orders of magnitude too high relative to
+      // hop/drop rates and caused passivation to dominate instantly.)
+      passAttFreq: 50,
       depassAttFreq: 1e5,
       eDepass: 0.6,
     },
@@ -968,7 +976,7 @@ export default function SimPageClientView() {
       atomSubstrate: -0.3,
       freeAttFreq: 2e9,
       depAttFreq: 2e9,
-      passAttFreq: 1e5,
+      passAttFreq: 50, // same rationale as Dense growth above
       depassAttFreq: 1e5,
       eDepass: 0.6,
     },
@@ -979,7 +987,11 @@ export default function SimPageClientView() {
       atomSubstrate: -0.5,
       freeAttFreq: 5e9,
       depAttFreq: 5e9,
-      passAttFreq: 5e7,
+      // Meaningfully higher than the other two presets so SEI actually
+      // forms noticeably, but nowhere near the old 5e7 -- that value
+      // relied on e_pass's exponential suppression to stay in check,
+      // which no longer exists.
+      passAttFreq: 2000,
       depassAttFreq: 1e6,
       eDepass: 0.4, // lower barrier than usual -- SEI actively cycles
     },
@@ -1711,14 +1723,14 @@ export default function SimPageClientView() {
                                 </Tooltip>
                               </Label>
                               <span className="font-mono text-sm text-muted-foreground">
-                                {passAttFreq.toExponential(1)}
+                                {passAttFreq.toLocaleString()}
                               </span>
                             </div>
                             <Slider
                               id="pass-att-freq-input"
                               min={1e1}
-                              max={1e9}
-                              step={1e5}
+                              max={1e5}
+                              step={1e2}
                               value={[passAttFreq]}
                               onValueChange={(val: number[]) =>
                                 setPassAttFreq(val[0])
@@ -1783,8 +1795,8 @@ export default function SimPageClientView() {
                                   </TooltipTrigger>
                                   <TooltipContent>
                                     Activation energy penalizing SEI breakdown;
-                                    higher than E_pass keeps passivation
-                                    dominant by default
+                                    higher values make de-passivation rarer
+                                    relative to passivation
                                   </TooltipContent>
                                 </Tooltip>
                               </Label>
