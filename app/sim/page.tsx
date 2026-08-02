@@ -1,4 +1,4 @@
-import SimPageClientView from "@/components/pages/sim";
+import SimPageClientView from "@/components/pages/sim-page/sim";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {

@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardFooter, CardHeader } from "@/components/ui/card"
 import { useState, useEffect, useRef } from "react"
-import DisplayHexGrid from "@/components/ui/hex-grid"
+import DisplayHexGrid from "@/components/pages/sim-page/hex-grid"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import {
@@ -23,9 +23,9 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 import { Marker, MarkerContent } from "@/components/ui/marker"
-import AtomColorKey from "@/components/ui/atom-color-key"
-import AtomCountsChart from "@/components/ui/atom-counts-chart"
-import { Slider } from "../ui/slider"
+import AtomColorKey from "@/components/pages/sim-page/atom-color-key"
+import AtomCountsChart from "@/components/pages/sim-page/atom-counts-chart"
+import { Slider } from "../../ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import {
@@ -34,8 +34,8 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@/components/ui/alert"
-import { BorderBeam } from "../ui/border-beam"
-import { ButtonGroup } from "../ui/button-group"
+import { BorderBeam } from "../../ui/border-beam"
+import { ButtonGroup } from "../../ui/button-group"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Select,
@@ -43,8 +43,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../ui/select"
-import HelpDialog from "../ui/help-dialog"
+} from "../../ui/select"
+import HelpDialog from "./help-dialog"
 
 interface CustomWasmModule {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -5,7 +5,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "./dialog"
+} from "../../ui/dialog"
 import { Dispatch, SetStateAction } from "react"
 
 export default function HelpDialog({
