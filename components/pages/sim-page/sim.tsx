@@ -5,10 +5,7 @@ import { Card } from "@/components/ui/card"
 import { useState, useEffect, useRef } from "react"
 import DisplayHexGrid from "@/components/pages/sim-page/hex-grid"
 import { Input } from "@/components/ui/input"
-import {
-  Atom,
-  HelpCircle,
-} from "lucide-react"
+import { Atom, HelpCircle } from "lucide-react"
 import AtomColorKey from "@/components/pages/sim-page/atom-color-key"
 import AtomCountsChart from "@/components/pages/sim-page/atom-counts-chart"
 import { Label } from "@/components/ui/label"
@@ -22,6 +19,7 @@ import {
 } from "../../ui/select"
 import HelpDialog from "./help-dialog"
 import ParamsCard from "./cards/params-card"
+import { Slider } from "@/components/ui/slider"
 
 interface CustomWasmModule {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -198,7 +196,7 @@ export default function SimPageClientView() {
     const nx = Math.max(1, Number(width) || 0)
     const ny = Math.max(1, Number(height) || 0)
     if (nx === gridDimensions[0] && ny === gridDimensions[1]) return
-    (() => setGridDimensions([nx, ny]))()
+    ;(() => setGridDimensions([nx, ny]))()
   }, [width, height, hasRunOnce, gridDimensions])
 
   const [temp, setTemp] = useState(300)
@@ -240,47 +238,46 @@ export default function SimPageClientView() {
   // by width/height inputs which already default sensibly).
   useEffect(() => {
     function restoreLocalStorageParams() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return
-    const saved = JSON.parse(raw)
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY)
+        if (!raw) return
+        const saved = JSON.parse(raw)
 
-    const clamp = (val: number, min: number, max: number) =>
-      Math.min(max, Math.max(min, val))
+        const clamp = (val: number, min: number, max: number) =>
+          Math.min(max, Math.max(min, val))
 
-    if (typeof saved.temp === "number")
-      setTemp(clamp(saved.temp, 100, 600))
-    if (typeof saved.dropRate === "number")
-      setDropRate(clamp(saved.dropRate, 1, 200000))
-    if (typeof saved.bondedEnergy === "number")
-      setBondedEnergy(clamp(saved.bondedEnergy, -2.0, 0))
-    if (typeof saved.atomSubstrate === "number")
-      setAtomSubstrate(clamp(saved.atomSubstrate, -2.0, 0))
-    if (typeof saved.freeAttFreq === "number")
-      setFreeAttFreq(clamp(saved.freeAttFreq, 1e8, 1e10))
-    if (typeof saved.depAttFreq === "number")
-      setDepAttFreq(clamp(saved.depAttFreq, 1e8, 1e10))
-    if (typeof saved.passAttFreq === "number")
-      setPassAttFreq(clamp(saved.passAttFreq, 1e1, 1e7))
-    if (Array.isArray(saved.carbonSpeciesEnergies))
-      setCarbonSpeciesEnergies(
-        saved.carbonSpeciesEnergies.map((e: number) => clamp(e, -2.0, 0))
-      )
-    if (typeof saved.depassAttFreq === "number")
-      setDepassAttFreq(clamp(saved.depassAttFreq, 1e1, 1e9))
-    if (typeof saved.eDepass === "number")
-      setEDepass(clamp(saved.eDepass, 0, 2.0))
-    if (typeof saved.ePass === "number")
-      setEPass(clamp(saved.ePass, 0, 2.0))
-    if (typeof saved.stepsToRun === "string")
-      setStepsToRun(saved.stepsToRun)
-    if (typeof saved.updateInterval === "string")
-      setUpdateInterval(saved.updateInterval)
-    if (typeof saved.seed === "string") setSeed(saved.seed)
-  } catch (e) {
-    console.error("Failed to restore saved parameters:", e)
-  }
-}
+        if (typeof saved.temp === "number") setTemp(clamp(saved.temp, 100, 600))
+        if (typeof saved.dropRate === "number")
+          setDropRate(clamp(saved.dropRate, 1, 200000))
+        if (typeof saved.bondedEnergy === "number")
+          setBondedEnergy(clamp(saved.bondedEnergy, -2.0, 0))
+        if (typeof saved.atomSubstrate === "number")
+          setAtomSubstrate(clamp(saved.atomSubstrate, -2.0, 0))
+        if (typeof saved.freeAttFreq === "number")
+          setFreeAttFreq(clamp(saved.freeAttFreq, 1e8, 1e10))
+        if (typeof saved.depAttFreq === "number")
+          setDepAttFreq(clamp(saved.depAttFreq, 1e8, 1e10))
+        if (typeof saved.passAttFreq === "number")
+          setPassAttFreq(clamp(saved.passAttFreq, 1e1, 1e7))
+        if (Array.isArray(saved.carbonSpeciesEnergies))
+          setCarbonSpeciesEnergies(
+            saved.carbonSpeciesEnergies.map((e: number) => clamp(e, -2.0, 0))
+          )
+        if (typeof saved.depassAttFreq === "number")
+          setDepassAttFreq(clamp(saved.depassAttFreq, 1e1, 1e9))
+        if (typeof saved.eDepass === "number")
+          setEDepass(clamp(saved.eDepass, 0, 2.0))
+        if (typeof saved.ePass === "number")
+          setEPass(clamp(saved.ePass, 0, 2.0))
+        if (typeof saved.stepsToRun === "string")
+          setStepsToRun(saved.stepsToRun)
+        if (typeof saved.updateInterval === "string")
+          setUpdateInterval(saved.updateInterval)
+        if (typeof saved.seed === "string") setSeed(saved.seed)
+      } catch (e) {
+        console.error("Failed to restore saved parameters:", e)
+      }
+    }
 
     restoreLocalStorageParams()
   }, [])
@@ -954,7 +951,6 @@ export default function SimPageClientView() {
       eDepass: number
     }
   > = {
-
     "Dense growth": {
       temp: 350,
       dropRate: 50000,
@@ -1303,19 +1299,18 @@ export default function SimPageClientView() {
                 <div
                   className={
                     "mt-2 flex h-8 w-full shrink-0 items-center gap-2 " +
-                    (snapshotCount > 1 ? "visible" : "invisible")
+                    (!(snapshotCount > 1) && "opacity-50 pointer-events-none ")
                   }
                 >
-                  <input
-                    type="range"
+                  <Slider
                     min={0}
                     max={Math.max(0, snapshotCount - 1)}
-                    value={
+                    value={[
                       historyMode
                         ? snapshotIndex
-                        : Math.max(0, snapshotCount - 1)
-                    }
-                    onChange={(e) => loadSnapshot(Number(e.target.value))}
+                        : Math.max(0, snapshotCount - 1),
+                    ]}
+                    onValueChange={(values) => loadSnapshot(values[0])}
                     className="flex-1"
                   />
                   <span className="text-xs whitespace-nowrap text-muted-foreground">
