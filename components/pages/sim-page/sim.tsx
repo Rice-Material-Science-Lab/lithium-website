@@ -198,7 +198,7 @@ export default function SimPageClientView() {
     const nx = Math.max(1, Number(width) || 0)
     const ny = Math.max(1, Number(height) || 0)
     if (nx === gridDimensions[0] && ny === gridDimensions[1]) return
-    (() => setGridDimensions([nx, ny]))()
+    setGridDimensions([nx, ny])
   }, [width, height, hasRunOnce, gridDimensions])
 
   const [temp, setTemp] = useState(300)
@@ -1198,6 +1198,8 @@ export default function SimPageClientView() {
               setDepAttFreq={setDepAttFreq}
               passAttFreq={passAttFreq}
               setPassAttFreq={setPassAttFreq}
+              ePass={ePass}
+              setEPass={setEPass}
               depassAttFreq={depassAttFreq}
               setDepassAttFreq={setDepassAttFreq}
               eDepass={eDepass}
