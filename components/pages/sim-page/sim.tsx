@@ -1194,6 +1194,8 @@ export default function SimPageClientView() {
               setDepAttFreq={setDepAttFreq}
               passAttFreq={passAttFreq}
               setPassAttFreq={setPassAttFreq}
+              ePass={ePass}
+              setEPass={setEPass}
               depassAttFreq={depassAttFreq}
               setDepassAttFreq={setDepassAttFreq}
               eDepass={eDepass}
