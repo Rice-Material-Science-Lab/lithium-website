@@ -67,6 +67,8 @@ export default function ParamsCard({
   setDepAttFreq,
   passAttFreq,
   setPassAttFreq,
+  ePass,
+  setEPass,
   depassAttFreq,
   setDepassAttFreq,
   eDepass,
@@ -624,6 +626,38 @@ export default function ParamsCard({
                         onValueChange={(val: number[]) =>
                           setPassAttFreq(val[0])
                         }
+                      />
+                    </div>
+
+                    {/* pass energy barrier */}
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center justify-between">
+                        <Label
+                          htmlFor="e-pass-input"
+                          className="flex items-center text-sm font-medium"
+                        >
+                          <span>Passivation Energy Barrier (E_pass)</span>
+                          <Tooltip>
+                            <TooltipTrigger className="ml-2" type="button">
+                              <CircleQuestionMarkIcon size={17} />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              Activation energy penalizing lithium ion trying
+                              to pass through SEI
+                            </TooltipContent>
+                          </Tooltip>
+                        </Label>
+                        <span className="font-mono text-sm text-muted-foreground">
+                          {ePass}
+                        </span>
+                      </div>
+                      <Slider
+                        id="e-pass-input"
+                        min={0}
+                        max={2.0}
+                        step={0.01}
+                        value={[ePass]}
+                        onValueChange={(val: number[]) => setEPass(val[0])}
                       />
                     </div>
 
