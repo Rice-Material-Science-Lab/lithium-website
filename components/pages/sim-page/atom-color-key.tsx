@@ -18,11 +18,11 @@ export default function AtomColorKey({
         {carbonSwatches.map((color, i) => (
           <div key={i} className="flex-1" style={{ backgroundColor: color }} />
         ))}
-        <div className="flex-1 bg-[#16A34A] dark:bg-[#4ADE80]"></div>
-        <div className="flex-1 bg-[#6B7280] dark:bg-[#52525B]"></div>
-        <div className="flex-1 bg-[#F97316] dark:bg-[#FB923C]"></div>
-        <div className="flex-1 bg-[#2563EB] dark:bg-[#38BDF8]"></div>
-        <div className="flex-1 bg-[#E5E7EB] dark:bg-[#18181B]"></div>
+        <div className="flex-1 bg-[#49E281] dark:bg-[#22c55e]"></div>
+        <div className="flex-1 bg-[#858585] dark:bg-[#374151]"></div>
+        <div className="flex-1 bg-[#FF974D] dark:bg-[#f97316]"></div>
+        <div className="flex-1 bg-[#007596] dark:bg-[#005f78]"></div>
+        <div className="flex-1 bg-[#D1D1D1] dark:bg-[#000000]"></div>
       </div>
       <div className="my-2 mx-1 flex h-[calc(100%-8px)] flex-col whitespace-nowrap text-xs">
         {carbonLabels.map((label) => (

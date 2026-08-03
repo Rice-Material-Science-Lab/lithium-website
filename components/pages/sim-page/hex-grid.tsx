@@ -78,34 +78,35 @@ export default function DisplayHexGrid({
     if (resolvedTheme === "dark") {
       switch (value) {
         case 0:
-          return "#18181B" // near-black (empty)
+          return "#000000" // black (empty)
         case 1:
-          return "#38BDF8" // bright sky blue (free)
+          return "#005f78" // blue (free)
         case 2:
-          return "#FB923C" // bright orange (deposited)
+          return "#f97316" // orange (deposited)
         case 3:
-          return "#52525B" // medium gray (substrate)
+          return "#374151" // dark gray (substrate)
         case 4:
-          return "#4ADE80" // bright green (passivated)
+          return "#22c55e" // green (passivated)
         default:
-          return "#18181B" // fallback
+          return "#000000" // fallback black
       }
     } else {
       switch (value) {
         case 0:
-          return "#E5E7EB" // light gray (empty)
+          return "#D1D1D1" // off-white (empty)
         case 1:
-          return "#2563EB" // vivid blue (free)
+          return "#007596" // turquoise (free)
         case 2:
-          return "#F97316" // orange (deposited)
+          return "#FF974D" // orange (deposited)
         case 3:
-          return "#6B7280" // medium gray (substrate)
+          return "#858585" // dark gray (substrate)
         case 4:
-          return "#16A34A" // green (passivated)
+          return "#49E281" // green (passivated)
         default:
-          return "#000000" // fallback
+          return "#000000" // fallback black
       }
     }
+
   }
 
   const hexSize = 10
