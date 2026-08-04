@@ -6,7 +6,6 @@ import {
 } from "@/components/ui/alert"
 import { BorderBeam } from "@/components/ui/border-beam"
 import { Button } from "@/components/ui/button"
-import { ButtonGroup } from "@/components/ui/button-group"
 import { Card, CardFooter, CardHeader } from "@/components/ui/card"
 import {
   CollapsibleTrigger,
@@ -732,11 +731,10 @@ export default function ParamsCard({
             </div>
           </div>
           <CardFooter className="mt-auto! flex gap-2 p-0">
-            <ButtonGroup className="w-full overflow-hidden rounded-2xl" aria-label="Button group">
               <Button
                 type="submit"
-                variant="outline"
-                className="dark:hover:bg-primary-400 w-3/5 rounded-xl h-10 bg-primary text-primary-foreground hover:bg-primary/80"
+                variant="default"
+                className="dark:hover:bg-primary-400 flex-5 hover:bg-primary/90 h-10 rounded-3xl"
                 disabled={!wasmModule}
               >
                 {wasmModule
@@ -749,7 +747,7 @@ export default function ParamsCard({
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-2/10 h-10"
+                  className="flex-1 h-10"
                   onClick={handleResumeSim}
                   disabled={!wasmModule}
                 >
@@ -759,7 +757,7 @@ export default function ParamsCard({
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-2/10 h-10"
+                  className="flex-1 h-10"
                   onClick={handlePauseSim}
                   disabled={!wasmModule || !isRunning}
                 >
@@ -768,14 +766,13 @@ export default function ParamsCard({
               )}
               <Button
                 type="button"
-                variant="outline"
-                className="w-2/10 h-10 bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40"
+                variant="destructive"
+                className="flex-1 h-10"
                 onClick={handleStopSim}
                 disabled={!wasmModule || (!isRunning && !isPaused)}
               >
                 Stop
               </Button>
-            </ButtonGroup>
           </CardFooter>
         </Card>
       </form>
