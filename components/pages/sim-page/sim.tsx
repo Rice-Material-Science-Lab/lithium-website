@@ -20,6 +20,7 @@ import {
 import HelpDialog from "./help-dialog"
 import ParamsCard from "./cards/params-card"
 import { Slider } from "@/components/ui/slider"
+import { CellInfo } from "@/lib/types"
 
 interface CustomWasmModule {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -153,12 +154,7 @@ export default function SimPageClientView() {
   const [carbonSpeciesEnergies, setCarbonSpeciesEnergies] = useState([
     -0.6, -0.4, -0.8, -0.3,
   ])
-  const [selectedCell, setSelectedCell] = useState<{
-    x: number
-    y: number
-    state: number
-    coordination: number
-  } | null>(null)
+  const [selectedCell, setSelectedCell] = useState<CellInfo | null>(null)
 
   const CELL_STATE_LABELS: Record<number, string> = {
     0: "Empty",
@@ -1255,6 +1251,14 @@ export default function SimPageClientView() {
                             After {stepsRan.toLocaleString()} steps and{" "}
                             {runTime.toFixed(2)} seconds
                           </h3>
+
+                          {selectedCell &&
+                            `Cell (${selectedCell.x}, ${selectedCell.y}): 
+                        ${CELL_STATE_LABELS[selectedCell.state] ?? "Unknown"}
+                        ${
+                          selectedCell.coordination >= 0 &&
+                          ` · coordination ${selectedCell.coordination}`
+                        }`}
                         </div>
 
                         <div
@@ -1301,21 +1305,13 @@ export default function SimPageClientView() {
                         </div>
                       </div>
                     </div>
-                    {selectedCell && (
-                      <div className="mt-2 w-full rounded-xl border border-primary/20 bg-primary/5 p-2 text-xs text-muted-foreground">
-                        Cell ({selectedCell.x}, {selectedCell.y}):{" "}
-                        {CELL_STATE_LABELS[selectedCell.state] ?? "Unknown"}
-                        {selectedCell.coordination >= 0 &&
-                          ` · coordination ${selectedCell.coordination}`}
-                      </div>
-                    )}
                   </div>
                   <AtomColorKey carbonSpeciesColors={CARBON_SPECIES_COLORS} />
                 </div>
                 <div
                   className={
                     "mt-2 flex h-8 w-full shrink-0 items-center gap-2 " +
-                    (!(snapshotCount > 1) && "opacity-50 pointer-events-none ")
+                    (!(snapshotCount > 1) && "pointer-events-none opacity-50")
                   }
                 >
                   <Slider
