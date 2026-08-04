@@ -30,9 +30,16 @@ export default function DisplayHexGrid({
     return () => cancelAnimationFrame(handle)
   }, [])
 
+  // Guard against width*height not matching data.length yet (e.g. a
+  // transient frame during a live resize, before simState has caught up
+  // with new gridDimensions) -- derive the safe height from data.length
+  // so we never iterate past what's actually there.
+  const safeHeight =
+    width > 0 ? Math.min(height, Math.ceil(data.length / width)) : 0
+
   const hexagons = []
 
-  for (let y = 0; y < height; y++) {
+  for (let y = 0; y < safeHeight; y++) {
     // all of this math is for cubic coords
 
     // filler hexagons (left) -- latX -1 marks these as non-clickable
@@ -78,32 +85,32 @@ export default function DisplayHexGrid({
     if (resolvedTheme === "dark") {
       switch (value) {
         case 0:
-          return "#000000" // black (empty)
+          return "#18181B" // near-black (empty)
         case 1:
-          return "#005f78" // blue (free)
+          return "#38BDF8" // bright sky blue (free)
         case 2:
-          return "#f97316" // orange (deposited)
+          return "#FB923C" // bright orange (deposited)
         case 3:
-          return "#374151" // dark gray (substrate)
+          return "#52525B" // medium gray (substrate)
         case 4:
-          return "#22c55e" // green (passivated)
+          return "#4ADE80" // bright green (passivated)
         default:
-          return "#000000" // fallback black
+          return "#18181B" // fallback
       }
     } else {
       switch (value) {
         case 0:
-          return "#D1D1D1" // off-white (empty)
+          return "#E5E7EB" // light gray (empty)
         case 1:
-          return "#007596" // turquoise (free)
+          return "#2563EB" // vivid blue (free)
         case 2:
-          return "#FF974D" // orange (deposited)
+          return "#F97316" // orange (deposited)
         case 3:
-          return "#858585" // dark gray (substrate)
+          return "#6B7280" // medium gray (substrate)
         case 4:
-          return "#49E281" // green (passivated)
+          return "#16A34A" // green (passivated)
         default:
-          return "#000000" // fallback black
+          return "#000000" // fallback
       }
     }
 
