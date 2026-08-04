@@ -64,13 +64,17 @@ export function Highlighter({
         multiline,
       }
 
-      const currentAnnotation = annotate(element, annotationConfig)
-      annotation = currentAnnotation
-      currentAnnotation.show()
-
       resizeObserver = new ResizeObserver(() => {
-        currentAnnotation.hide()
-        currentAnnotation.show()
+        const rect = element.getBoundingClientRect()
+        if (rect.width > 0 && rect.height > 0) {
+          if (!annotation) {
+            annotation = annotate(element, annotationConfig)
+            annotation.show()
+          } else {
+            annotation.hide()
+            annotation.show()
+          }
+        }
       })
 
       resizeObserver.observe(element)
