@@ -620,7 +620,7 @@ export default function ParamsCard({
                       <Slider
                         id="pass-att-freq-input"
                         min={1e1}
-                        max={1e5}
+                        max={1e6}
                         step={1e2}
                         value={[passAttFreq]}
                         onValueChange={(val: number[]) =>

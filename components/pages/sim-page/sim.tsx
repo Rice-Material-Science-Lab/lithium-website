@@ -209,8 +209,8 @@ export default function SimPageClientView() {
   // e_pass lowered closer to the literature-cited ~0.36 eV SEI barrier,
   // so passivation is rare-but-reachable by default instead of
   // mathematically unreachable at any slider position.
-  const [passAttFreq, setPassAttFreq] = useState(1000000)
-  const [ePass, setEPass] = useState(0.3)
+  const [passAttFreq, setPassAttFreq] = useState(100)
+  const [ePass, setEPass] = useState(0.45)
   const [depassAttFreq, setDepassAttFreq] = useState(100000) // nu_dp
   const [eDepass, setEDepass] = useState(0.5) // e_dp -- higher than e_pass
   // by default so passivation dominates unless tuned otherwise
@@ -232,7 +232,7 @@ export default function SimPageClientView() {
     }[]
   >([])
 
-  const STORAGE_KEY = "lkmc-sim-params-v2"
+  const STORAGE_KEY = "lkmc-sim-params-v3"
 
   // Restore saved params on mount (skip grid size -- covered separately
   // by width/height inputs which already default sensibly).
@@ -258,7 +258,7 @@ export default function SimPageClientView() {
         if (typeof saved.depAttFreq === "number")
           setDepAttFreq(clamp(saved.depAttFreq, 1e8, 1e10))
         if (typeof saved.passAttFreq === "number")
-          setPassAttFreq(clamp(saved.passAttFreq, 1e1, 1e7))
+          setPassAttFreq(clamp(saved.passAttFreq, 1e1, 1e6))
         if (Array.isArray(saved.carbonSpeciesEnergies))
           setCarbonSpeciesEnergies(
             saved.carbonSpeciesEnergies.map((e: number) => clamp(e, -2.0, 0))
@@ -368,9 +368,15 @@ export default function SimPageClientView() {
 
     const initWasm = async () => {
       try {
-        // Cache-bust: append a timestamp so the browser can never serve a
-        // stale cached copy of the WASM glue JS during development.
-        const scriptUrl = `/lkmc-wasm.js?v=${Date.now()}`
+        // Cache-bust only in dev, so local rebuilds of lkmc-wasm.js are
+        // never served stale. In production the build doesn't change
+        // between page loads, so let the browser cache it normally --
+        // this is the main lever on load time, since re-fetching a
+        // multi-MB .wasm binary on every visit was otherwise unavoidable.
+        const isDev = process.env.NODE_ENV !== "production"
+        const scriptUrl = isDev
+          ? `/lkmc-wasm.js?v=${Date.now()}`
+          : `/lkmc-wasm.js`
         const wasmGlueCode = await import(
           /* @vite-ignore */ /* webpackIgnore: true */ scriptUrl
         )
@@ -379,15 +385,15 @@ export default function SimPageClientView() {
           wasmGlueCode.default || wasmGlueCode.Module || wasmGlueCode
 
         if (typeof moduleFactory === "function" && active) {
-          // Also cache-bust the .wasm binary fetch itself -- the glue JS
-          // fetches this separately via its own fixed URL, so busting only
-          // the .js import above does not stop the browser from serving a
-          // stale cached .wasm binary.
+          // Same dev-only cache-bust for the .wasm binary itself -- the
+          // glue JS fetches this separately via its own fixed URL, so
+          // busting only the .js import above would not stop a stale
+          // cached .wasm from being served during local development.
           const wasmCacheBust = Date.now()
           const initializedModule = await moduleFactory({
             locateFile: (path: string) => {
               if (path.endsWith(".wasm")) {
-                return `/${path}?v=${wasmCacheBust}`
+                return isDev ? `/${path}?v=${wasmCacheBust}` : `/${path}`
               }
               return path
             },
@@ -958,10 +964,15 @@ export default function SimPageClientView() {
       atomSubstrate: -0.8,
       freeAttFreq: 8e9,
       depAttFreq: 8e9,
-      passAttFreq: 1e5,
-      ePass: 0.4,
+      // Same tiny scale as the corrected default (100 / 0.45) -- total
+      // passivation rate sums across every exposed surface atom, so even
+      // a "small" per-atom rate compounds once the surface has hundreds
+      // of exposed sites. Keep this near-negligible so dense growth stays
+      // dominated by deposition.
+      passAttFreq: 80,
+      ePass: 0.5,
       depassAttFreq: 1e5,
-      eDepass: 0.6,
+      eDepass: 0.7,
     },
     "Sparse / dendritic": {
       temp: 200,
@@ -970,10 +981,10 @@ export default function SimPageClientView() {
       atomSubstrate: -0.3,
       freeAttFreq: 2e9,
       depAttFreq: 2e9,
-      passAttFreq: 1e5,
-      ePass: 0.3,
+      passAttFreq: 80,
+      ePass: 0.45,
       depassAttFreq: 1e5,
-      eDepass: 0.6,
+      eDepass: 0.65,
     },
     "SEI-heavy": {
       temp: 300,
@@ -982,10 +993,13 @@ export default function SimPageClientView() {
       atomSubstrate: -0.5,
       freeAttFreq: 5e9,
       depAttFreq: 5e9,
-      passAttFreq: 5e7,
-      ePass: 0.15,
+      // Deliberately several orders of magnitude above the calm default
+      // so this preset visibly contrasts with the other two -- this one
+      // is supposed to look SEI-dominated.
+      passAttFreq: 50000,
+      ePass: 0.2,
       depassAttFreq: 1e6,
-      eDepass: 0.4, // lower barrier than usual -- SEI actively cycles
+      eDepass: 0.35,
     },
   }
 
