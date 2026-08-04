@@ -63,7 +63,13 @@ interface CustomWasmModule {
     nx: number,
     ny: number,
     stepsPerRun: number,
-    baseSeed: number
+    baseSeed: number,
+    nuF: number,
+    nuD: number,
+    nuP: number,
+    ePass: number,
+    nuDp: number,
+    eDp: number
   ): void
   _get_batch_json(): number
   _init_simulation(): void
@@ -201,12 +207,19 @@ export default function SimPageClientView() {
   const [atomSubstrate, setAtomSubstrate] = useState(-0.5)
   const [freeAttFreq, setFreeAttFreq] = useState(5000000000)
   const [depAttFreq, setDepAttFreq] = useState(5000000000)
-  // nu_p raised to be within reach of hop-rate order of magnitude, and
-  // e_pass lowered closer to the literature-cited ~0.36 eV SEI barrier,
-  // so passivation is rare-but-reachable by default instead of
-  // mathematically unreachable at any slider position.
-  const [passAttFreq, setPassAttFreq] = useState(100)
-  const [ePass, setEPass] = useState(0.45)
+  // Calibrated so passivation is rare-but-reachable at default settings
+  // (roughly 1-3 events per 1e6 steps, order-of-magnitude -- exact count
+  // is stochastic and depends on exposed-surface area at runtime) instead
+  // of being 7+ orders of magnitude below the hop-rate scale and
+  // effectively unreachable. e_pass sits within the literature-cited
+  // ~0.3-0.4 eV range for SEI-forming barriers; nu_p is a free
+  // attempt-frequency parameter with no physical requirement to sit far
+  // below nu_f/nu_d. The self-limiting per-neighbor barrier in
+  // get_event_rate() (kSeiGrowthBarrier) still caps runaway growth once
+  // an initial monolayer forms, so raising these doesn't reopen the
+  // original "way too much passivation" problem.
+  const [passAttFreq, setPassAttFreq] = useState(50000)
+  const [ePass, setEPass] = useState(0.32)
   const [depassAttFreq, setDepassAttFreq] = useState(100000) // nu_dp
   const [eDepass, setEDepass] = useState(0.5) // e_dp -- higher than e_pass
   // by default so passivation dominates unless tuned otherwise
@@ -904,7 +917,13 @@ export default function SimPageClientView() {
         nx,
         ny,
         stepsPerRun,
-        Math.floor(Math.random() * 1000000)
+        Math.floor(Math.random() * 1000000),
+        freeAttFreq,
+        depAttFreq,
+        passAttFreq,
+        ePass,
+        depassAttFreq,
+        eDepass
       )
 
       wasmModule._free(d0Ptr)
