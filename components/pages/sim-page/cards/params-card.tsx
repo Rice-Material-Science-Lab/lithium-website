@@ -732,11 +732,11 @@ export default function ParamsCard({
             </div>
           </div>
           <CardFooter className="mt-auto! flex gap-2 p-0">
-            <ButtonGroup className="w-full" aria-label="Button group">
+            <ButtonGroup className="w-full overflow-hidden rounded-2xl" aria-label="Button group">
               <Button
                 type="submit"
-                variant="default"
-                className="dark:hover:bg-primary-400 w-1/2 flex-1 rounded-xl hover:bg-primary/90"
+                variant="outline"
+                className="dark:hover:bg-primary-400 w-3/5 rounded-xl h-10 bg-primary text-primary-foreground hover:bg-primary/80"
                 disabled={!wasmModule}
               >
                 {wasmModule
@@ -749,7 +749,7 @@ export default function ParamsCard({
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-1/4"
+                  className="w-2/10 h-10"
                   onClick={handleResumeSim}
                   disabled={!wasmModule}
                 >
@@ -759,6 +759,7 @@ export default function ParamsCard({
                 <Button
                   type="button"
                   variant="outline"
+                  className="w-2/10 h-10"
                   onClick={handlePauseSim}
                   disabled={!wasmModule || !isRunning}
                 >
@@ -767,7 +768,8 @@ export default function ParamsCard({
               )}
               <Button
                 type="button"
-                variant="destructive"
+                variant="outline"
+                className="w-2/10 h-10 bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40"
                 onClick={handleStopSim}
                 disabled={!wasmModule || (!isRunning && !isPaused)}
               >
