@@ -61,63 +61,69 @@ export default function AtomCountsChart({
         Atom counts over time
       </h3>
       <div className="min-h-0 w-full flex-1">
-        <ChartContainer
-          config={chartConfig}
-          className="aspect-auto h-full min-h-0 w-full"
-        >
-          <LineChart
-            data={data}
-            margin={{ top: 8, right: 12, left: -16, bottom: 0 }}
+        {data.length > 0 ? (
+          <ChartContainer
+            config={chartConfig}
+            className="aspect-auto h-full min-h-0 w-full"
           >
-            <CartesianGrid
-              strokeDasharray="3 3"
-              vertical={false}
-              stroke={mounted ? gridStrokeColor : "#7b8ea3"}
-            />
+            <LineChart
+              data={data}
+              margin={{ top: 8, right: 12, left: -16, bottom: 0 }}
+            >
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke={mounted ? gridStrokeColor : "#7b8ea3"}
+              />
 
-            <XAxis
-              dataKey="step"
-              type="number"
-              domain={["dataMin", "dataMax"]}
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-            />
+              <XAxis
+                dataKey="step"
+                type="number"
+                domain={["dataMin", "dataMax"]}
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+              />
 
-            <YAxis
-              domain={[0, "auto"]}
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-            />
-            <ChartTooltip content={<ChartTooltipContent />} />
-            <ChartLegend content={<ChartLegendContent />} />
-            <Line
-              type="monotone"
-              dataKey="free"
-              stroke="var(--color-free)"
-              strokeWidth={2}
-              dot={false}
-              isAnimationActive={false}
-            />
-            <Line
-              type="monotone"
-              dataKey="deposited"
-              stroke="var(--color-deposited)"
-              strokeWidth={2}
-              dot={false}
-              isAnimationActive={false}
-            />
-            <Line
-              type="monotone"
-              dataKey="passivated"
-              stroke="var(--color-passivated)"
-              strokeWidth={2}
-              dot={false}
-              isAnimationActive={false}
-            />
-          </LineChart>
-        </ChartContainer>
+              <YAxis
+                domain={[0, "auto"]}
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+              />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <ChartLegend content={<ChartLegendContent />} />
+              <Line
+                type="monotone"
+                dataKey="free"
+                stroke="var(--color-free)"
+                strokeWidth={2}
+                dot={false}
+                isAnimationActive={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="deposited"
+                stroke="var(--color-deposited)"
+                strokeWidth={2}
+                dot={false}
+                isAnimationActive={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="passivated"
+                stroke="var(--color-passivated)"
+                strokeWidth={2}
+                dot={false}
+                isAnimationActive={false}
+              />
+            </LineChart>
+          </ChartContainer>
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">
+            No data yet. Run the simulation to see atom counts.
+          </div>
+        )}
       </div>
     </div>
   ) : (
