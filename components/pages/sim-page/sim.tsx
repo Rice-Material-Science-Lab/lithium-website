@@ -477,6 +477,18 @@ export default function SimPageClientView() {
                 }
 
                 const totalElements = width * height
+                if (
+                  !Number.isFinite(totalElements) ||
+                  totalElements <= 0 ||
+                  latticePointer + totalElements > buffer.byteLength
+                ) {
+                  console.warn("Skipped invalid lattice view:", {
+                    latticePointer,
+                    totalElements,
+                    bufferLength: buffer.byteLength,
+                  })
+                  return
+                }
                 const memoryView = new Int8Array(
                   buffer,
                   latticePointer,
@@ -802,6 +814,7 @@ export default function SimPageClientView() {
   const loadSnapshot = (idx: number) => {
     if (!wasmModule) return
     const clampedIdx = Math.max(0, Math.min(idx, snapshotCount - 1))
+    if (clampedIdx < 0) return
     const ptr = wasmModule._get_snapshot_lattice(clampedIdx)
     if (!ptr) return
 
@@ -809,7 +822,21 @@ export default function SimPageClientView() {
     if (!buffer) return
 
     const [nx, ny] = gridDimensions
-    const view = new Int8Array(buffer, ptr, nx * ny)
+    const requiredLength = nx * ny
+    if (
+      !Number.isFinite(requiredLength) ||
+      requiredLength <= 0 ||
+      ptr + requiredLength > buffer.byteLength
+    ) {
+      console.warn("Skipped invalid snapshot view:", {
+        ptr,
+        requiredLength,
+        bufferLength: buffer.byteLength,
+      })
+      return
+    }
+
+    const view = new Int8Array(buffer, ptr, requiredLength)
     setSimState(Array.from(view))
     setSnapshotIndex(clampedIdx)
     setSnapshotStep(wasmModule._get_snapshot_step(clampedIdx))
