@@ -54,23 +54,6 @@ interface CustomWasmModule {
   _get_carbon_species_grid(): number
   _malloc(size: number): number
   _free(ptr: number): void
-  _run_batch(
-    d0Ptr: number,
-    TPtr: number,
-    e0Ptr: number,
-    e1Ptr: number,
-    numRuns: number,
-    nx: number,
-    ny: number,
-    stepsPerRun: number,
-    baseSeed: number,
-    nuF: number,
-    nuD: number,
-    nuP: number,
-    ePass: number,
-    nuDp: number,
-    eDp: number
-  ): void
   _get_batch_json(): number
   _init_simulation(): void
   _run_steps(steps: number): void
@@ -915,7 +898,7 @@ export default function SimPageClientView() {
     const max = Number.isFinite(maxRaw) ? maxRaw : 0
     const [nxRaw, nyRaw] = gridDimensions
     const nx = Number.isFinite(nxRaw) && nxRaw > 0 ? Math.min(MAX_GRID_DIM, Math.floor(nxRaw)) : 1
-const ny = Number.isFinite(nyRaw) && nyRaw >= 2 ? Math.min(MAX_GRID_DIM, Math.floor(nyRaw)) : 2
+    const ny = Number.isFinite(nyRaw) && nyRaw >= 2 ? Math.min(MAX_GRID_DIM, Math.floor(nyRaw)) : 2
     const stepsPerRunRaw = Number(batchSteps)
     const stepsPerRun =
       Number.isFinite(stepsPerRunRaw) && stepsPerRunRaw > 0
@@ -927,115 +910,59 @@ const ny = Number.isFinite(nyRaw) && nyRaw >= 2 ? Math.min(MAX_GRID_DIM, Math.fl
       return
     }
 
-    const d0Arr = new Float64Array(count)
-    const TArr = new Float64Array(count)
-    const e0Arr = new Float64Array(count)
-    const e1Arr = new Float64Array(count)
-
-    for (let i = 0; i < count; i++) {
-      const t = count === 1 ? 0 : i / (count - 1)
-      const value = min + t * (max - min)
-      d0Arr[i] = batchParam === "dropRate" ? Math.max(1, value) : dropRate
-      TArr[i] = batchParam === "temp" ? Math.max(1, value) : temp
-      e0Arr[i] = bondedEnergy
-      e1Arr[i] = atomSubstrate
-    }
-
-    const bytesPerArr = count * 8
-    const d0Ptr = wasmModule._malloc(bytesPerArr)
-    const TPtr = wasmModule._malloc(bytesPerArr)
-    const e0Ptr = wasmModule._malloc(bytesPerArr)
-    const e1Ptr = wasmModule._malloc(bytesPerArr)
-
-    // _malloc returns 0 on allocation failure -- without this check we'd
-    // silently write into (or read starting at) WASM address 0 instead of
-    // failing loudly, which can corrupt unrelated memory or throw an
-    // opaque low-level error deep inside _run_batch. Free whichever
-    // allocations DID succeed before bailing, so a partial failure never
-    // leaks WASM heap space.
-    if (!d0Ptr || !TPtr || !e0Ptr || !e1Ptr) {
-      console.error("Batch run: WASM memory allocation failed", {
-        d0Ptr,
-        TPtr,
-        e0Ptr,
-        e1Ptr,
-      })
-      if (d0Ptr) wasmModule._free(d0Ptr)
-      if (TPtr) wasmModule._free(TPtr)
-      if (e0Ptr) wasmModule._free(e0Ptr)
-      if (e1Ptr) wasmModule._free(e1Ptr)
-      return
-    }
-
-    if (
-      d0Ptr % 8 !== 0 ||
-      TPtr % 8 !== 0 ||
-      e0Ptr % 8 !== 0 ||
-      e1Ptr % 8 !== 0
-    ) {
-      console.error("Batch run: unaligned pointer from _malloc", {
-        d0Ptr,
-        TPtr,
-        e0Ptr,
-        e1Ptr,
-      })
-      wasmModule._free(d0Ptr)
-      wasmModule._free(TPtr)
-      wasmModule._free(e0Ptr)
-      wasmModule._free(e1Ptr)
-      return
-    }
-
-    wasmModule.HEAPF64.set(d0Arr, d0Ptr / 8)
-    wasmModule.HEAPF64.set(TArr, TPtr / 8)
-    wasmModule.HEAPF64.set(e0Arr, e0Ptr / 8)
-    wasmModule.HEAPF64.set(e1Arr, e1Ptr / 8)
-
     setBatchRunning(true)
     setBatchProgress({ done: 0, total: count })
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ;(window as any).onBatchRunProgress = (done: number, total: number) => {
-      setBatchProgress({ done, total })
-    }
+    const baseSeed = Math.floor(Math.random() * 1000000)
 
     // Yield one frame so the "Running..." state paints before the
-    // synchronous, blocking batch loop starts.
+    // synchronous per-run loop starts.
     requestAnimationFrame(() => {
       try {
-        wasmModule._run_batch(
-          d0Ptr,
-          TPtr,
-          e0Ptr,
-          e1Ptr,
-          count,
-          nx,
-          ny,
-          stepsPerRun,
-          Math.floor(Math.random() * 1000000),
-          freeAttFreq,
-          depAttFreq,
-          passAttFreq,
-          ePass,
-          depassAttFreq,
-          eDepass
-        )
+        wasmModule.ccall("run_batch_begin", null, [], [])
+
+        for (let i = 0; i < count; i++) {
+          const t = count === 1 ? 0 : i / (count - 1)
+          const value = min + t * (max - min)
+          const d0Val = batchParam === "dropRate" ? Math.max(1, value) : dropRate
+          const TVal = batchParam === "temp" ? Math.max(1, value) : temp
+
+          wasmModule.ccall(
+            "run_batch_single",
+            null,
+            [
+              "number", "number", "number", "number", "number",
+              "number", "number", "number", "number",
+              "number", "number", "number", "number", "number", "number",
+            ],
+            [
+              i,
+              d0Val,
+              TVal,
+              bondedEnergy,
+              atomSubstrate,
+              nx,
+              ny,
+              stepsPerRun,
+              baseSeed + i,
+              freeAttFreq,
+              depAttFreq,
+              passAttFreq,
+              ePass,
+              depassAttFreq,
+              eDepass,
+            ]
+          )
+
+          setBatchProgress({ done: i + 1, total: count })
+        }
+
+        wasmModule.ccall("run_batch_end", null, [], [])
       } catch (e) {
-        console.error("_run_batch threw -- likely a WASM-side crash:", e)
-        wasmModule._free(d0Ptr)
-        wasmModule._free(TPtr)
-        wasmModule._free(e0Ptr)
-        wasmModule._free(e1Ptr)
+        console.error("run_batch_single threw -- WASM-side crash:", e)
         setBatchRunning(false)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        delete (window as any).onBatchRunProgress
         return
       }
-
-      wasmModule._free(d0Ptr)
-      wasmModule._free(TPtr)
-      wasmModule._free(e0Ptr)
-      wasmModule._free(e1Ptr)
 
       const jsonStr = wasmModule.ccall("get_batch_json", "string", [], [])
       let results: Record<string, number>[] = []
@@ -1055,8 +982,6 @@ const ny = Number.isFinite(nyRaw) && nyRaw >= 2 ? Math.min(MAX_GRID_DIM, Math.fl
 
       setBatchResults(results)
       setBatchRunning(false)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      delete (window as any).onBatchRunProgress
     })
   }
 
