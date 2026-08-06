@@ -193,10 +193,12 @@ export default function SimPageClientView() {
   // before the first run, so carbon can be drawn at the correct size
   // without needing to press Run first (drawing happens on the grid as
   // currently sized, not the size that would result from a future run).
+  const MAX_GRID_DIM = 300
+
   useEffect(() => {
     if (hasRunOnce) return
-    const nx = Math.max(1, Number(width) || 0)
-    const ny = Math.max(2, Number(height) || 0)
+    const nx = Math.min(MAX_GRID_DIM, Math.max(1, Number(width) || 0))
+    const ny = Math.min(MAX_GRID_DIM, Math.max(2, Number(height) || 0))
     if (nx === gridDimensions[0] && ny === gridDimensions[1]) return
     ;(() => setGridDimensions([nx, ny]))()
   }, [width, height, hasRunOnce, gridDimensions])
@@ -912,8 +914,8 @@ export default function SimPageClientView() {
     const min = Number.isFinite(minRaw) ? minRaw : 0
     const max = Number.isFinite(maxRaw) ? maxRaw : 0
     const [nxRaw, nyRaw] = gridDimensions
-    const nx = Number.isFinite(nxRaw) && nxRaw > 0 ? Math.floor(nxRaw) : 1
-    const ny = Number.isFinite(nyRaw) && nyRaw >= 2 ? Math.floor(nyRaw) : 2
+    const nx = Number.isFinite(nxRaw) && nxRaw > 0 ? Math.min(MAX_GRID_DIM, Math.floor(nxRaw)) : 1
+const ny = Number.isFinite(nyRaw) && nyRaw >= 2 ? Math.min(MAX_GRID_DIM, Math.floor(nyRaw)) : 2
     const stepsPerRunRaw = Number(batchSteps)
     const stepsPerRun =
       Number.isFinite(stepsPerRunRaw) && stepsPerRunRaw > 0
@@ -1147,8 +1149,8 @@ export default function SimPageClientView() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    const nx = Math.max(1, Number(width) || 0)
-    const ny = Math.max(2, Number(height) || 0)
+    const nx = Math.min(MAX_GRID_DIM, Math.max(2, Number(width) || 0))
+    const ny = Math.min(MAX_GRID_DIM, Math.max(2, Number(height) || 0))
     const newDimensions: [number, number] = [nx, ny]
     setGridDimensions(newDimensions)
 

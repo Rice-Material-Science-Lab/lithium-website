@@ -170,6 +170,7 @@ export default function ParamsCard({
                 id="width-input"
                 type="number"
                 min={1}
+                max={300}
                 className="rounded-xl"
                 value={width}
                 onChange={(e) => setWidth(e.target.value)}
@@ -191,7 +192,8 @@ export default function ParamsCard({
               <Input
                 id="height-input"
                 type="number"
-                min={1}
+                min={2}
+                max={300}
                 className="rounded-xl"
                 value={height}
                 onChange={(e) => setHeight(e.target.value)}
