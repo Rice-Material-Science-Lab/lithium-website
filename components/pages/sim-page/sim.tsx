@@ -891,9 +891,22 @@ export default function SimPageClientView() {
   const [batchProgress, setBatchProgress] = useState({ done: 0, total: 0 })
   const [helpOpen, setHelpOpen] = useState(false)
 
+  const MAX_BATCH_RUNS = 200 // hard ceiling -- prevents a bad/huge "Runs"
+  // input from constructing an absurdly large Float64Array below, which
+  // throws "RangeError: Invalid array length" and crashes the whole
+  // batch-run flow.
+  const MAX_BATCH_STEPS_PER_RUN = 10_000_000 // sane ceiling; doesn't
+  // prevent a crash by itself, but stops an accidental typo (e.g. an
+  // extra zero) from locking up the tab for an unreasonable amount of
+  // time inside the synchronous batch loop.
+
   const runBatch = () => {
     if (!wasmModule) return
-    const count = Math.max(1, Number(batchCount) || 1)
+    const countRaw = Number(batchCount)
+    const count =
+      Number.isFinite(countRaw) && Number.isInteger(countRaw)
+        ? Math.min(MAX_BATCH_RUNS, Math.max(1, countRaw))
+        : 1
     const minRaw = Number(batchMin)
     const maxRaw = Number(batchMax)
     const min = Number.isFinite(minRaw) ? minRaw : 0
@@ -901,7 +914,11 @@ export default function SimPageClientView() {
     const [nxRaw, nyRaw] = gridDimensions
     const nx = Number.isFinite(nxRaw) && nxRaw > 0 ? Math.floor(nxRaw) : 1
     const ny = Number.isFinite(nyRaw) && nyRaw > 0 ? Math.floor(nyRaw) : 2
-    const stepsPerRun = Math.max(1, Number(batchSteps) || 1)
+    const stepsPerRunRaw = Number(batchSteps)
+    const stepsPerRun =
+      Number.isFinite(stepsPerRunRaw) && stepsPerRunRaw > 0
+        ? Math.min(MAX_BATCH_STEPS_PER_RUN, Math.floor(stepsPerRunRaw))
+        : 1
 
     if (count <= 0 || !Number.isFinite(count)) {
       console.warn("Skipped batch run: invalid trial count", count)
@@ -1482,6 +1499,7 @@ export default function SimPageClientView() {
                           className="w-20 rounded-xl"
                           type="number"
                           min={1}
+                          max={200}
                           value={batchCount}
                           onChange={(e) => setBatchCount(e.target.value)}
                         />
