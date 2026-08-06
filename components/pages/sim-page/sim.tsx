@@ -196,7 +196,7 @@ export default function SimPageClientView() {
   useEffect(() => {
     if (hasRunOnce) return
     const nx = Math.max(1, Number(width) || 0)
-    const ny = Math.max(1, Number(height) || 0)
+    const ny = Math.max(2, Number(height) || 0)
     if (nx === gridDimensions[0] && ny === gridDimensions[1]) return
     ;(() => setGridDimensions([nx, ny]))()
   }, [width, height, hasRunOnce, gridDimensions])
@@ -913,7 +913,7 @@ export default function SimPageClientView() {
     const max = Number.isFinite(maxRaw) ? maxRaw : 0
     const [nxRaw, nyRaw] = gridDimensions
     const nx = Number.isFinite(nxRaw) && nxRaw > 0 ? Math.floor(nxRaw) : 1
-    const ny = Number.isFinite(nyRaw) && nyRaw > 0 ? Math.floor(nyRaw) : 2
+    const ny = Number.isFinite(nyRaw) && nyRaw >= 2 ? Math.floor(nyRaw) : 2
     const stepsPerRunRaw = Number(batchSteps)
     const stepsPerRun =
       Number.isFinite(stepsPerRunRaw) && stepsPerRunRaw > 0
@@ -933,8 +933,8 @@ export default function SimPageClientView() {
     for (let i = 0; i < count; i++) {
       const t = count === 1 ? 0 : i / (count - 1)
       const value = min + t * (max - min)
-      d0Arr[i] = batchParam === "dropRate" ? value : dropRate
-      TArr[i] = batchParam === "temp" ? value : temp
+      d0Arr[i] = batchParam === "dropRate" ? Math.max(1, value) : dropRate
+      TArr[i] = batchParam === "temp" ? Math.max(1, value) : temp
       e0Arr[i] = bondedEnergy
       e1Arr[i] = atomSubstrate
     }
@@ -1148,7 +1148,7 @@ export default function SimPageClientView() {
     e.preventDefault()
 
     const nx = Math.max(1, Number(width) || 0)
-    const ny = Math.max(1, Number(height) || 0)
+    const ny = Math.max(2, Number(height) || 0)
     const newDimensions: [number, number] = [nx, ny]
     setGridDimensions(newDimensions)
 
