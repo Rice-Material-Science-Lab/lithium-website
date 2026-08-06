@@ -965,6 +965,25 @@ export default function SimPageClientView() {
       return
     }
 
+    if (
+      d0Ptr % 8 !== 0 ||
+      TPtr % 8 !== 0 ||
+      e0Ptr % 8 !== 0 ||
+      e1Ptr % 8 !== 0
+    ) {
+      console.error("Batch run: unaligned pointer from _malloc", {
+        d0Ptr,
+        TPtr,
+        e0Ptr,
+        e1Ptr,
+      })
+      wasmModule._free(d0Ptr)
+      wasmModule._free(TPtr)
+      wasmModule._free(e0Ptr)
+      wasmModule._free(e1Ptr)
+      return
+    }
+
     wasmModule.HEAPF64.set(d0Arr, d0Ptr / 8)
     wasmModule.HEAPF64.set(TArr, TPtr / 8)
     wasmModule.HEAPF64.set(e0Arr, e0Ptr / 8)
@@ -981,23 +1000,35 @@ export default function SimPageClientView() {
     // Yield one frame so the "Running..." state paints before the
     // synchronous, blocking batch loop starts.
     requestAnimationFrame(() => {
-      wasmModule._run_batch(
-        d0Ptr,
-        TPtr,
-        e0Ptr,
-        e1Ptr,
-        count,
-        nx,
-        ny,
-        stepsPerRun,
-        Math.floor(Math.random() * 1000000),
-        freeAttFreq,
-        depAttFreq,
-        passAttFreq,
-        ePass,
-        depassAttFreq,
-        eDepass
-      )
+      try {
+        wasmModule._run_batch(
+          d0Ptr,
+          TPtr,
+          e0Ptr,
+          e1Ptr,
+          count,
+          nx,
+          ny,
+          stepsPerRun,
+          Math.floor(Math.random() * 1000000),
+          freeAttFreq,
+          depAttFreq,
+          passAttFreq,
+          ePass,
+          depassAttFreq,
+          eDepass
+        )
+      } catch (e) {
+        console.error("_run_batch threw -- likely a WASM-side crash:", e)
+        wasmModule._free(d0Ptr)
+        wasmModule._free(TPtr)
+        wasmModule._free(e0Ptr)
+        wasmModule._free(e1Ptr)
+        setBatchRunning(false)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        delete (window as any).onBatchRunProgress
+        return
+      }
 
       wasmModule._free(d0Ptr)
       wasmModule._free(TPtr)
@@ -1007,9 +1038,17 @@ export default function SimPageClientView() {
       const jsonStr = wasmModule.ccall("get_batch_json", "string", [], [])
       let results: Record<string, number>[] = []
       try {
-        results = JSON.parse(jsonStr as string)
+        const parsed = JSON.parse(jsonStr as string)
+        results = Array.isArray(parsed) ? parsed : []
+        if (!Array.isArray(parsed)) {
+          console.warn("get_batch_json returned non-array JSON:", parsed)
+        }
       } catch (e) {
-        console.error("Failed to parse batch results:", e)
+        console.error(
+          "Failed to parse batch results. Raw string was:",
+          jsonStr,
+          e
+        )
       }
 
       setBatchResults(results)
@@ -1204,19 +1243,25 @@ export default function SimPageClientView() {
     const prev = prevCarbonSitesRef.current
     let changed = false
 
+    const [liveNx, liveNy] = gridDimensions
+
     for (const [key, species] of carbonSites) {
       if (!prev.has(key)) {
         const [cx, cy] = key.split(",").map(Number)
-        wasmModule._mark_carbon(cx, cy, species)
-        changed = true
+        if (cx >= 0 && cy >= 0 && cx < liveNx && cy < liveNy) {
+          wasmModule._mark_carbon(cx, cy, species)
+          changed = true
+        }
       }
     }
 
     for (const key of prev.keys()) {
       if (!carbonSites.has(key)) {
         const [cx, cy] = key.split(",").map(Number)
-        wasmModule._unmark_carbon(cx, cy)
-        changed = true
+        if (cx >= 0 && cy >= 0 && cx < liveNx && cy < liveNy) {
+          wasmModule._unmark_carbon(cx, cy)
+          changed = true
+        }
       }
     }
 
