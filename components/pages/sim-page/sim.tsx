@@ -894,10 +894,19 @@ export default function SimPageClientView() {
   const runBatch = () => {
     if (!wasmModule) return
     const count = Math.max(1, Number(batchCount) || 1)
-    const min = Number(batchMin)
-    const max = Number(batchMax)
-    const [nx, ny] = gridDimensions
+    const minRaw = Number(batchMin)
+    const maxRaw = Number(batchMax)
+    const min = Number.isFinite(minRaw) ? minRaw : 0
+    const max = Number.isFinite(maxRaw) ? maxRaw : 0
+    const [nxRaw, nyRaw] = gridDimensions
+    const nx = Number.isFinite(nxRaw) && nxRaw > 0 ? Math.floor(nxRaw) : 1
+    const ny = Number.isFinite(nyRaw) && nyRaw > 0 ? Math.floor(nyRaw) : 2
     const stepsPerRun = Math.max(1, Number(batchSteps) || 1)
+
+    if (count <= 0 || !Number.isFinite(count)) {
+      console.warn("Skipped batch run: invalid trial count", count)
+      return
+    }
 
     const d0Arr = new Float64Array(count)
     const TArr = new Float64Array(count)

@@ -30,12 +30,25 @@ export default function DisplayHexGrid({
     return () => cancelAnimationFrame(handle)
   }, [])
 
+  // Guard against width/height arriving as NaN, negative, or otherwise
+  // non-finite (e.g. a transient render before gridDimensions has
+  // settled, or a bad value from an in-progress input field) -- treat
+  // those as "nothing to draw yet" instead of feeding them into the
+  // hexagon math below, which could otherwise produce non-finite q/r/s
+  // coordinates or SVG attributes.
+  const safeWidth =
+    Number.isFinite(width) && width > 0 ? Math.floor(width) : 0
+  const safeHeightInput =
+    Number.isFinite(height) && height > 0 ? Math.floor(height) : 0
+
   // Guard against width*height not matching data.length yet (e.g. a
   // transient frame during a live resize, before simState has caught up
   // with new gridDimensions) -- derive the safe height from data.length
   // so we never iterate past what's actually there.
   const safeHeight =
-    width > 0 ? Math.min(height, Math.ceil(data.length / width)) : 0
+    safeWidth > 0
+      ? Math.min(safeHeightInput, Math.ceil(data.length / safeWidth))
+      : 0
 
   const hexagons = []
 
@@ -52,8 +65,8 @@ export default function DisplayHexGrid({
 
     // real hexagons
 
-    for (let x = 0; x < width; x++) {
-      const index = y * width + x
+    for (let x = 0; x < safeWidth; x++) {
+      const index = y * safeWidth + x
 
       if (index < data.length) {
         const q = x + Math.ceil(y / 2)
@@ -64,7 +77,7 @@ export default function DisplayHexGrid({
 
     // filler hexagons (right) -- latX width marks these as non-clickable
     if (y % 2 === 0) {
-      const x = width
+      const x = safeWidth
       const q = x + Math.ceil(y / 2)
       const r = -y
       hexagons.push({ q, r, s: -q - r, value: 3, latX: -1, latY: -1 })
@@ -75,7 +88,12 @@ export default function DisplayHexGrid({
     if (value === 5) {
       if (carbonSpeciesMap && carbonSpeciesColors) {
         const species = carbonSpeciesMap.get(`${x},${y}`)
-        if (species !== undefined && carbonSpeciesColors[species]) {
+        if (
+          species !== undefined &&
+          species >= 0 &&
+          species < carbonSpeciesColors.length &&
+          carbonSpeciesColors[species]
+        ) {
           return carbonSpeciesColors[species]
         }
       }
@@ -119,14 +137,18 @@ export default function DisplayHexGrid({
   const hexSize = 10
   const hexWidth = Math.sqrt(3) * hexSize
 
-  // clip path removing half of the side hexagons
-
+  // clip path removing half of the side hexagons -- computed from the
+  // sanitized width/height so a bad prop (NaN, negative, zero) can't
+  // propagate into the SVG viewBox as a non-finite or malformed value.
   const clipX = -0.5 * hexWidth
-  const clipY = -(height - 1) * (1.5 * hexSize) - hexSize * 2
-  const clipWidth = (width + 0.5) * hexWidth
-  const clipHeight = (height - 1) * (1.5 * hexSize) + 2 * hexSize
+  const clipY = -(safeHeightInput - 1) * (1.5 * hexSize) - hexSize * 2
+  const clipWidth = (safeWidth + 0.5) * hexWidth
+  const clipHeight = (safeHeightInput - 1) * (1.5 * hexSize) + 2 * hexSize
 
-  const viewBox = `${clipX} ${clipY} ${clipWidth} ${clipHeight}`
+  const viewBoxValues = [clipX, clipY, clipWidth, clipHeight]
+  const viewBox = viewBoxValues.every(Number.isFinite)
+    ? viewBoxValues.join(" ")
+    : "0 0 1 1" // fallback: render an empty 1x1 box rather than a malformed/NaN viewBox
 
   return (
     mounted ? (

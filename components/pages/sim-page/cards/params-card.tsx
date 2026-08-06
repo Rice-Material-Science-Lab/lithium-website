@@ -80,6 +80,11 @@ export default function ParamsCard({
   handleStopSim
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 }: any) {
+  // Falls back to 0 for any slider value that isn't a finite number, so a
+  // stale/bad prop can't reach the Slider primitive and throw or silently
+  // desync its internal drag state.
+  const safeVal = (v: number) => (Number.isFinite(v) ? v : 0)
+
   return (
     <>
       <form
@@ -225,61 +230,66 @@ export default function ParamsCard({
                   </Label>
                   <div className="flex gap-2">
                     {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                    {carbonSpeciesEnergies.map((_: any, sp: any) => (
-                      <button
-                        key={sp}
-                        type="button"
-                        onClick={() => setCarbonSpecies(sp)}
-                        className={
-                          "h-7 w-7 rounded-full border-2 transition-all " +
-                          (carbonSpecies === sp
-                            ? "scale-110 border-primary"
-                            : "border-transparent opacity-70 hover:opacity-100")
-                        }
-                        style={{
-                          backgroundColor: CARBON_SPECIES_COLORS[sp],
-                        }}
-                        title={`Species ${sp + 1}`}
-                      />
-                    ))}
+                    {Array.isArray(carbonSpeciesEnergies) &&
+                      carbonSpeciesEnergies.map((_: any, sp: any) => (
+                        <button
+                          key={sp}
+                          type="button"
+                          onClick={() => setCarbonSpecies(sp)}
+                          className={
+                            "h-7 w-7 rounded-full border-2 transition-all " +
+                            (carbonSpecies === sp
+                              ? "scale-110 border-primary"
+                              : "border-transparent opacity-70 hover:opacity-100")
+                          }
+                          style={{
+                            backgroundColor: CARBON_SPECIES_COLORS?.[sp],
+                          }}
+                          title={`Species ${sp + 1}`}
+                        />
+                      ))}
                   </div>
                   {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                  {carbonSpeciesEnergies.map((energy: any, sp: any) => (
-                    <div key={sp} className="flex flex-col gap-1">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-medium">
-                          Species {sp + 1} bond energy (eV)
-                        </span>
-                        <span className="font-mono text-xs text-muted-foreground">
-                          {energy}
-                        </span>
+                  {Array.isArray(carbonSpeciesEnergies) &&
+                    carbonSpeciesEnergies.map((energy: any, sp: any) => (
+                      <div key={sp} className="flex flex-col gap-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-medium">
+                            Species {sp + 1} bond energy (eV)
+                          </span>
+                          <span className="font-mono text-xs text-muted-foreground">
+                            {Number.isFinite(energy) ? energy : "—"}
+                          </span>
+                        </div>
+                        <Slider
+                          min={-2.0}
+                          max={0}
+                          step={0.01}
+                          value={[Number.isFinite(energy) ? energy : 0]}
+                          onValueChange={(val: number[]) =>
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            setCarbonSpeciesEnergies((prev: any) => {
+                              if (!Array.isArray(prev)) return prev
+                              const next = prev.slice()
+                              next[sp] = val[0]
+                              return next
+                            })
+                          }
+                        />
                       </div>
-                      <Slider
-                        min={-2.0}
-                        max={0}
-                        step={0.01}
-                        value={[energy]}
-                        onValueChange={(val: number[]) =>
-                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                          setCarbonSpeciesEnergies((prev: any) => {
-                            const next = prev.slice()
-                            next[sp] = val[0]
-                            return next
-                          })
-                        }
-                      />
-                    </div>
-                  ))}
+                    ))}
                 </div>
               )}
-              {carbonSites.size > 0 && (
+              {carbonSites instanceof Map && carbonSites.size > 0 && (
                 <div className="flex gap-2">
                   <Button
                     type="button"
                     variant="outline"
                     className="flex-1 rounded-full"
                     onClick={() => {
-                      carbonUndoStack.push(new Map(carbonSites))
+                      if (Array.isArray(carbonUndoStack)) {
+                        carbonUndoStack.push(new Map(carbonSites))
+                      }
                       setCarbonSites(new Map())
                     }}
                   >
@@ -290,7 +300,10 @@ export default function ParamsCard({
                     variant="outline"
                     className="rounded-full"
                     onClick={undoCarbonSite}
-                    disabled={carbonUndoStack.length === 0}
+                    disabled={
+                      !Array.isArray(carbonUndoStack) ||
+                      carbonUndoStack.length === 0
+                    }
                   >
                     Undo
                   </Button>
@@ -326,7 +339,7 @@ export default function ParamsCard({
                     min={100}
                     max={600}
                     step={1}
-                    value={[temp]}
+                    value={[safeVal(temp)]}
                     onValueChange={(val: number[]) => setTemp(val[0])}
                   />
                 </div>
@@ -359,7 +372,7 @@ export default function ParamsCard({
                     min={1}
                     max={200000}
                     step={100}
-                    value={[dropRate]}
+                    value={[safeVal(dropRate)]}
                     onValueChange={(val: number[]) => setDropRate(val[0])}
                   />
                 </div>
@@ -484,7 +497,7 @@ export default function ParamsCard({
                         min={-2.0}
                         max={0}
                         step={0.01}
-                        value={[bondedEnergy]}
+                        value={[safeVal(bondedEnergy)]}
                         onValueChange={(val: number[]) =>
                           setBondedEnergy(val[0])
                         }
@@ -521,7 +534,7 @@ export default function ParamsCard({
                         min={-2.0}
                         max={0}
                         step={0.01}
-                        value={[atomSubstrate]}
+                        value={[safeVal(atomSubstrate)]}
                         onValueChange={(val: number[]) =>
                           setAtomSubstrate(val[0])
                         }
@@ -547,7 +560,9 @@ export default function ParamsCard({
                           </Tooltip>
                         </Label>
                         <span className="font-mono text-sm text-muted-foreground">
-                          {freeAttFreq.toExponential(1)}
+                          {Number.isFinite(freeAttFreq)
+                            ? freeAttFreq.toExponential(1)
+                            : "—"}
                         </span>
                       </div>
                       <Slider
@@ -555,7 +570,7 @@ export default function ParamsCard({
                         min={1e8}
                         max={1e10}
                         step={1e8}
-                        value={[freeAttFreq]}
+                        value={[safeVal(freeAttFreq)]}
                         onValueChange={(val: number[]) =>
                           setFreeAttFreq(val[0])
                         }
@@ -581,7 +596,9 @@ export default function ParamsCard({
                           </Tooltip>
                         </Label>
                         <span className="font-mono text-sm text-muted-foreground">
-                          {depAttFreq.toExponential(1)}
+                          {Number.isFinite(depAttFreq)
+                            ? depAttFreq.toExponential(1)
+                            : "—"}
                         </span>
                       </div>
                       <Slider
@@ -589,7 +606,7 @@ export default function ParamsCard({
                         min={1e8}
                         max={1e10}
                         step={1e8}
-                        value={[depAttFreq]}
+                        value={[safeVal(depAttFreq)]}
                         onValueChange={(val: number[]) => setDepAttFreq(val[0])}
                       />
                     </div>
@@ -613,7 +630,9 @@ export default function ParamsCard({
                           </Tooltip>
                         </Label>
                         <span className="font-mono text-sm text-muted-foreground">
-                          {passAttFreq.toExponential(1)}
+                          {Number.isFinite(passAttFreq)
+                            ? passAttFreq.toExponential(1)
+                            : "—"}
                         </span>
                       </div>
                       <Slider
@@ -621,7 +640,7 @@ export default function ParamsCard({
                         min={1e1}
                         max={1e6}
                         step={1e2}
-                        value={[passAttFreq]}
+                        value={[safeVal(passAttFreq)]}
                         onValueChange={(val: number[]) =>
                           setPassAttFreq(val[0])
                         }
@@ -655,7 +674,7 @@ export default function ParamsCard({
                         min={0}
                         max={2.0}
                         step={0.01}
-                        value={[ePass]}
+                        value={[safeVal(ePass)]}
                         onValueChange={(val: number[]) => setEPass(val[0])}
                       />
                     </div>
@@ -679,7 +698,9 @@ export default function ParamsCard({
                           </Tooltip>
                         </Label>
                         <span className="font-mono text-sm text-muted-foreground">
-                          {depassAttFreq.toExponential(1)}
+                          {Number.isFinite(depassAttFreq)
+                            ? depassAttFreq.toExponential(1)
+                            : "—"}
                         </span>
                       </div>
                       <Slider
@@ -687,7 +708,7 @@ export default function ParamsCard({
                         min={1e1}
                         max={1e9}
                         step={1e5}
-                        value={[depassAttFreq]}
+                        value={[safeVal(depassAttFreq)]}
                         onValueChange={(val: number[]) =>
                           setDepassAttFreq(val[0])
                         }
@@ -721,7 +742,7 @@ export default function ParamsCard({
                         min={0}
                         max={2.0}
                         step={0.01}
-                        value={[eDepass]}
+                        value={[safeVal(eDepass)]}
                         onValueChange={(val: number[]) => setEDepass(val[0])}
                       />
                     </div>
