@@ -331,7 +331,7 @@ export default function ParamsCard({
                       </Tooltip>
                     </Label>
                     <span className="font-mono text-sm text-muted-foreground">
-                      {temp} K
+                      {Number.isFinite(temp) ? temp : "—"} K
                     </span>
                   </div>
                   <Slider
@@ -364,7 +364,7 @@ export default function ParamsCard({
                       </Tooltip>
                     </Label>
                     <span className="font-mono text-sm text-muted-foreground">
-                      {dropRate}
+                      {Number.isFinite(dropRate) ? dropRate : "—"}
                     </span>
                   </div>
                   <Slider
@@ -489,7 +489,7 @@ export default function ParamsCard({
                           </Tooltip>
                         </Label>
                         <span className="font-mono text-sm text-muted-foreground">
-                          {bondedEnergy}
+                          {Number.isFinite(bondedEnergy) ? bondedEnergy : "—"}
                         </span>
                       </div>
                       <Slider
@@ -526,7 +526,7 @@ export default function ParamsCard({
                           </Tooltip>
                         </Label>
                         <span className="font-mono text-sm text-muted-foreground">
-                          {atomSubstrate}
+                          {Number.isFinite(atomSubstrate) ? atomSubstrate : "—"}
                         </span>
                       </div>
                       <Slider
@@ -666,7 +666,7 @@ export default function ParamsCard({
                           </Tooltip>
                         </Label>
                         <span className="font-mono text-sm text-muted-foreground">
-                          {ePass}
+                          {Number.isFinite(ePass) ? ePass : "—"}
                         </span>
                       </div>
                       <Slider
@@ -734,7 +734,7 @@ export default function ParamsCard({
                           </Tooltip>
                         </Label>
                         <span className="font-mono text-sm text-muted-foreground">
-                          {eDepass}
+                          {Number.isFinite(eDepass) ? eDepass : "—"}
                         </span>
                       </div>
                       <Slider
