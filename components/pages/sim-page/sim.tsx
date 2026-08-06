@@ -945,6 +945,26 @@ export default function SimPageClientView() {
     const e0Ptr = wasmModule._malloc(bytesPerArr)
     const e1Ptr = wasmModule._malloc(bytesPerArr)
 
+    // _malloc returns 0 on allocation failure -- without this check we'd
+    // silently write into (or read starting at) WASM address 0 instead of
+    // failing loudly, which can corrupt unrelated memory or throw an
+    // opaque low-level error deep inside _run_batch. Free whichever
+    // allocations DID succeed before bailing, so a partial failure never
+    // leaks WASM heap space.
+    if (!d0Ptr || !TPtr || !e0Ptr || !e1Ptr) {
+      console.error("Batch run: WASM memory allocation failed", {
+        d0Ptr,
+        TPtr,
+        e0Ptr,
+        e1Ptr,
+      })
+      if (d0Ptr) wasmModule._free(d0Ptr)
+      if (TPtr) wasmModule._free(TPtr)
+      if (e0Ptr) wasmModule._free(e0Ptr)
+      if (e1Ptr) wasmModule._free(e1Ptr)
+      return
+    }
+
     wasmModule.HEAPF64.set(d0Arr, d0Ptr / 8)
     wasmModule.HEAPF64.set(TArr, TPtr / 8)
     wasmModule.HEAPF64.set(e0Arr, e0Ptr / 8)
