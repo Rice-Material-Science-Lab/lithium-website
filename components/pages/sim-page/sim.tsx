@@ -113,6 +113,58 @@ function applyCarbonOverlay(
   return out
 }
 
+// Module-scope promise cache: React Strict Mode (dev only) mounts every
+// effect twice in the same tick, before any awaited work resolves. Two
+// booleans on `window` can't correctly coordinate that -- the first
+// mount's cleanup sets its own `active=false` before its import resolves,
+// so nothing ever calls setWasmModule, while the second mount sees
+// "loading" still true and skips entirely. Caching the actual Promise
+// means a second mount awaits the SAME in-flight load instead of racing
+// it, and works identically (single call, single resolve) in production
+// where there's no double-mount at all.
+let wasmModulePromise: Promise<CustomWasmModule> | null = null
+
+function loadWasmModule(): Promise<CustomWasmModule> {
+  if (wasmModulePromise) return wasmModulePromise
+
+  wasmModulePromise = (async () => {
+    const isDev = process.env.NODE_ENV !== "production"
+    const scriptUrl = isDev
+      ? `/lkmc-wasm.js?v=${Date.now()}`
+      : `/lkmc-wasm.js`
+    const wasmGlueCode = await import(
+      /* @vite-ignore */ /* webpackIgnore: true */ scriptUrl
+    )
+
+    const moduleFactory =
+      wasmGlueCode.default || wasmGlueCode.Module || wasmGlueCode
+
+    if (typeof moduleFactory !== "function") {
+      throw new Error("The default export from lkmc-wasm.js is undefined.")
+    }
+
+    const wasmCacheBust = Date.now()
+    const initializedModule = await moduleFactory({
+      locateFile: (path: string) => {
+        if (path.endsWith(".wasm")) {
+          return isDev ? `/${path}?v=${wasmCacheBust}` : `/${path}`
+        }
+        return path
+      },
+    })
+
+    return initializedModule as CustomWasmModule
+  })()
+
+  // If the load fails, clear the cache so a later remount/retry can
+  // attempt again instead of being stuck replaying a rejected promise.
+  wasmModulePromise.catch(() => {
+    wasmModulePromise = null
+  })
+
+  return wasmModulePromise
+}
+
 export default function SimPageClientView() {
   const [isLiveMode, setIsLiveMode] = useState(false)
 
@@ -360,49 +412,20 @@ export default function SimPageClientView() {
   useEffect(() => {
     let active = true
 
-    const initWasm = async () => {
-      try {
-        // Cache-bust only in dev, so local rebuilds of lkmc-wasm.js are
-        // never served stale. In production the build doesn't change
-        // between page loads, so let the browser cache it normally --
-        // this is the main lever on load time, since re-fetching a
-        // multi-MB .wasm binary on every visit was otherwise unavoidable.
-        const isDev = process.env.NODE_ENV !== "production"
-        const scriptUrl = isDev
-          ? `/lkmc-wasm.js?v=${Date.now()}`
-          : `/lkmc-wasm.js`
-        const wasmGlueCode = await import(
-          /* @vite-ignore */ /* webpackIgnore: true */ scriptUrl
+    loadWasmModule()
+      .then((initializedModule) => {
+        if (!active) return
+
+        console.log(
+          "WASM module (re)initialized at",
+          new Date().toISOString()
         )
+        setWasmModule(initializedModule)
 
-        const moduleFactory =
-          wasmGlueCode.default || wasmGlueCode.Module || wasmGlueCode
-
-        if (typeof moduleFactory === "function" && active) {
-          // Same dev-only cache-bust for the .wasm binary itself -- the
-          // glue JS fetches this separately via its own fixed URL, so
-          // busting only the .js import above would not stop a stale
-          // cached .wasm from being served during local development.
-          const wasmCacheBust = Date.now()
-          const initializedModule = await moduleFactory({
-            locateFile: (path: string) => {
-              if (path.endsWith(".wasm")) {
-                return isDev ? `/${path}?v=${wasmCacheBust}` : `/${path}`
-              }
-              return path
-            },
-          })
-          if (active) {
-            console.log(
-              "WASM module (re)initialized at",
-              new Date().toISOString()
-            )
-            setWasmModule(initializedModule)
-
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            ;(window as any).updateSimulation = (step: number) => {
-              if (!active) return
-              try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ;(window as any).updateSimulation = (step: number) => {
+          if (!active) return
+          try {
                 const latticePointer = initializedModule._get_lattice()
                 const width = initializedModule._get_width()
                 const height = initializedModule._get_height()
@@ -497,36 +520,30 @@ export default function SimPageClientView() {
                   )
                 }
               } catch (e) {
-                console.error("updateSimulation callback failed:", e)
-              }
-            }
-
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            ;(window as any).onSimulationTerminated = () => {
-              if (!active) return
-              setSimTerminated((already) => {
-                if (!already) {
-                  alert(
-                    "Simulation jammed: every entry column is full and no further event is possible. Adjust parameters and press Run to restart."
-                  )
-                }
-                return true
-              })
-              if (animFrameRef.current) {
-                cancelAnimationFrame(animFrameRef.current)
-                animFrameRef.current = null
-              }
-            }
+            console.error("updateSimulation callback failed:", e)
           }
-        } else if (!moduleFactory) {
-          console.error("The default export from lkmc-wasm.js is undefined.")
         }
-      } catch (err) {
-        console.error("Failed to natively import WebAssembly glue code:", err)
-      }
-    }
 
-    initWasm()
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ;(window as any).onSimulationTerminated = () => {
+          if (!active) return
+          setSimTerminated((already) => {
+            if (!already) {
+              alert(
+                "Simulation jammed: every entry column is full and no further event is possible. Adjust parameters and press Run to restart."
+              )
+            }
+            return true
+          })
+          if (animFrameRef.current) {
+            cancelAnimationFrame(animFrameRef.current)
+            animFrameRef.current = null
+          }
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to initialize WASM module:", err)
+      })
 
     return () => {
       active = false
