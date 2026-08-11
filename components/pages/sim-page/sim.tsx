@@ -745,6 +745,15 @@ export default function SimPageClientView() {
   }, [isRunning, isPaused, wasmModule])
 
   const toggleCarbonSite = (x: number, y: number) => {
+
+    // Ensure carbon not turned to substrate
+
+    const index = y * gridDimensions[0] + x
+    
+    if (simState[index] === 3) {
+      return
+    }
+
     setCarbonSites((prev) => {
       setCarbonUndoStack((currentStack) => {
         const newStack = [...currentStack, new Map(prev)]
