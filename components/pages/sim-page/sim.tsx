@@ -146,7 +146,6 @@ export default function SimPageClientView() {
   const [carbonSites, setCarbonSites] = useState<Map<string, number>>(new Map())
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [carbonUndoStack, setCarbonUndoStack] = useState<any[]>([])
-  const [carbonSpecies, setCarbonSpecies] = useState(0)
   // Chosen to stay visually distinct from Deposited (orange) and
   // Passivated (green) as well as from each other: red, violet, amber,
   // cyan span separate hue families rather than clustering near orange.
@@ -769,7 +768,7 @@ export default function SimPageClientView() {
       if (next.has(key)) {
         next.delete(key)
       } else {
-        next.set(key, carbonSpecies)
+        next.set(key, 0)
       }
       return next
     })
@@ -1185,9 +1184,6 @@ export default function SimPageClientView() {
               drawingCarbon={drawingCarbon}
               setDrawingCarbon={setDrawingCarbon}
               carbonSpeciesEnergies={carbonSpeciesEnergies}
-              setCarbonSpecies={setCarbonSpecies}
-              carbonSpecies={carbonSpecies}
-              CARBON_SPECIES_COLORS={CARBON_SPECIES_COLORS}
               setCarbonSpeciesEnergies={setCarbonSpeciesEnergies}
               carbonSites={carbonSites}
               carbonUndoStack={carbonUndoStack}

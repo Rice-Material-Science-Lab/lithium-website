@@ -38,9 +38,6 @@ export default function ParamsCard({
   drawingCarbon,
   setDrawingCarbon,
   carbonSpeciesEnergies,
-  setCarbonSpecies,
-  carbonSpecies,
-  CARBON_SPECIES_COLORS,
   setCarbonSpeciesEnergies,
   carbonSites,
   carbonUndoStack,
@@ -77,8 +74,8 @@ export default function ParamsCard({
   handleResumeSim,
   handlePauseSim,
   isRunning,
-  handleStopSim
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+  handleStopSim,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 }: any) {
   return (
     <>
@@ -219,42 +216,32 @@ export default function ParamsCard({
                 </AlertAction>
               </Alert>
               {drawingCarbon && (
-                <div className="flex flex-col gap-2">
-                  <Label className="text-sm font-medium">
-                    Anode species (drawing as)
-                  </Label>
-                  <div className="flex gap-2">
-                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                    {carbonSpeciesEnergies.map((_: any, sp: any) => (
-                      <button
-                        key={sp}
-                        type="button"
-                        onClick={() => setCarbonSpecies(sp)}
-                        className={
-                          "h-7 w-7 rounded-full border-2 transition-all " +
-                          (carbonSpecies === sp
-                            ? "scale-110 border-primary"
-                            : "border-transparent opacity-70 hover:opacity-100")
-                        }
-                        style={{
-                          backgroundColor: CARBON_SPECIES_COLORS[sp],
-                        }}
-                        title={`Species ${sp + 1}`}
-                      />
-                    ))}
-                  </div>
+                <div className="flex flex-col">
                   {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                  {carbonSpeciesEnergies.map((energy: any, sp: any) => (
-                    <div key={sp} className="flex flex-col gap-1">
+                  {[carbonSpeciesEnergies[0]].map((energy: any, sp: any) => (
+                    <div key={sp} className="my-2 flex flex-col gap-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-medium">
-                          Species {sp + 1} bond energy (eV)
-                        </span>
-                        <span className="font-mono text-xs text-muted-foreground">
+                        <Label
+                          htmlFor="atom-bond-energy-input"
+                          className="flex items-center text-sm font-medium"
+                        >
+                          <span>Carbon Atom Bond Energy</span>
+                          <Tooltip>
+                            <TooltipTrigger className="ml-2" type="button">
+                              <CircleQuestionMarkIcon size={17} />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              The strength of the bonds between carbon atoms and
+                              atoms bonded to them
+                            </TooltipContent>
+                          </Tooltip>
+                        </Label>
+                        <span className="font-mono text-sm text-muted-foreground">
                           {energy}
                         </span>
                       </div>
                       <Slider
+                        id="atom-bond-energy-input"
                         min={-2.0}
                         max={0}
                         step={0.01}
@@ -641,8 +628,8 @@ export default function ParamsCard({
                               <CircleQuestionMarkIcon size={17} />
                             </TooltipTrigger>
                             <TooltipContent>
-                              Activation energy penalizing lithium ion trying
-                              to pass through SEI
+                              Activation energy penalizing lithium ion trying to
+                              pass through SEI
                             </TooltipContent>
                           </Tooltip>
                         </Label>
@@ -731,48 +718,46 @@ export default function ParamsCard({
             </div>
           </div>
           <CardFooter className="mt-auto! flex gap-2 p-0">
-              <Button
-                type="submit"
-                variant="default"
-                className="dark:hover:bg-primary-400 flex-5 hover:bg-primary/90 h-10 rounded-3xl"
-                disabled={!wasmModule}
-              >
-                {wasmModule
-                  ? "Run " +
-                    (Number(stepsToRun) || 0).toLocaleString() +
-                    " steps"
-                  : "Loading WASM..."}
-              </Button>
-              {isPaused ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-1 h-10"
-                  onClick={handleResumeSim}
-                  disabled={!wasmModule}
-                >
-                  Resume
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-1 h-10"
-                  onClick={handlePauseSim}
-                  disabled={!wasmModule || !isRunning}
-                >
-                  Pause
-                </Button>
-              )}
+            <Button
+              type="submit"
+              variant="default"
+              className="dark:hover:bg-primary-400 h-10 flex-5 rounded-3xl hover:bg-primary/90"
+              disabled={!wasmModule}
+            >
+              {wasmModule
+                ? "Run " + (Number(stepsToRun) || 0).toLocaleString() + " steps"
+                : "Loading WASM..."}
+            </Button>
+            {isPaused ? (
               <Button
                 type="button"
-                variant="destructive"
-                className="flex-1 h-10"
-                onClick={handleStopSim}
-                disabled={!wasmModule || (!isRunning && !isPaused)}
+                variant="outline"
+                className="h-10 flex-1"
+                onClick={handleResumeSim}
+                disabled={!wasmModule}
               >
-                Stop
+                Resume
               </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                className="h-10 flex-1"
+                onClick={handlePauseSim}
+                disabled={!wasmModule || !isRunning}
+              >
+                Pause
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant="destructive"
+              className="h-10 flex-1"
+              onClick={handleStopSim}
+              disabled={!wasmModule || (!isRunning && !isPaused)}
+            >
+              Stop
+            </Button>
           </CardFooter>
         </Card>
       </form>
