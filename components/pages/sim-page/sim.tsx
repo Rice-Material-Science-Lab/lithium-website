@@ -746,7 +746,7 @@ export default function SimPageClientView() {
 
   const toggleCarbonSite = (x: number, y: number) => {
 
-    // Ensure carbon not turned to substrate
+    // Ensure substrate not turned to carbon
 
     const index = y * gridDimensions[0] + x
     
