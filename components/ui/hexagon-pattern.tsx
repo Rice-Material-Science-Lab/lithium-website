@@ -1,63 +1,20 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useId, useEffect, useState } from "react"
-import { useTheme } from "next-themes"
-
 import { cn } from "@/lib/utils"
 
 interface HexagonPatternProps extends React.SVGProps<SVGSVGElement> {
-  /**
-   * The radius of each hexagon (center to vertex).
-   * @default 40
-   */
   radius?: number
-  /**
-   * Spacing in pixels between adjacent hexagons.
-   * The tile grows by this amount while the visual radius stays fixed,
-   * so the gap is evenly distributed on all sides of each hexagon.
-   * @default 0
-   */
   gap?: number
-  /**
-   * Offset applied to the pattern origin on the x-axis.
-   * @default -1
-   */
   x?: number
-  /**
-   * Offset applied to the pattern origin on the y-axis.
-   * @default -1
-   */
   y?: number
-  /**
-   * Controls the orientation of the hexagons.
-   * - `"horizontal"` — flat-top hexagons tiled in a horizontal honeycomb grid.
-   * - `"vertical"` — pointy-top hexagons tiled in a vertical honeycomb grid.
-   * @default "horizontal"
-   */
   direction?: "horizontal" | "vertical"
-  /**
-   * SVG stroke-dasharray applied to each hexagon outline.
-   * @default "0"
-   */
   strokeDasharray?: string
-  /**
-   * Percent chance (0 to 100) that any given hexagon is filled.
-   * @default 0
-   */
-  colored?: number
   className?: string
   color?: string
   [key: string]: unknown
 }
 
 type HexPoint = readonly [number, number]
-
-const COLOR_PALETTE = [
-  { light: "#CC2222", dark: "#DD2222" },
-  { light: "#49E281", dark: "#22c55e" },
-  { light: "#858585", dark: "#374151" },
-  { light: "#FF974D", dark: "#f97316" },
-  { light: "#007596", dark: "#005f78" },
-  { light: "#D1D1D1", dark: "#000000" },
-]
 
 function hexVertexList(
   cx: number,
@@ -231,22 +188,6 @@ function hexCenter(
   }
 }
 
-function hashCoord(col: number, row: number): number {
-  let h = (col * 0x45d9f3b) ^ (row * 0x119de1f3)
-  h = ((h >>> 16) ^ h) * 0x45d9f3b
-  h = ((h >>> 16) ^ h) * 0x45d9f3b
-  h = (h >>> 16) ^ h
-  return Math.abs(h % 100)
-}
-
-function pseudoRandom(col: number, row: number, seed: number): number {
-  let h = (col * 0x119de1f3) ^ (row * 0x45d9f3b + seed)
-  h = ((h >>> 16) ^ h) * 0x119de1f3
-  h = ((h >>> 16) ^ h) * 0x119de1f3
-  h = (h >>> 16) ^ h
-  return (Math.abs(h) % 1000) / 1000
-}
-
 export function HexagonPattern({
   radius = 40,
   gap = 0,
@@ -254,21 +195,193 @@ export function HexagonPattern({
   y = -1,
   strokeDasharray = "0",
   direction = "horizontal",
-  colored = 0,
   className,
   color,
   ...props
 }: HexagonPatternProps) {
   const id = useId()
-  // Generate a strictly valid CSS identifier without numbers at the start
-  const safeId = "hex-pattern-" + id.replace(/[^a-zA-Z0-9]/g, "")
-
-  const { resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
+  const [dendrites, setDendrites] = useState<Map<string, any>>(new Map())
 
   useEffect(() => {
     ;(() => setMounted(true))()
-  }, [])
+
+    const ORANGE = "#f97316"
+    const GREEN = "#22c55e"
+    const { colStep, rowStep } = getHexSpacing(radius, direction, gap)
+
+    const getNeighbors = (c: number, r: number, dir: string) => {
+      if (dir === "horizontal") {
+        const isOdd = Math.abs(c % 2) === 1
+        return [
+          [c, r - 1],
+          [c, r + 1],
+          [c - 1, isOdd ? r : r - 1],
+          [c - 1, isOdd ? r + 1 : r],
+          [c + 1, isOdd ? r : r - 1],
+          [c + 1, isOdd ? r + 1 : r],
+        ]
+      } else {
+        const isOdd = Math.abs(r % 2) === 1
+        return [
+          [c - 1, r],
+          [c + 1, r],
+          [isOdd ? c : c - 1, r - 1],
+          [isOdd ? c + 1 : c, r - 1],
+          [isOdd ? c : c - 1, r + 1],
+          [isOdd ? c + 1 : c, r + 1],
+        ]
+      }
+    }
+
+    const generate = () => {
+      const maxCols = Math.ceil(window.innerWidth / colStep) + 2
+      const maxRows = Math.ceil(window.innerHeight / rowStep) + 2
+      const minRow = Math.floor(maxRows * 0.4)
+
+      const orangeCells = new Set<string>()
+      const tips: { c: number; r: number; age: number }[] = []
+
+      for (let c = -2; c <= maxCols + 2; c++) {
+        orangeCells.add(`${c},${maxRows - 1}`)
+      }
+
+      for (
+        let c = 4;
+        c <= maxCols - 4;
+        c += 10 + Math.floor(Math.random() * 6)
+      ) {
+        orangeCells.add(`${c},${maxRows - 2}`)
+        tips.push({ c, r: maxRows - 2, age: 0 })
+      }
+
+      let iterations = 0
+      while (tips.length > 0 && iterations < 1800) {
+        iterations++
+        const tipIndex = Math.floor(Math.random() * tips.length)
+        const tip = tips[tipIndex]
+
+        if (tip.r <= minRow || tip.age > 20) {
+          tips.splice(tipIndex, 1)
+          continue
+        }
+
+        const neighbors = getNeighbors(tip.c, tip.r, direction)
+        const validMoves = neighbors.filter(
+          ([nc, nr]) =>
+            nr < tip.r && !orangeCells.has(`${nc},${nr}`) && nr >= minRow
+        )
+
+        if (validMoves.length === 0) {
+          tips.splice(tipIndex, 1)
+          continue
+        }
+
+        const nextMove =
+          validMoves[Math.floor(Math.random() * validMoves.length)]
+        const [nc, nr] = nextMove
+        orangeCells.add(`${nc},${nr}`)
+
+        if (Math.random() < 0.12) {
+          const sideMoves = neighbors.filter(
+            ([mc, mr]) => mr === tip.r && !orangeCells.has(`${mc},${mr}`)
+          )
+          if (sideMoves.length > 0) {
+            const side = sideMoves[Math.floor(Math.random() * sideMoves.length)]
+            orangeCells.add(`${side[0]},${side[1]}`)
+            tips.push({ c: side[0], r: side[1], age: tip.age + 1 })
+          }
+        }
+
+        tip.c = nc
+        tip.r = nr
+        tip.age++
+      }
+
+      const finalMap = new Map()
+
+      for (const key of Array.from(orangeCells)) {
+        const [c, r] = key.split(",").map(Number)
+        finalMap.set(key, { c, r, color: ORANGE })
+      }
+
+      for (const key of Array.from(orangeCells)) {
+        const [c, r] = key.split(",").map(Number)
+        for (const [nc, nr] of getNeighbors(c, r, direction)) {
+          const nKey = `${nc},${nr}`
+          if (!orangeCells.has(nKey) && nr <= maxRows) {
+            finalMap.set(nKey, { c: nc, r: nr, color: GREEN })
+          }
+        }
+      }
+
+      return finalMap
+    }
+
+    const runGenerationCycle = () => {
+      const nextMap = generate()
+
+      setDendrites((prev) => {
+        const merged = new Map()
+
+        for (const [k, v] of prev.entries()) {
+          if (nextMap.has(k)) {
+            const nextItem = nextMap.get(k)
+            merged.set(k, { ...nextItem, visible: true })
+          } else {
+            merged.set(k, { ...v, visible: false })
+          }
+        }
+
+        for (const [k, v] of nextMap.entries()) {
+          if (!prev.has(k)) {
+            merged.set(k, { ...v, visible: false })
+          }
+        }
+
+        return merged
+      })
+
+      setTimeout(() => {
+        setDendrites((prev) => {
+          const updated = new Map(prev)
+          for (const [k, v] of updated.entries()) {
+            if (!v.visible && nextMap.has(k)) {
+              updated.set(k, { ...v, visible: true })
+            }
+          }
+          return updated
+        })
+      }, 60)
+    }
+
+    runGenerationCycle()
+
+    const interval = setInterval(() => {
+      runGenerationCycle()
+    }, 10000)
+
+    return () => clearInterval(interval)
+  }, [radius, direction, gap])
+
+  useEffect(() => {
+    const hasInvisible = Array.from(dendrites.values()).some((v) => !v.visible)
+    if (!hasInvisible) return
+
+    const timer = setTimeout(() => {
+      setDendrites((prev) => {
+        const cleaned = new Map()
+        for (const [k, v] of prev.entries()) {
+          if (v.visible) {
+            cleaned.set(k, v)
+          }
+        }
+        return cleaned
+      })
+    }, 1600)
+
+    return () => clearTimeout(timer)
+  }, [dendrites])
 
   const { tileW, tileH, centers } = getTileGeometry(radius, direction, gap)
   const solidStroke = isSolidStrokeDasharray(strokeDasharray)
@@ -278,34 +391,9 @@ export function HexagonPattern({
 
   const strokeAndFillColor = color ?? "rgba(156, 163, 175, 0.3)"
 
-  const animatedHexagons: {
-    col: number
-    row: number
-    duration: number
-    delay: number
-  }[] = []
+  if (!mounted) return null
 
-  if (colored > 0) {
-    const chance = Math.min(100, Math.max(0, colored))
-
-    for (let c = -10; c <= 60; c++) {
-      for (let r = -10; r <= 60; r++) {
-        if (hashCoord(c, r) < chance) {
-          const duration = 20 + pseudoRandom(c, r, 0x12345) * 40
-          const delay = pseudoRandom(c, r, 0x67890) * 60
-          animatedHexagons.push({ col: c, row: r, duration, delay })
-        }
-      }
-    }
-  }
-
-  // Safe default for SSR, switches to correct theme color once hydrated on client
-  const currentTheme = mounted && resolvedTheme === "dark" ? "dark" : "light"
-
-  // Resolve actual hex colors rather than relying on standard CSS var injection
-  const themeColors = COLOR_PALETTE.map((c) => c[currentTheme])
-
-  return (mounted &&
+  return (
     <svg
       aria-hidden="true"
       className={cn(
@@ -317,21 +405,6 @@ export function HexagonPattern({
       {...props}
     >
       <defs>
-        {/* Output actual hex colors into the keyframes, sidestepping variable scope issues */}
-        <style>
-          {`
-            @keyframes hexFade-${safeId} {
-              0%, 14% { fill: ${themeColors[0]}; }
-              16.6%, 31% { fill: ${themeColors[1]}; }
-              33.3%, 48% { fill: ${themeColors[2]}; }
-              50%, 64% { fill: ${themeColors[3]}; }
-              66.6%, 81% { fill: ${themeColors[4]}; }
-              83.3%, 98% { fill: ${themeColors[5]}; }
-              100% { fill: ${themeColors[0]}; }
-            }
-          `}
-        </style>
-
         <pattern
           id={id}
           width={tileW}
@@ -365,29 +438,26 @@ export function HexagonPattern({
 
       <rect width="100%" height="100%" fill={`url(#${id})`} stroke="none" />
 
-      {animatedHexagons.length > 0 && (
+      {dendrites.size > 0 && (
         <svg aria-hidden="true" className="overflow-visible" x={x} y={y}>
-          {animatedHexagons.map(({ col, row, duration, delay }) => {
-            const [cx, cy] = hexCenter(col, row, radius, direction, gap)
-            // Statically determine an initial starting color for stable SSR,
-            // though the keyframes will immediately override this on the client.
-            const initialColorIndex = Math.floor(
-              pseudoRandom(col, row, 123) * 6
-            )
-
-            return (
-              <polygon
-                key={`${col}-${row}`}
-                points={hexPoints(cx, cy, radius - 1, direction)}
-                strokeWidth="0"
-                style={{
-                  fill: themeColors[initialColorIndex],
-                  animation: `hexFade-${safeId} ${duration}s infinite linear`,
-                  animationDelay: `-${delay}s`,
-                }}
-              />
-            )
-          })}
+          {Array.from(dendrites.entries()).map(
+            ([key, { c, r, color, visible }]) => {
+              const [cx, cy] = hexCenter(c, r, radius, direction, gap)
+              return (
+                <polygon
+                  key={key}
+                  points={hexPoints(cx, cy, radius - 1, direction)}
+                  strokeWidth="0"
+                  style={{
+                    fill: color,
+                    opacity: visible ? 0.8 : 0,
+                    transition:
+                      "opacity 1.5s ease-in-out, fill 1.5s ease-in-out",
+                  }}
+                />
+              )
+            }
+          )}
         </svg>
       )}
     </svg>
