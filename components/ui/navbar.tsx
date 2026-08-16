@@ -60,7 +60,7 @@ function NewsPanel() {
   // Fetch immediately when panel opens, then poll every 5 minutes while open
   useEffect(() => {
     if (!open) return
-    fetchNews()
+    (() => fetchNews())()
     const interval = setInterval(fetchNews, 5 * 60 * 1000)
     return () => clearInterval(interval)
   }, [open, fetchNews])
