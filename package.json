@@ -43,5 +43,8 @@
     "prettier-plugin-tailwindcss": "^0.8.0",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "allowScripts": {
+    "unrs-resolver@1.12.2": true
   }
 }
