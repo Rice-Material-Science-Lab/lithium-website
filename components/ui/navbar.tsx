@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
@@ -30,7 +30,7 @@ function NewsPanel() {
   const [open, setOpen] = useState(false)
   const [news, setNews] = useState<NewsItem[]>([])
   const [loading, setLoading] = useState(false)
-  const [fetched, setFetched] = useState(false)
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -43,21 +43,30 @@ function NewsPanel() {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  async function handleOpen() {
-    setOpen((prev) => !prev)
-    if (!fetched) {
-      setLoading(true)
-      try {
-        const res = await fetch("/api/news")
-        const data = await res.json()
-        setNews(data)
-      } catch {
-        setNews([])
-      } finally {
-        setLoading(false)
-        setFetched(true)
-      }
+  const fetchNews = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch("/api/news")
+      const data = await res.json()
+      setNews(data)
+      setLastUpdated(new Date())
+    } catch {
+      // keep stale data on error
+    } finally {
+      setLoading(false)
     }
+  }, [])
+
+  // Fetch immediately when panel opens, then poll every 5 minutes while open
+  useEffect(() => {
+    if (!open) return
+    fetchNews()
+    const interval = setInterval(fetchNews, 5 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [open, fetchNews])
+
+  function handleOpen() {
+    setOpen((prev) => !prev)
   }
 
   return (
@@ -75,10 +84,16 @@ function NewsPanel() {
         <div className="absolute top-full right-0 z-50 mt-3 flex max-h-130 w-96 flex-col rounded-2xl border border-border bg-card text-card-foreground">
           <div className="px-5 pt-5 pb-3">
             <p className="text-base font-bold text-foreground">Recent News</p>
+            {lastUpdated && (
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Updated {timeAgo(lastUpdated.toISOString())}
+              </p>
+            )}
           </div>
 
           <div className="flex-1 space-y-2 overflow-y-auto px-3 pb-3">
-            {loading &&
+            {/* Only show skeleton on first load, not background refreshes */}
+            {loading && news.length === 0 &&
               Array.from({ length: 5 }).map((_, i) => (
                 <div
                   key={i}
@@ -96,27 +111,26 @@ function NewsPanel() {
               </p>
             )}
 
-            {!loading &&
-              news.map((item, i) => (
-                <a
-                  key={i}
-                  href={item.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block space-y-1 rounded-xl bg-muted p-4 transition-colors hover:bg-accent"
-                >
-                  <p className="line-clamp-2 text-sm leading-snug font-medium text-foreground">
-                    {item.title}
-                  </p>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    {item.source && (
-                      <span className="font-medium">{item.source}</span>
-                    )}
-                    {item.source && item.pubDate && <span>·</span>}
-                    {item.pubDate && <span>{timeAgo(item.pubDate)}</span>}
-                  </div>
-                </a>
-              ))}
+            {news.map((item, i) => (
+              <a
+                key={i}
+                href={item.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block space-y-1 rounded-xl bg-muted p-4 transition-colors hover:bg-accent"
+              >
+                <p className="line-clamp-2 text-sm leading-snug font-medium text-foreground">
+                  {item.title}
+                </p>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  {item.source && (
+                    <span className="font-medium">{item.source}</span>
+                  )}
+                  {item.source && item.pubDate && <span>·</span>}
+                  {item.pubDate && <span>{timeAgo(item.pubDate)}</span>}
+                </div>
+              </a>
+            ))}
           </div>
         </div>
       )}
