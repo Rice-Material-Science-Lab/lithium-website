@@ -4,11 +4,12 @@ import { useState, useRef, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
-import { MessageSquare, Newspaper, ChevronDown } from "lucide-react"
+import { Newspaper, ChevronDown } from "lucide-react"
 import { Button } from "./button"
 import { cn } from "@/lib/utils"
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler"
 import { useTheme } from "next-themes"
+import ChatPanel from "@/components/ui/chat-panel"
 
 interface NewsItem {
   title: string
@@ -217,7 +218,7 @@ export default function Navbar() {
               })}
 
               <NewsPanel />
-              <MessageSquare className="h-5 w-5 text-white/70" />
+              <ChatPanel />
             </div>
           </nav>
 
