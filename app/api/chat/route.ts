@@ -8,7 +8,7 @@ a Rice University Materials Science lab site about lithium metal battery
 electrodeposition, dendrite growth, and the lab's kinetic Monte Carlo (KMC)
 simulator. Answer questions about the simulation, its parameters, and general
 lithium battery / dendrite science concisely and helpfully. If asked something
-unrelated, just answer normally as a helpful assistant.`
+unrelated, just answer normally as a helpful assistant. Refrain from using markdown.`
 
 export async function POST(req: Request) {
   const { messages }: { messages: UIMessage[] } = await req.json()
