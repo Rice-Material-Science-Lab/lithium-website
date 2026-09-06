@@ -98,7 +98,7 @@ function NewsPanel() {
               Array.from({ length: 5 }).map((_, i) => (
                 <div
                   key={i}
-                  className="animate-pulse space-y-2 rounded-xl bg-muted p-4"
+                  className="animate-pulse space-y-2 rounded-xl bg-background/60 p-4"
                 >
                   <div className="h-3 w-3/4 rounded bg-muted-foreground/20" />
                   <div className="h-3 w-full rounded bg-muted-foreground/20" />
@@ -113,12 +113,12 @@ function NewsPanel() {
             )}
 
             {news.map((item, i) => (
-              <a
+              <a              
                 key={i}
                 href={item.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block space-y-1 rounded-xl bg-muted p-4 transition-colors hover:bg-accent"
+                className="block space-y-1 rounded-xl bg-background/60 p-4 transition-colors hover:bg-accent"
               >
                 <p className="line-clamp-2 text-sm leading-snug font-medium text-foreground">
                   {item.title}

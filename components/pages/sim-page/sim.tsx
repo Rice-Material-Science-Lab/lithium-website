@@ -63,7 +63,13 @@ interface CustomWasmModule {
     nx: number,
     ny: number,
     stepsPerRun: number,
-    baseSeed: number
+    baseSeed: number,
+    nuF: number,
+    nuD: number,
+    nuP: number,
+    ePass: number,
+    nuDp: number,
+    eDp: number
   ): void
   _get_batch_json(): number
   _init_simulation(): void
@@ -224,6 +230,10 @@ export default function SimPageClientView() {
       substrate: number
       time: number
       total_rate: number
+      e_pass_used: number
+      nu_p_used: number
+      e_dp_used: number
+      nu_dp_used: number
     }[]
   >([])
 
@@ -831,14 +841,13 @@ export default function SimPageClientView() {
   const exportStatsCSV = () => {
     if (statsData.length === 0) return
     const header =
-      "step,time,empty,free,deposited,passivated,substrate,fill,total_rate"
+      "step,time,empty,free,deposited,passivated,substrate,fill,total_rate,e_pass_used,nu_p_used,e_dp_used,nu_dp_used"
     const rows = statsData.map(
       (r) =>
-        `${r.step},${r.time},${r.empty},${r.free},${r.deposited},${r.passivated},${r.substrate},${r.fill},${r.total_rate}`
+        `${r.step},${r.time},${r.empty},${r.free},${r.deposited},${r.passivated},${r.substrate},${r.fill},${r.total_rate},${r.e_pass_used},${r.nu_p_used},${r.e_dp_used},${r.nu_dp_used}`
     )
     downloadCSV(`lkmc-stats-step${stepsRan}.csv`, [header, ...rows])
   }
-
   const exportLatticeCSV = () => {
     const [nx, ny] = gridDimensions
     if (simState.length === 0) return
@@ -912,7 +921,13 @@ export default function SimPageClientView() {
         nx,
         ny,
         stepsPerRun,
-        Math.floor(Math.random() * 1000000)
+        Math.floor(Math.random() * 1000000),
+        freeAttFreq,
+        depAttFreq,
+        passAttFreq,
+        ePass,
+        depassAttFreq,
+        eDepass
       )
 
       wasmModule._free(d0Ptr)

@@ -60,9 +60,11 @@ export default function ChatPanel() {
         </Button>
 
         {open && (
-          <div className="absolute top-full right-0 z-50 mt-3 flex h-110 w-96 flex-col rounded-2xl border border-border bg-card text-card-foreground">
-            <div className="px-5 pt-5 pb-3">
-              <p className="text-base font-bold text-foreground">Ask the Lab</p>
+          <div className="absolute top-full right-0 z-50 mt-3 flex h-110 w-96 flex-col rounded-2xl border border-border bg-card/95 shadow-lg ring-1 ring-foreground/10 backdrop-blur-xl text-card-foreground">
+            <div className="border-b border-border px-5 pt-5 pb-3">
+              <p className="font-heading text-base font-bold text-foreground">
+                Ask the Lab
+              </p>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 Ask about the simulation or dendrite science.
               </p>
