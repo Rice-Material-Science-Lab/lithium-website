@@ -81,10 +81,16 @@ export default function HelpDialog({
                   </span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <span className="mt-1 h-3 w-3 shrink-0 rounded-full bg-[#DC2626] dark:bg-[#F87171]" />
+                  <span className="mt-1 flex shrink-0 gap-0.5">
+                    <span className="h-3 w-3 rounded-full bg-[#DC2626]" />
+                    <span className="h-3 w-3 rounded-full bg-[#7C3AED]" />
+                    <span className="h-3 w-3 rounded-full bg-[#CA8A04]" />
+                    <span className="h-3 w-3 rounded-full bg-[#0891B2]" />
+                  </span>
                   <span>
                     <span className="font-medium">Carbon</span> &mdash; a
-                    user-drawn graphite anode site.
+                    user-drawn graphite anode site; each of the four species
+                    swatches has its own independently tunable bond energy.
                   </span>
                 </div>
               </div>
