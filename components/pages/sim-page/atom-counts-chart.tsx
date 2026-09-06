@@ -12,20 +12,11 @@ import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts"
 import { useEffect, useState } from "react"
 import { useTheme } from "next-themes"
 
-const chartConfig = {
-  free: {
-    label: "Free",
-    color: "#005f78",
-  },
-  deposited: {
-    label: "Deposited",
-    color: "#f97316",
-  },
-  passivated: {
-    label: "Passivated",
-    color: "#22c55e",
-  },
-} satisfies ChartConfig
+const STATE_COLORS = {
+  free: { light: "#2563EB", dark: "#38BDF8" },
+  deposited: { light: "#F97316", dark: "#FB923C" },
+  passivated: { light: "#16A34A", dark: "#4ADE80" },
+} as const
 
 export default function AtomCountsChart({
   data,
@@ -47,6 +38,25 @@ export default function AtomCountsChart({
 
   const isDark = mounted && resolvedTheme === "dark"
   const gridStrokeColor = isDark ? "#334155" : "#94a3b8"
+
+  const chartConfig = {
+    free: {
+      label: "Free",
+      color: isDark ? STATE_COLORS.free.dark : STATE_COLORS.free.light,
+    },
+    deposited: {
+      label: "Deposited",
+      color: isDark
+        ? STATE_COLORS.deposited.dark
+        : STATE_COLORS.deposited.light,
+    },
+    passivated: {
+      label: "Passivated",
+      color: isDark
+        ? STATE_COLORS.passivated.dark
+        : STATE_COLORS.passivated.light,
+    },
+  } satisfies ChartConfig
 
   useEffect(() => {
     const handle = requestAnimationFrame(() => {

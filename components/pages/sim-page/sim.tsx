@@ -152,13 +152,8 @@ export default function SimPageClientView() {
   const [carbonSites, setCarbonSites] = useState<Map<string, number>>(new Map())
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [carbonUndoStack, setCarbonUndoStack] = useState<any[]>([])
-  // Chosen to stay visually distinct from Deposited (orange) and
-  // Passivated (green) as well as from each other: red, violet, amber,
-  // cyan span separate hue families rather than clustering near orange.
-  const CARBON_SPECIES_COLORS = ["#DC2626", "#7C3AED", "#CA8A04", "#0891B2"]
-  const [carbonSpeciesEnergies, setCarbonSpeciesEnergies] = useState([
-    -0.6, -0.4, -0.8, -0.3,
-  ])
+  const CARBON_SPECIES_COLORS = ["#DC2626"]
+  const [carbonSpeciesEnergies, setCarbonSpeciesEnergies] = useState([-0.6])
   const [selectedCell, setSelectedCell] = useState<CellInfo | null>(null)
 
   const CELL_STATE_LABELS: Record<number, string> = {
@@ -237,7 +232,7 @@ export default function SimPageClientView() {
     }[]
   >([])
 
-  const STORAGE_KEY = "lkmc-sim-params-v3"
+  const STORAGE_KEY = "lkmc-sim-params-v4"
 
   // Restore saved params on mount (skip grid size -- covered separately
   // by width/height inputs which already default sensibly).
