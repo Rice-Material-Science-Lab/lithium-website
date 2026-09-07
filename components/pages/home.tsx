@@ -1,12 +1,20 @@
 "use client"
 
 import { Card } from "@/components/ui/card"
-import { TriangleAlert } from "lucide-react"
+import {
+  TriangleAlert,
+  Zap,
+  Snowflake,
+  BatteryCharging,
+  Thermometer,
+  type LucideIcon,
+} from "lucide-react"
 import { HexagonPattern } from "../ui/hexagon-pattern"
 import { cn } from "@/lib/utils"
 import { useEffect, useState } from "react"
 import { useTheme } from "next-themes"
 import { Highlighter } from "@/components/ui/highlighter"
+import NextImage from "next/image"
 
 function RiskCard({ text1, text2 }: { text1: string; text2: string }) {
   return (
@@ -19,6 +27,99 @@ function RiskCard({ text1, text2 }: { text1: string; text2: string }) {
         <p className="text-sm text-destructive">{text2}</p>
       </div>
     </Card>
+  )
+}
+
+function PreventionCard({
+  icon: Icon,
+  text1,
+  text2,
+}: {
+  icon: LucideIcon
+  text1: string
+  text2: string
+}) {
+  return (
+    <Card className="flex flex-row items-center gap-4 border border-primary/20 bg-blue-100 px-5 py-4 dark:border-cyan-900/60 dark:bg-blue-950/60">
+      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-blue-400/70 dark:bg-cyan-600/60">
+        <Icon className="h-6 w-6 text-white" />
+      </div>
+      <div>
+        <p className="text-sm font-semibold text-foreground/90">{text1}</p>
+        <p className="text-sm text-muted-foreground">{text2}</p>
+      </div>
+    </Card>
+  )
+}
+
+const preventionTips = [
+  {
+    icon: Zap,
+    text1: "Charge at Moderate Rates",
+    text2: "Fast charging pushes ions in faster than they can settle evenly, encouraging dendrite growth.",
+  },
+  {
+    icon: Snowflake,
+    text1: "Avoid Charging in the Cold",
+    text2: "Charging below freezing slows ion diffusion, making uneven, dendrite-prone plating more likely.",
+  },
+  {
+    icon: BatteryCharging,
+    text1: "Don't Overcharge",
+    text2: "Sitting at 100% for long periods stresses the electrode and encourages filament growth.",
+  },
+  {
+    icon: Thermometer,
+    text1: "Keep Temperatures Moderate",
+    text2: "Excess heat during charging accelerates degradation and uneven lithium deposition.",
+  },
+]
+
+// Update these src paths to wherever you place the PNGs.
+// darkSrc is optional — only set it for icons that have a dark-mode variant.
+const dailyLifeItems = [
+  {
+    label: "E-bikes/Scooters",
+    src: "/icons/ebike.png",
+    darkSrc: "/icons/ebikedark.png",
+  },
+  {
+    label: "Consumer Electronics",
+    src: "/icons/consumertech.png",
+    darkSrc: "/icons/consumertechdark.png",
+  },
+  { label: "Electric Vehicles", src: "/icons/evehicle.png" },
+  { label: "Aviation", src: "/icons/aviation.png" },
+]
+
+function DailyLifeCard({
+  label,
+  src,
+  darkSrc,
+  isDark,
+}: {
+  label: string
+  src: string
+  darkSrc?: string
+  isDark: boolean
+}) {
+  const activeSrc = isDark && darkSrc ? darkSrc : src
+
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <div className="relative h-28 w-28">
+        <NextImage
+          src={activeSrc}
+          alt={label}
+          fill
+          sizes="112px"
+          className="object-contain"
+        />
+      </div>
+      <p className="text-center text-base font-bold text-foreground">
+        {label}
+      </p>
+    </div>
   )
 }
 
@@ -135,6 +236,30 @@ export default function HomepageClientView() {
                 scooters, hearing aids, and of course electric vehicles and
                 grid-scale storage.
               </p>
+              <div className="mt-6 grid grid-cols-2 gap-6 sm:grid-cols-4">
+                {dailyLifeItems.map((item) => (
+                  <DailyLifeCard key={item.label} {...item} isDark={isDark} />
+                ))}
+              </div>
+            </div>
+          </Card>
+
+          <Card className="space-y-4 rounded-2xl p-8 shadow-sm">
+            <div>
+              <p className="mb-1 text-xs font-bold tracking-widest text-primary uppercase dark:text-cyan-500">
+                Prevention
+              </p>
+              <h2 className="text-2xl font-bold text-foreground">
+                Dendrite Prevention Tips
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                A few habits keep lithium plating slow, even, and manageable.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {preventionTips.map((tip) => (
+                <PreventionCard key={tip.text1} {...tip} />
+              ))}
             </div>
           </Card>
         </main>
