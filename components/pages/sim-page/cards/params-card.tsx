@@ -29,16 +29,14 @@ export default function ParamsCard({
   handleSubmit,
   isLiveMode,
   setIsLiveMode,
-  PRESETS,
-  applyPreset,
   width,
   setWidth,
   height,
   setHeight,
   drawingCarbon,
   setDrawingCarbon,
-  carbonSpeciesEnergies,
-  setCarbonSpeciesEnergies,
+  carbonEnergy,
+  setCarbonEnergy,
   carbonSites,
   carbonUndoStack,
   setCarbonSites,
@@ -63,12 +61,6 @@ export default function ParamsCard({
   setDepAttFreq,
   passAttFreq,
   setPassAttFreq,
-  ePass,
-  setEPass,
-  depassAttFreq,
-  setDepassAttFreq,
-  eDepass,
-  setEDepass,
   wasmModule,
   isPaused,
   handleResumeSim,
@@ -129,20 +121,6 @@ export default function ParamsCard({
                 delay={3}
               />
             </Alert>
-            <div className="flex flex-wrap gap-2">
-              {Object.keys(PRESETS).map((name) => (
-                <Button
-                  key={name}
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="rounded-full"
-                  onClick={() => applyPreset(name as keyof typeof PRESETS)}
-                >
-                  {name}
-                </Button>
-              ))}
-            </div>
             <div className="flex flex-col gap-2">
               <Label
                 htmlFor="width-input"
@@ -216,47 +194,35 @@ export default function ParamsCard({
                 </AlertAction>
               </Alert>
               {drawingCarbon && (
-                <div className="flex flex-col">
-                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                  {[carbonSpeciesEnergies[0]].map((energy: any, sp: any) => (
-                    <div key={sp} className="my-2 flex flex-col gap-2">
-                      <div className="flex items-center justify-between">
-                        <Label
-                          htmlFor="atom-bond-energy-input"
-                          className="flex items-center text-sm font-medium"
-                        >
-                          <span>Carbon Atom Bond Energy</span>
-                          <Tooltip>
-                            <TooltipTrigger className="ml-2" type="button">
-                              <CircleQuestionMarkIcon size={17} />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              The strength of the bonds between carbon atoms and
-                              atoms bonded to them
-                            </TooltipContent>
-                          </Tooltip>
-                        </Label>
-                        <span className="font-mono text-sm text-muted-foreground">
-                          {energy}
-                        </span>
-                      </div>
-                      <Slider
-                        id="atom-bond-energy-input"
-                        min={-2.0}
-                        max={0}
-                        step={0.01}
-                        value={[energy]}
-                        onValueChange={(val: number[]) =>
-                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                          setCarbonSpeciesEnergies((prev: any) => {
-                            const next = prev.slice()
-                            next[sp] = val[0]
-                            return next
-                          })
-                        }
-                      />
-                    </div>
-                  ))}
+                <div className="my-2 flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <Label
+                      htmlFor="atom-bond-energy-input"
+                      className="flex items-center text-sm font-medium"
+                    >
+                      <span>Carbon Atom Bond Energy</span>
+                      <Tooltip>
+                        <TooltipTrigger className="ml-2" type="button">
+                          <CircleQuestionMarkIcon size={17} />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          The strength of the bonds between carbon atoms and
+                          atoms bonded to them
+                        </TooltipContent>
+                      </Tooltip>
+                    </Label>
+                    <span className="font-mono text-sm text-muted-foreground">
+                      {carbonEnergy}
+                    </span>
+                  </div>
+                  <Slider
+                    id="atom-bond-energy-input"
+                    min={-2.0}
+                    max={0}
+                    step={0.01}
+                    value={[carbonEnergy]}
+                    onValueChange={(val: number[]) => setCarbonEnergy(val[0])}
+                  />
                 </div>
               )}
               {carbonSites.size > 0 && (
@@ -266,8 +232,8 @@ export default function ParamsCard({
                     variant="outline"
                     className="flex-1 rounded-full"
                     onClick={() => {
-                      carbonUndoStack.push(new Map(carbonSites))
-                      setCarbonSites(new Map())
+                      carbonUndoStack.push(new Set(carbonSites))
+                      setCarbonSites(new Set())
                     }}
                   >
                     Clear Carbon ({carbonSites.size})
@@ -594,8 +560,9 @@ export default function ParamsCard({
                               <CircleQuestionMarkIcon size={17} />
                             </TooltipTrigger>
                             <TooltipContent>
-                              Vibrational frequency of isolated surface atoms
-                              that are beneath the SEI layer
+                              Flat rate at which an exposed deposited atom
+                              (with at least one empty neighbor) converts to
+                              passivated -- no energy barrier
                             </TooltipContent>
                           </Tooltip>
                         </Label>
@@ -612,104 +579,6 @@ export default function ParamsCard({
                         onValueChange={(val: number[]) =>
                           setPassAttFreq(val[0])
                         }
-                      />
-                    </div>
-
-                    {/* pass energy barrier */}
-                    <div className="flex flex-col gap-2">
-                      <div className="flex items-center justify-between">
-                        <Label
-                          htmlFor="e-pass-input"
-                          className="flex items-center text-sm font-medium"
-                        >
-                          <span>Passivation Energy Barrier (E_pass)</span>
-                          <Tooltip>
-                            <TooltipTrigger className="ml-2" type="button">
-                              <CircleQuestionMarkIcon size={17} />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              Activation energy penalizing lithium ion trying to
-                              pass through SEI
-                            </TooltipContent>
-                          </Tooltip>
-                        </Label>
-                        <span className="font-mono text-sm text-muted-foreground">
-                          {ePass}
-                        </span>
-                      </div>
-                      <Slider
-                        id="e-pass-input"
-                        min={0}
-                        max={2.0}
-                        step={0.01}
-                        value={[ePass]}
-                        onValueChange={(val: number[]) => setEPass(val[0])}
-                      />
-                    </div>
-
-                    {/* de-passivation attempt freq */}
-                    <div className="flex flex-col gap-2">
-                      <div className="flex items-center justify-between">
-                        <Label
-                          htmlFor="depass-att-freq-input"
-                          className="flex items-center text-sm font-medium"
-                        >
-                          <span>De-passivation Attempt Freq. (v_dp)</span>
-                          <Tooltip>
-                            <TooltipTrigger className="ml-2" type="button">
-                              <CircleQuestionMarkIcon size={17} />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              Vibrational frequency governing SEI breakdown,
-                              reverting a passivated atom back to deposited
-                            </TooltipContent>
-                          </Tooltip>
-                        </Label>
-                        <span className="font-mono text-sm text-muted-foreground">
-                          {depassAttFreq.toExponential(1)}
-                        </span>
-                      </div>
-                      <Slider
-                        id="depass-att-freq-input"
-                        min={1e1}
-                        max={1e9}
-                        step={1e5}
-                        value={[depassAttFreq]}
-                        onValueChange={(val: number[]) =>
-                          setDepassAttFreq(val[0])
-                        }
-                      />
-                    </div>
-
-                    {/* de-passivation energy barrier */}
-                    <div className="flex flex-col gap-2">
-                      <div className="flex items-center justify-between">
-                        <Label
-                          htmlFor="e-depass-input"
-                          className="flex items-center text-sm font-medium"
-                        >
-                          <span>De-passivation Energy Barrier (E_dp)</span>
-                          <Tooltip>
-                            <TooltipTrigger className="ml-2" type="button">
-                              <CircleQuestionMarkIcon size={17} />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              Activation energy penalizing SEI breakdown; higher
-                              than E_pass keeps passivation dominant by default
-                            </TooltipContent>
-                          </Tooltip>
-                        </Label>
-                        <span className="font-mono text-sm text-muted-foreground">
-                          {eDepass}
-                        </span>
-                      </div>
-                      <Slider
-                        id="e-depass-input"
-                        min={0}
-                        max={2.0}
-                        step={0.01}
-                        value={[eDepass]}
-                        onValueChange={(val: number[]) => setEDepass(val[0])}
                       />
                     </div>
                   </div>

@@ -51,7 +51,6 @@ interface CustomWasmModule {
   _get_lattice(): number
   _get_width(): number
   _get_height(): number
-  _get_carbon_species_grid(): number
   _malloc(size: number): number
   _free(ptr: number): void
   _run_batch(
@@ -66,10 +65,7 @@ interface CustomWasmModule {
     baseSeed: number,
     nuF: number,
     nuD: number,
-    nuP: number,
-    ePass: number,
-    nuDp: number,
-    eDp: number
+    nuP: number
   ): void
   _get_batch_json(): number
   _init_simulation(): void
@@ -86,7 +82,7 @@ interface CustomWasmModule {
   _set_stats_interval(interval: number): void
   _get_stats_interval(): number
   _get_terminated(): number
-  _mark_carbon(x: number, y: number, species: number): void
+  _mark_carbon(x: number, y: number): void
   _unmark_carbon(x: number, y: number): void
   _finalize_carbon_placement(): void
   _pause(): void
@@ -117,7 +113,7 @@ const CARBON_VALUE = 5
 function applyCarbonOverlay(
   base: number[],
   w: number,
-  carbonSites: Map<string, number>
+  carbonSites: Set<string>
 ) {
   const out = base.slice()
   for (const key of carbonSites.keys()) {
@@ -149,11 +145,11 @@ export default function SimPageClientView() {
   const [hasRunOnce, setHasRunOnce] = useState(false)
   const [simTerminated, setSimTerminated] = useState(false)
   const [drawingCarbon, setDrawingCarbon] = useState(false)
-  const [carbonSites, setCarbonSites] = useState<Map<string, number>>(new Map())
+  const [carbonSites, setCarbonSites] = useState<Set<string>>(new Set())
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [carbonUndoStack, setCarbonUndoStack] = useState<any[]>([])
   const CARBON_SPECIES_COLORS = ["#DC2626"]
-  const [carbonSpeciesEnergies, setCarbonSpeciesEnergies] = useState([-0.6])
+  const [carbonEnergy, setCarbonEnergy] = useState(-0.6)
   const [selectedCell, setSelectedCell] = useState<CellInfo | null>(null)
 
   const CELL_STATE_LABELS: Record<number, string> = {
@@ -205,11 +201,11 @@ export default function SimPageClientView() {
   // e_pass lowered closer to the literature-cited ~0.36 eV SEI barrier,
   // so passivation is rare-but-reachable by default instead of
   // mathematically unreachable at any slider position.
-  const [passAttFreq, setPassAttFreq] = useState(100)
-  const [ePass, setEPass] = useState(0.45)
-  const [depassAttFreq, setDepassAttFreq] = useState(100000) // nu_dp
-  const [eDepass, setEDepass] = useState(0.5) // e_dp -- higher than e_pass
-  // by default so passivation dominates unless tuned otherwise
+  // Matches Python KMCParams.nu_p exactly -- passivation is a flat rate
+  // for any DEPOSITED atom with an empty neighbor, no exponential
+  // barrier. e_pass / nu_dp / e_dp don't exist in Python or the wasm
+  // port anymore.
+  const [passAttFreq, setPassAttFreq] = useState(1000)
   const [stepsToRun, setStepsToRun] = useState("1000000")
   const [updateInterval, setUpdateInterval] = useState("10000")
   const [seed, setSeed] = useState("") // blank = random each run
@@ -225,10 +221,7 @@ export default function SimPageClientView() {
       substrate: number
       time: number
       total_rate: number
-      e_pass_used: number
       nu_p_used: number
-      e_dp_used: number
-      nu_dp_used: number
     }[]
   >([])
 
@@ -259,16 +252,8 @@ export default function SimPageClientView() {
           setDepAttFreq(clamp(saved.depAttFreq, 1e8, 1e10))
         if (typeof saved.passAttFreq === "number")
           setPassAttFreq(clamp(saved.passAttFreq, 1e1, 1e6))
-        if (Array.isArray(saved.carbonSpeciesEnergies))
-          setCarbonSpeciesEnergies(
-            saved.carbonSpeciesEnergies.map((e: number) => clamp(e, -2.0, 0))
-          )
-        if (typeof saved.depassAttFreq === "number")
-          setDepassAttFreq(clamp(saved.depassAttFreq, 1e1, 1e9))
-        if (typeof saved.eDepass === "number")
-          setEDepass(clamp(saved.eDepass, 0, 2.0))
-        if (typeof saved.ePass === "number")
-          setEPass(clamp(saved.ePass, 0, 2.0))
+        if (typeof saved.carbonEnergy === "number")
+          setCarbonEnergy(clamp(saved.carbonEnergy, -2.0, 0))
         if (typeof saved.stepsToRun === "string")
           setStepsToRun(saved.stepsToRun)
         if (typeof saved.updateInterval === "string")
@@ -295,10 +280,7 @@ export default function SimPageClientView() {
           freeAttFreq,
           depAttFreq,
           passAttFreq,
-          carbonSpeciesEnergies,
-          depassAttFreq,
-          eDepass,
-          ePass,
+          carbonEnergy,
           stepsToRun,
           updateInterval,
           seed,
@@ -315,10 +297,7 @@ export default function SimPageClientView() {
     freeAttFreq,
     depAttFreq,
     passAttFreq,
-    carbonSpeciesEnergies,
-    depassAttFreq,
-    eDepass,
-    ePass,
+    carbonEnergy,
     stepsToRun,
     updateInterval,
     seed,
@@ -327,7 +306,7 @@ export default function SimPageClientView() {
   const animFrameRef = useRef<number | null>(null)
   const remainingStepsRef = useRef(0)
   const batchSizeRef = useRef(10000)
-  const prevCarbonSitesRef = useRef<Map<string, number>>(new Map())
+  const prevCarbonSitesRef = useRef<Set<string>>(new Set())
   const isPausedRef = useRef(false)
   const tickFnRef = useRef<(() => void) | null>(null)
   const [isRunning, setIsRunning] = useState(false)
@@ -487,7 +466,7 @@ export default function SimPageClientView() {
                 if (statsData.length > 0) {
                   const row = statsData[statsData.length - 1]
                   console.log(
-                    `step=${row.step} time=${row.time} empty=${row.empty} free=${row.free} deposited=${row.deposited} passivated=${row.passivated} e_pass_used=${row.e_pass_used} nu_p_used=${row.nu_p_used}`
+                    `step=${row.step} time=${row.time} empty=${row.empty} free=${row.free} deposited=${row.deposited} passivated=${row.passivated} nu_p_used=${row.nu_p_used}`
                   )
                 }
               } catch (e) {
@@ -570,8 +549,6 @@ export default function SimPageClientView() {
         "number",
         "number",
         "number",
-        "number",
-        "number",
       ],
       [
         nx, // width
@@ -583,9 +560,7 @@ export default function SimPageClientView() {
         freeAttFreq, // nu_f
         depAttFreq, // nu_d
         passAttFreq, // nu_p
-        ePass, // e_pass
-        depassAttFreq, // nu_dp
-        eDepass, // e_dp
+        carbonEnergy, // carbon_energy
         randomSeed, // seed
       ]
     )
@@ -606,19 +581,10 @@ export default function SimPageClientView() {
     // Apply user-drawn carbon (graphite anode) sites, then rebuild the
     // rate table once for all of them together.
 
-    carbonSpeciesEnergies.forEach((energy, sp) => {
-      wasmModule.ccall(
-        "set_carbon_species_energy",
-        null,
-        ["number", "number"],
-        [sp, energy]
-      )
-    })
-
-    for (const [key, species] of carbonSites) {
+    for (const key of carbonSites) {
       const [cx, cy] = key.split(",").map(Number)
       if (cx < nx && cy < ny) {
-        wasmModule._mark_carbon(cx, cy, species)
+        wasmModule._mark_carbon(cx, cy)
       }
     }
     wasmModule._finalize_carbon_placement()
@@ -760,7 +726,7 @@ export default function SimPageClientView() {
 
     setCarbonSites((prev) => {
       setCarbonUndoStack((currentStack) => {
-        const newStack = [...currentStack, new Map(prev)]
+        const newStack = [...currentStack, new Set(prev)]
 
         if (newStack.length > 100) {
           newStack.shift()
@@ -769,11 +735,11 @@ export default function SimPageClientView() {
         return newStack
       })
       const key = `${x},${y}`
-      const next = new Map(prev)
+      const next = new Set(prev)
       if (next.has(key)) {
         next.delete(key)
       } else {
-        next.set(key, 0)
+        next.add(key)
       }
       return next
     })
@@ -836,10 +802,10 @@ export default function SimPageClientView() {
   const exportStatsCSV = () => {
     if (statsData.length === 0) return
     const header =
-      "step,time,empty,free,deposited,passivated,substrate,fill,total_rate,e_pass_used,nu_p_used,e_dp_used,nu_dp_used"
+      "step,time,empty,free,deposited,passivated,substrate,fill,total_rate,nu_p_used"
     const rows = statsData.map(
       (r) =>
-        `${r.step},${r.time},${r.empty},${r.free},${r.deposited},${r.passivated},${r.substrate},${r.fill},${r.total_rate},${r.e_pass_used},${r.nu_p_used},${r.e_dp_used},${r.nu_dp_used}`
+        `${r.step},${r.time},${r.empty},${r.free},${r.deposited},${r.passivated},${r.substrate},${r.fill},${r.total_rate},${r.nu_p_used}`
     )
     downloadCSV(`lkmc-stats-step${stepsRan}.csv`, [header, ...rows])
   }
@@ -919,10 +885,7 @@ export default function SimPageClientView() {
         Math.floor(Math.random() * 1000000),
         freeAttFreq,
         depAttFreq,
-        passAttFreq,
-        ePass,
-        depassAttFreq,
-        eDepass
+        passAttFreq
       )
 
       wasmModule._free(d0Ptr)
@@ -1017,20 +980,6 @@ export default function SimPageClientView() {
     },
   }
 
-  const applyPreset = (name: keyof typeof PRESETS) => {
-    const p = PRESETS[name]
-    setTemp(p.temp)
-    setDropRate(p.dropRate)
-    setBondedEnergy(p.bondedEnergy)
-    setAtomSubstrate(p.atomSubstrate)
-    setFreeAttFreq(p.freeAttFreq)
-    setDepAttFreq(p.depAttFreq)
-    setPassAttFreq(p.passAttFreq)
-    setEPass(p.ePass)
-    setDepassAttFreq(p.depassAttFreq)
-    setEDepass(p.eDepass)
-  }
-
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
@@ -1057,8 +1006,6 @@ export default function SimPageClientView() {
         "number",
         "number",
         "number",
-        "number",
-        "number",
       ],
       [
         dropRate,
@@ -1066,11 +1013,9 @@ export default function SimPageClientView() {
         freeAttFreq,
         depAttFreq,
         passAttFreq,
-        ePass,
         bondedEnergy,
         atomSubstrate,
-        depassAttFreq,
-        eDepass,
+        carbonEnergy,
       ]
     )
   }, [
@@ -1080,27 +1025,11 @@ export default function SimPageClientView() {
     freeAttFreq,
     depAttFreq,
     passAttFreq,
-    ePass,
     bondedEnergy,
     atomSubstrate,
-    depassAttFreq,
-    eDepass,
+    carbonEnergy,
     wasmModule,
   ])
-
-  // Carbon species energies: push live so mid-run tuning of anode bond
-  // strength doesn't require a restart.
-  useEffect(() => {
-    if (!wasmModule || !isLiveMode || !hasRunOnce) return
-    carbonSpeciesEnergies.forEach((energy, sp) => {
-      wasmModule.ccall(
-        "set_carbon_species_energy",
-        null,
-        ["number", "number"],
-        [sp, energy]
-      )
-    })
-  }, [isLiveMode, hasRunOnce, carbonSpeciesEnergies, wasmModule])
 
   // Update Frequency: live-adjust the stats/visual batch cadence.
   useEffect(() => {
@@ -1130,15 +1059,15 @@ export default function SimPageClientView() {
     const prev = prevCarbonSitesRef.current
     let changed = false
 
-    for (const [key, species] of carbonSites) {
+    for (const key of carbonSites) {
       if (!prev.has(key)) {
         const [cx, cy] = key.split(",").map(Number)
-        wasmModule._mark_carbon(cx, cy, species)
+        wasmModule._mark_carbon(cx, cy)
         changed = true
       }
     }
 
-    for (const key of prev.keys()) {
+    for (const key of prev) {
       if (!carbonSites.has(key)) {
         const [cx, cy] = key.split(",").map(Number)
         wasmModule._unmark_carbon(cx, cy)
@@ -1185,16 +1114,14 @@ export default function SimPageClientView() {
               handleSubmit={handleSubmit}
               isLiveMode={isLiveMode}
               setIsLiveMode={setIsLiveMode}
-              PRESETS={PRESETS}
-              applyPreset={applyPreset}
               width={width}
               setWidth={setWidth}
               height={height}
               setHeight={setHeight}
               drawingCarbon={drawingCarbon}
               setDrawingCarbon={setDrawingCarbon}
-              carbonSpeciesEnergies={carbonSpeciesEnergies}
-              setCarbonSpeciesEnergies={setCarbonSpeciesEnergies}
+              carbonEnergy={carbonEnergy}
+              setCarbonEnergy={setCarbonEnergy}
               carbonSites={carbonSites}
               carbonUndoStack={carbonUndoStack}
               setCarbonSites={setCarbonSites}
@@ -1219,12 +1146,6 @@ export default function SimPageClientView() {
               setDepAttFreq={setDepAttFreq}
               passAttFreq={passAttFreq}
               setPassAttFreq={setPassAttFreq}
-              ePass={ePass}
-              setEPass={setEPass}
-              depassAttFreq={depassAttFreq}
-              setDepassAttFreq={setDepassAttFreq}
-              eDepass={eDepass}
-              setEDepass={setEDepass}
               wasmModule={wasmModule}
               isPaused={isPaused}
               handleResumeSim={handleResumeSim}
@@ -1304,8 +1225,6 @@ export default function SimPageClientView() {
                               width={gridDimensions[0]}
                               height={gridDimensions[1]}
                               data={simState}
-                              carbonSpeciesMap={carbonSites}
-                              carbonSpeciesColors={CARBON_SPECIES_COLORS}
                               onCellClick={
                                 historyMode
                                   ? undefined
