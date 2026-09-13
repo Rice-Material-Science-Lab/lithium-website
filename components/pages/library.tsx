@@ -1,10 +1,11 @@
 /* eslint-disable @next/next/no-img-element */
 "use client"
 
-import { useState } from "react"
-import { ExternalLink, PlayCircle, ChevronDown } from "lucide-react"
+import { useMemo, useState } from "react"
+import { ExternalLink, PlayCircle, ChevronDown, Search, X } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 
 // ── Catastrophic Events ───────────────────────────────────────────────────────
 
@@ -290,7 +291,93 @@ const accidentClips: VideoClip[] = [
   },
 ]
 
-// ── Video Card ────────────────────────────────────────────────────────────────
+// ── Shared: expandable list state ──────────────────────────────────────────────
+// Both the video grids and the incident list needed identical
+// "show N, reveal the rest" behavior. Pulled into one hook instead of
+// re-implementing useState + slice + button copy three times.
+
+function useExpandableList<T>(items: T[], initialCount: number) {
+  const [showAll, setShowAll] = useState(false)
+  const displayed = showAll ? items : items.slice(0, initialCount)
+  const remaining = items.length - initialCount
+  return { displayed, showAll, setShowAll, remaining }
+}
+
+function ShowMoreButton({
+  showAll,
+  remaining,
+  onToggle,
+  moreLabel,
+  lessLabel,
+}: {
+  showAll: boolean
+  remaining: number
+  onToggle: () => void
+  moreLabel: string
+  lessLabel: string
+}) {
+  if (!showAll && remaining <= 0) return null
+  return (
+    <div className="flex justify-center pt-1">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={onToggle}
+        aria-expanded={showAll}
+        className="gap-1.5"
+      >
+        {showAll ? lessLabel : `${moreLabel} (${remaining})`}
+        <ChevronDown className={`h-3.5 w-3.5 ${showAll ? "rotate-180" : ""}`} />
+      </Button>
+    </div>
+  )
+}
+
+// ── Image with graceful fallback (state-driven, no DOM mutation) ──────────────
+
+function ImageWithFallback({
+  src,
+  alt,
+  fallbackLabel,
+  className,
+}: {
+  src: string
+  alt: string
+  fallbackLabel: string
+  className?: string
+}) {
+  const [errored, setErrored] = useState(false)
+
+  if (errored) {
+    return (
+      <div className={`flex items-center justify-center bg-primary/10 ${className ?? ""}`}>
+        <span className="text-3xl font-bold text-primary/30">{fallbackLabel}</span>
+      </div>
+    )
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      loading="lazy"
+      className={className}
+      onError={() => setErrored(true)}
+    />
+  )
+}
+
+// ── Video Clips ─────────────────────────────────────────────────────────────
+
+interface VideoClip {
+  id: string
+  title: string
+  explanation: string
+  embedUrl: string | null
+  thumbnailUrl: string | null
+  sourceLabel: string
+  sourceUrl: string
+}
 
 function VideoCard({ clip }: { clip: VideoClip }) {
   const [playing, setPlaying] = useState(false)
@@ -306,13 +393,22 @@ function VideoCard({ clip }: { clip: VideoClip }) {
               <span className="text-xs">Video unavailable</span>
             </div>
           ) : playing ? (
-            <iframe
-              src={`${clip.embedUrl}?autoplay=1`}
-              className="h-full w-full"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              title={clip.title}
-            />
+            <>
+              <iframe
+                src={`${clip.embedUrl}?autoplay=1`}
+                className="h-full w-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title={clip.title}
+              />
+              <button
+                onClick={() => setPlaying(false)}
+                aria-label={`Stop ${clip.title}`}
+                className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </>
           ) : (
             <button
               className="group relative h-full w-full cursor-pointer"
@@ -323,6 +419,7 @@ function VideoCard({ clip }: { clip: VideoClip }) {
                 <img
                   src={clip.thumbnailUrl}
                   alt={clip.title}
+                  loading="lazy"
                   className="h-full w-full object-cover"
                 />
               ) : (
@@ -377,9 +474,10 @@ function VideoGrid({
   clips: VideoClip[]
   initialCount?: number
 }) {
-  const [showAll, setShowAll] = useState(false)
-  const displayed = showAll ? clips : clips.slice(0, initialCount)
-  const remaining = clips.length - initialCount
+  const { displayed, showAll, setShowAll, remaining } = useExpandableList(
+    clips,
+    initialCount
+  )
 
   return (
     <div className="space-y-3">
@@ -388,28 +486,13 @@ function VideoGrid({
           <VideoCard key={clip.id} clip={clip} />
         ))}
       </div>
-      <div className="flex justify-center gap-2 pt-1">
-        {!showAll && remaining > 0 && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowAll(true)}
-            className="gap-1.5"
-          >
-            See {remaining} More <ChevronDown className="h-3.5 w-3.5" />
-          </Button>
-        )}
-        {showAll && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowAll(false)}
-            className="gap-1.5"
-          >
-            Hide Videos <ChevronDown className="h-3.5 w-3.5 rotate-180" />
-          </Button>
-        )}
-      </div>
+      <ShowMoreButton
+        showAll={showAll}
+        remaining={remaining}
+        onToggle={() => setShowAll((v) => !v)}
+        moreLabel="See More"
+        lessLabel="Hide Videos"
+      />
     </div>
   )
 }
@@ -420,27 +503,11 @@ function EventCard({ event }: { event: CatastrophicEvent }) {
   return (
     <Card className="flex flex-col overflow-hidden rounded-xl bg-card shadow-sm sm:flex-row">
       <div className="relative h-36 w-full shrink-0 overflow-hidden bg-muted sm:h-auto sm:w-44">
-        <img
+        <ImageWithFallback
           src={event.imageUrl}
           alt={event.imageAlt}
+          fallbackLabel={String(event.year)}
           className="h-full w-full object-cover"
-          onError={(e) => {
-            const target = e.currentTarget
-            target.style.display = "none"
-            const parent = target.parentElement
-            if (parent) {
-              parent.classList.add(
-                "flex",
-                "items-center",
-                "justify-center",
-                "bg-primary/10"
-              )
-              parent.innerHTML =
-                '<span class="text-3xl font-bold text-primary/30">' +
-                event.year +
-                "</span>"
-            }
-          }}
         />
       </div>
       <div className="flex flex-1 flex-col justify-between gap-2 p-4">
@@ -479,39 +546,57 @@ function EventList({
   events: CatastrophicEvent[]
   initialCount?: number
 }) {
-  const [showAll, setShowAll] = useState(false)
-  const displayed = showAll ? events : events.slice(0, initialCount)
-  const remaining = events.length - initialCount
+  const [query, setQuery] = useState("")
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return events
+    return events.filter(
+      (e) =>
+        e.title.toLowerCase().includes(q) ||
+        e.description.toLowerCase().includes(q) ||
+        String(e.year).includes(q)
+    )
+  }, [events, query])
+
+  const { displayed, showAll, setShowAll, remaining } = useExpandableList(
+    filtered,
+    initialCount
+  )
 
   return (
     <div className="space-y-4">
-      <div className="space-y-4">
-        {displayed.map((event) => (
-          <EventCard key={event.id} event={event} />
-        ))}
+      <div className="relative max-w-sm">
+        <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search incidents by name or year…"
+          className="pl-8"
+          aria-label="Search incidents"
+        />
       </div>
-      <div className="flex justify-center pt-1">
-        {!showAll && remaining > 0 && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowAll(true)}
-            className="gap-1.5"
-          >
-            See {remaining} More <ChevronDown className="h-3.5 w-3.5" />
-          </Button>
-        )}
-        {showAll && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowAll(false)}
-            className="gap-1.5"
-          >
-            Hide Incidents <ChevronDown className="h-3.5 w-3.5 rotate-180" />
-          </Button>
-        )}
-      </div>
+
+      {filtered.length === 0 ? (
+        <p className="py-6 text-center text-sm text-muted-foreground">
+          No incidents match &ldquo;{query}&rdquo;.
+        </p>
+      ) : (
+        <>
+          <div className="space-y-4">
+            {displayed.map((event) => (
+              <EventCard key={event.id} event={event} />
+            ))}
+          </div>
+          <ShowMoreButton
+            showAll={showAll}
+            remaining={remaining}
+            onToggle={() => setShowAll((v) => !v)}
+            moreLabel="See More"
+            lessLabel="Hide Incidents"
+          />
+        </>
+      )}
     </div>
   )
 }
@@ -565,7 +650,6 @@ export default function LibraryClientView() {
             </p>
           </div>
           <VideoGrid clips={accidentClips} initialCount={4} />
-
         </section>
 
         {/* Notable incidents */}
