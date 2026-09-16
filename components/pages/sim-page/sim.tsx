@@ -919,6 +919,7 @@ export default function SimPageClientView() {
     downloadCSV("lkmc-batch-results.csv", [header, ...rows])
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const PRESETS: Record<
     string,
     {

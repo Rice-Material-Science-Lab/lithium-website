@@ -249,7 +249,7 @@ function GlossarySection() {
         </p>
         <h2 className="text-2xl font-bold text-foreground">Glossary</h2>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          The vocabulary you'll run into throughout this site.
+          The vocabulary you&apos;ll run into throughout this site.
         </p>
       </div>
       <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -316,7 +316,7 @@ function ChemistryComparison() {
         </p>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[560px] border-collapse text-sm">
+        <table className="w-full min-w-140 border-collapse text-sm">
           <thead>
             <tr className="border-b border-border text-left">
               <th className="py-2 pr-4 font-semibold text-foreground/70">
@@ -432,7 +432,7 @@ function SolutionsSection() {
           Research
         </p>
         <h2 className="text-2xl font-bold text-foreground">
-          What's being done about it
+          What&apos;s being done about it
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
           None of these fully solve dendrite growth on their own — most
