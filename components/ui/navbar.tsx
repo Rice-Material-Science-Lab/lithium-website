@@ -145,18 +145,6 @@ export default function Navbar() {
 
   const [navBarOpen, setNavbarOpen] = useState(true)
 
-  useEffect(() => {
-    if (isSimPage) {
-      ;(() => {
-        setNavbarOpen(false)
-      })()
-    } else {
-      ;(() => {
-        setNavbarOpen(true)
-      })()
-    }
-  }, [isSimPage])
-
   const navLinks = [
     { label: "Home", href: "/" },
     { label: "Sim", href: "/sim" },
