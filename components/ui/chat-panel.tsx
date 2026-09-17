@@ -15,6 +15,7 @@ import {
   MessageScrollerViewport,
 } from "@/components/ui/message-scroller"
 import { Bubble, BubbleContent } from "./bubble"
+import { MemoizedMarkdown } from "../memoized-markdown"
 
 export default function ChatPanel() {
   const [open, setOpen] = useState(false)
@@ -72,7 +73,7 @@ export default function ChatPanel() {
 
             <div
               ref={scrollRef}
-              className="flex-1 space-y-3 overflow-y-auto px-4 pb-3"
+              className="flex-1 space-y-3 overflow-y-auto px-4 p-3"
             >
               <MessageScroller>
                 <MessageScrollerViewport>
@@ -96,16 +97,13 @@ export default function ChatPanel() {
                           <MessageContent>
                             <Bubble variant={m.role === "user" ?  "default" : "secondary"} align={m.role === "user" ?  "end" : "start"}>
                               <BubbleContent>
-                                <div className="text-sm leading-snug">
-                                  <span className="mr-1 font-semibold text-foreground">
-                                    {m.role === "user" ? "You" : "Assistant"}:
-                                  </span>
-                                  <span className="text-foreground/90">
-                                    {m.parts
+                                <div className="text-sm leading-snug overflow-x-auto">
+                                  <span className="dark:text-foreground/90">
+                                  <MemoizedMarkdown content={m.parts
                                       .map((part) =>
                                         part.type === "text" ? part.text : ""
                                       )
-                                      .join("")}
+                                      .join("")} />
                                   </span>
                                 </div>
                               </BubbleContent>
