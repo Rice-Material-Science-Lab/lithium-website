@@ -32,8 +32,8 @@ export async function POST(req: Request) {
           const res = await fetch(
             "https://raw.githubusercontent.com/Rice-Material-Science-Lab/lithium-website/main/components/memoized-markdown.tsx"
           )
-          const markdownCode = await res.text()
-          return { markdownCode }
+          const text = await res.text()
+          return { text }
         },
       }),
       getSimCPPCode: tool({
@@ -44,8 +44,32 @@ export async function POST(req: Request) {
           const res = await fetch(
             "https://raw.githubusercontent.com/Rice-Material-Science-Lab/lithium-kmc/main/lkmc-wasm.cpp"
           )
-          const simCPPCode = await res.text()
-          return { simCPPCode }
+          const text = await res.text()
+          return { text }
+        },
+      }),
+      getFrontendReactCode: tool({
+        inputSchema: z.object({}),
+        description:
+          "Get frontend code that displays the sim. This file is quite large.",
+        execute: async () => {
+          const res = await fetch(
+            "https://raw.githubusercontent.com/Rice-Material-Science-Lab/lithium-website/main/components/pages/sim-page/sim.tsx"
+          )
+          const text = await res.text()
+          return { text }
+        },
+      }),
+      getParamsCardCode: tool({
+        inputSchema: z.object({}),
+        description:
+          "Get the code containing the params that the user can input.",
+        execute: async () => {
+          const res = await fetch(
+            "https://raw.githubusercontent.com/Rice-Material-Science-Lab/lithium-website/main/components/pages/sim-page/cards/params-card.tsx"
+          )
+          const text = await res.text()
+          return { text }
         },
       }),
     },
