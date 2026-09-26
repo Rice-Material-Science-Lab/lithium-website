@@ -151,6 +151,6 @@ export const MemoizedMarkdown = memo(function MemoizedMarkdown({
   );
 
   return (
-    <div className={`px-5! ${className ?? ""}`}>{renderedMarkdown}</div>
+    <div className={`${className ?? ""}`}>{renderedMarkdown}</div>
   );
 });
