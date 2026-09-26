@@ -1,6 +1,11 @@
-import { markdownCode, simCPPCode } from "@/lib/tool-responses"
 import { google } from "@ai-sdk/google"
-import { convertToModelMessages, streamText, UIMessage, tool, stepCountIs } from "ai"
+import {
+  convertToModelMessages,
+  streamText,
+  UIMessage,
+  tool,
+  stepCountIs,
+} from "ai"
 import { z } from "zod"
 
 export const maxDuration = 30
@@ -9,7 +14,7 @@ const SYSTEM_PROMPT = `You are the assistant embedded in the Dendrite Lab websit
 a Rice University Materials Science lab site about lithium metal battery
 simulator. Answer questions about the simulation, its parameters, and general
 lithium battery / dendrite science concisely and helpfully. If asked something
-unrelated, just answer normally as a helpful assistant. Feel free to use markdown, but avoid large headers as your response is being placed in a small window.`
+unrelated, just answer normally as a helpful assistant. Feel free to use markdown, but avoid large headers as your response is being placed in a small window. Using code blocks is advised when possible to support responses.`
 
 export async function POST(req: Request) {
   const { messages }: { messages: UIMessage[] } = await req.json()
@@ -18,21 +23,30 @@ export async function POST(req: Request) {
     model: google("gemini-2.5-flash"),
     system: SYSTEM_PROMPT,
     messages: await convertToModelMessages(messages),
-    stopWhen: stepCountIs(5), 
+    stopWhen: stepCountIs(5),
     tools: {
       getMarkdownCode: tool({
         inputSchema: z.object({}),
         description: "Get code used to display your markdown responses",
-        execute: () => ({
-          markdownCode,
-        }),
+        execute: async () => {
+          const res = await fetch(
+            "https://raw.githubusercontent.com/Rice-Material-Science-Lab/lithium-website/main/components/memoized-markdown.tsx"
+          )
+          const markdownCode = await res.text()
+          return { markdownCode }
+        },
       }),
-      getSimCPPCode: tool({ 
+      getSimCPPCode: tool({
         inputSchema: z.object({}),
-        description: "Get backend code used to run the simulation. It is compiled to WASM then ran in the browser. Call getSimReactCode for more info.",
-        execute: () => ({
-          simCPPCode,
-        }),
+        description:
+          "Get backend code used to run the simulation. It is compiled to WASM then ran in the browser.",
+        execute: async () => {
+          const res = await fetch(
+            "https://raw.githubusercontent.com/Rice-Material-Science-Lab/lithium-kmc/main/lkmc-wasm.cpp"
+          )
+          const simCPPCode = await res.text()
+          return { simCPPCode }
+        },
       }),
     },
   })
