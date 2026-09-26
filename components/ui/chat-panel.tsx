@@ -71,13 +71,10 @@ export default function ChatPanel() {
               </p>
             </div>
 
-            <div
-              ref={scrollRef}
-              className="flex-1 space-y-3 overflow-y-auto px-4 p-3"
-            >
-              <MessageScroller>
-                <MessageScrollerViewport>
-                  <MessageScrollerContent>
+            <div className="relative flex-1 overflow-hidden">
+              <MessageScroller className="h-full">
+                <MessageScrollerViewport ref={scrollRef} className="h-full px-4 py-4">
+                  <MessageScrollerContent className="space-y-4 pb-6">
                     {messages.length === 0 && (
                       <MessageScrollerItem>
                         <p className="px-1 py-4 text-sm text-muted-foreground">
@@ -95,15 +92,15 @@ export default function ChatPanel() {
                       >
                         <Message>
                           <MessageContent>
-                            <Bubble variant={m.role === "user" ?  "default" : "secondary"} align={m.role === "user" ?  "end" : "start"}>
+                            <Bubble variant={m.role === "user" ? "default" : "secondary"} align={m.role === "user" ? "end" : "start"}>
                               <BubbleContent>
-                                <div className="text-sm leading-snug overflow-x-auto">
+                                <div className="text-sm leading-relaxed overflow-x-auto">
                                   <span className="dark:text-foreground/90">
-                                  <MemoizedMarkdown content={m.parts
-                                      .map((part) =>
-                                        part.type === "text" ? part.text : ""
-                                      )
-                                      .join("")} />
+                                    <MemoizedMarkdown content={m.parts
+                                        .map((part) =>
+                                          part.type === "text" ? part.text : ""
+                                        )
+                                        .join("")} />
                                   </span>
                                 </div>
                               </BubbleContent>
@@ -116,15 +113,20 @@ export default function ChatPanel() {
                     {(status === "submitted" || status === "streaming") &&
                       messages[messages.length - 1]?.role === "user" && (
                         <MessageScrollerItem>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-sm text-muted-foreground px-1">
                             Thinking…
                           </p>
                         </MessageScrollerItem>
                       )}
-                    <MessageScrollerButton />
                   </MessageScrollerContent>
                 </MessageScrollerViewport>
               </MessageScroller>
+
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
+                <div className="pointer-events-auto">
+                  <MessageScrollerButton />
+                </div>
+              </div>
             </div>
 
             <form
