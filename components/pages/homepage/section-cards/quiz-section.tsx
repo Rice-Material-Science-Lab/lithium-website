@@ -118,7 +118,7 @@ export default function QuizSection() {
   }
 
   return (
-    <Card className="space-y-4 rounded-2xl p-8 shadow-sm">
+    <Card className="max-w-8/10 space-y-4 rounded-2xl p-8 shadow-sm">
       <div>
         <p className="mb-1 text-xs font-bold tracking-widest text-primary uppercase dark:text-cyan-500">
           Check yourself
