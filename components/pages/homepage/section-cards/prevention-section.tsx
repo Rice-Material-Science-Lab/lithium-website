@@ -6,10 +6,10 @@ export default function PreventionSection() {
     <Card className="max-w-8/10 space-y-4 rounded-2xl p-8 shadow-sm">
       <div>
         <p className="mb-1 text-xs font-bold tracking-widest text-primary uppercase dark:text-cyan-500">
-          Prevention
+          Best Practices
         </p>
         <h2 className="text-2xl font-bold text-foreground">
-          Dendrite Prevention Tips
+          Keeping dendrites at bay
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
           A few habits keep lithium plating slow, even, and manageable.

@@ -1,6 +1,5 @@
 import { Card } from "@/components/ui/card"
-import { Microscope, Atom, Waves } from "lucide-react"
-import { Activity } from "react"
+import { Microscope, Atom, Activity, Waves } from "lucide-react"
 import { PreventionCard } from "../prevention-card"
 
 const detectionMethods = [

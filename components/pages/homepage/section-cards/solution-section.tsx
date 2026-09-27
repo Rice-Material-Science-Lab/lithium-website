@@ -34,7 +34,7 @@ export default function SolutionsSection() {
     <Card className="max-w-8/10 space-y-4 rounded-2xl p-8 shadow-sm">
       <div>
         <p className="mb-1 text-xs font-bold tracking-widest text-primary uppercase dark:text-cyan-500">
-          Research
+          Engineering
         </p>
         <h2 className="text-2xl font-bold text-foreground">
           What&apos;s being done about it

@@ -1,20 +1,19 @@
 import { Card } from "@/components/ui/card"
 import { LucideIcon, Zap, Snowflake, BatteryCharging, Thermometer } from "lucide-react"
-import { ActivityProps, ExoticComponent } from "react"
 
 export function PreventionCard({
   icon: Icon,
   text1,
   text2,
 }: {
-  icon: LucideIcon | ExoticComponent<ActivityProps>
+  icon: LucideIcon
   text1: string
   text2: string
 }) {
   return (
     <Card className="flex flex-row items-center gap-4 border border-primary/20 bg-blue-100 px-5 py-4 dark:border-cyan-900/60 dark:bg-blue-950/60">
       <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-blue-400/70 dark:bg-cyan-600/60">
-        <Icon className="h-6 w-6 text-white"><></></Icon>
+        <Icon className="h-6 w-6 text-white" />
       </div>
       <div>
         <p className="text-sm font-semibold text-foreground/90">{text1}</p>

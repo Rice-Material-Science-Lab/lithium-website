@@ -2,7 +2,10 @@
 
 import { Card } from "@/components/ui/card"
 import {
-  TriangleAlert,
+  LucideIcon,
+  Zap,
+  BatteryLow,
+  Flame,
 } from "lucide-react"
 import { HexagonPattern } from "../../ui/hexagon-pattern"
 import { cn } from "@/lib/utils"
@@ -12,11 +15,19 @@ import { Highlighter } from "@/components/ui/highlighter"
 import NextImage from "next/image"
 import HorizontalScrollSection from "./horizontal-scroll-section"
 
-function RiskCard({ text1, text2 }: { text1: string; text2: string }) {
+function RiskCard({
+  icon: Icon,
+  text1,
+  text2,
+}: {
+  icon: LucideIcon
+  text1: string
+  text2: string
+}) {
   return (
     <Card className="flex flex-row items-center gap-3 border border-destructive bg-red-100 px-4 py-3 dark:bg-red-600/60">
       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-400/60 dark:bg-red-500/60">
-        <TriangleAlert className="h-4 w-4 text-destructive" />
+        <Icon className="h-4 w-4 text-destructive" />
       </div>
       <div>
         <p className="text-sm font-semibold text-foreground/90">{text1}</p>
@@ -71,7 +82,6 @@ function DailyLifeCard({
     </div>
   )
 }
-
 
 const formationSteps = [
   {
@@ -130,6 +140,7 @@ function FormationMechanism() {
     </div>
   )
 }
+
 export default function HomepageClientView() {
   const { resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
@@ -190,7 +201,7 @@ export default function HomepageClientView() {
             <div className="space-y-4">
               <div>
                 <p className="mb-1 text-xs font-bold tracking-widest text-primary uppercase dark:text-cyan-500">
-                  Overview
+                  The Basics
                 </p>
                 <h2 className="text-2xl font-bold text-foreground">
                   What are dendrites?
@@ -212,7 +223,7 @@ export default function HomepageClientView() {
             <div className="space-y-4">
               <div>
                 <p className="mb-1 text-xs font-bold tracking-widest text-destructive uppercase">
-                  The Risk
+                  Consequences
                 </p>
                 <h2 className="text-2xl font-bold text-foreground">
                   Why are they dangerous?
@@ -220,14 +231,17 @@ export default function HomepageClientView() {
               </div>
               <div className="space-y-3">
                 <RiskCard
+                  icon={Zap}
                   text1="Short Circuits"
                   text2="Dendrites pierce the protective internal separator to cause fatal battery short circuits."
                 />
                 <RiskCard
+                  icon={BatteryLow}
                   text1="Accelerated Capacity Loss"
                   text2="Dendrites permanently trap lithium ions to drastically reduce the battery lifespan."
                 />
                 <RiskCard
+                  icon={Flame}
                   text1="Thermal Runaway and Fires"
                   text2="Dendrite short circuits spark intense heat that triggers explosive battery fires."
                 />
