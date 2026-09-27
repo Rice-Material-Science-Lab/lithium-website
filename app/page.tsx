@@ -1,4 +1,4 @@
-import HomepageClientView from "@/components/pages/home"
+import HomepageClientView from "@/components/pages/homepage/home"
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
