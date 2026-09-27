@@ -18,7 +18,7 @@ import PreventionSection from "./section-cards/prevention-section"
 const PANEL_COUNT = 7
 const STEP_SIZE = 1 / (PANEL_COUNT - 1)
 const SNAP_THRESHOLD = 0.08
-const SNAP_DEBOUNCE_MS = 60
+const SNAP_DEBOUNCE_MS = 100
 const SNAP_DURATION_MS = 280
 
 function easeOutQuart(t: number) {
