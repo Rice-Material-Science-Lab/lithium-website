@@ -5,8 +5,9 @@ import {
   useMotionValueEvent,
   useScroll,
   useTransform,
+  type MotionValue,
 } from "motion/react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 import ChemistryComparison from "./section-cards/chemistry-comparison"
 import DetectionSection from "./section-cards/detection-methods"
 import SolutionsSection from "./section-cards/solution-section"
@@ -20,12 +21,17 @@ const STEP_SIZE = 1 / (PANEL_COUNT - 1)
 const SNAP_THRESHOLD = 0.08
 const SNAP_DEBOUNCE_MS = 100
 const SNAP_DURATION_MS = 280
+const FLOAT_DISTANCE = 32
 
 function easeOutQuart(t: number) {
   return 1 - Math.pow(1 - t, 4)
 }
 
-function animateScrollTo(targetY: number, duration: number, onDone: () => void) {
+function animateScrollTo(
+  targetY: number,
+  duration: number,
+  onDone: () => void
+) {
   const startY = window.scrollY
   const distance = targetY - startY
   const startTime = performance.now()
@@ -44,6 +50,45 @@ function animateScrollTo(targetY: number, duration: number, onDone: () => void) 
   }
 
   requestAnimationFrame(step)
+}
+
+function Panel({
+  index,
+  progress,
+  children,
+}: {
+  index: number
+  progress: MotionValue<number>
+  children: ReactNode
+}) {
+  const center = index * STEP_SIZE
+  const isFirst = index === 0
+  const isLast = index === PANEL_COUNT - 1
+
+  const inputRange = isFirst
+    ? [center, center + STEP_SIZE]
+    : isLast
+      ? [center - STEP_SIZE, center]
+      : [center - STEP_SIZE, center, center + STEP_SIZE]
+
+  const opacityRange = isFirst ? [1, 0] : isLast ? [0, 1] : [0, 1, 0]
+  const yRange = isFirst
+    ? [0, FLOAT_DISTANCE]
+    : isLast
+      ? [FLOAT_DISTANCE, 0]
+      : [FLOAT_DISTANCE, 0, FLOAT_DISTANCE]
+
+  const opacity = useTransform(progress, inputRange, opacityRange)
+  const y = useTransform(progress, inputRange, yRange)
+
+  return (
+    <motion.div
+      style={{ opacity, y }}
+      className="flex h-screen w-screen shrink-0 items-center justify-center"
+    >
+      {children}
+    </motion.div>
+  )
 }
 
 export default function HorizontalScrollSection() {
@@ -121,6 +166,16 @@ export default function HorizontalScrollSection() {
     }
   }, [scrollYProgress])
 
+  const panels: ReactNode[] = [
+    <PreventionSection key="prevention" />,
+    <ChemistryComparison key="chemistry" />,
+    <DetectionSection key="detection" />,
+    <SolutionsSection key="solutions" />,
+    <StatsStrip key="stats" />,
+    <GlossarySection key="glossary" />,
+    <QuizSection key="quiz" />,
+  ]
+
   return (
     <section ref={targetRef} className="relative h-[700vh]">
       <div className="sticky top-0 z-10 flex h-screen items-center overflow-hidden">
@@ -133,29 +188,14 @@ export default function HorizontalScrollSection() {
               }`}
             />
           ))}
+          {scrollYProgress.get()}
         </div>
         <motion.div style={{ x }} className="relative top-0 flex w-max">
-          <div className="flex h-screen w-screen shrink-0 items-center justify-center">
-            <PreventionSection />
-          </div>
-          <div className="flex h-screen w-screen shrink-0 items-center justify-center">
-            <ChemistryComparison />
-          </div>
-          <div className="flex h-screen w-screen shrink-0 items-center justify-center">
-            <DetectionSection />
-          </div>
-          <div className="flex h-screen w-screen shrink-0 items-center justify-center">
-            <SolutionsSection />
-          </div>
-          <div className="flex h-screen w-screen shrink-0 items-center justify-center">
-            <StatsStrip />
-          </div>
-          <div className="flex h-screen w-screen shrink-0 items-center justify-center">
-            <GlossarySection />
-          </div>
-          <div className="flex h-screen w-screen shrink-0 items-center justify-center">
-            <QuizSection />
-          </div>
+          {panels.map((panel, i) => (
+            <Panel key={i} index={i} progress={scrollYProgress}>
+              {panel}
+            </Panel>
+          ))}
         </motion.div>
       </div>
     </section>
