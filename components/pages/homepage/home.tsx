@@ -110,9 +110,6 @@ function FormationMechanism() {
   return (
     <div className="col-span-1 space-y-4 md:col-span-2">
       <div>
-        <p className="mb-1 text-xs font-bold tracking-widest text-primary uppercase dark:text-cyan-500">
-          Mechanism
-        </p>
         <h2 className="text-2xl font-bold text-foreground">
           How a dendrite actually forms
         </h2>
