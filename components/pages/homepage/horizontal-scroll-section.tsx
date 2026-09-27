@@ -1,7 +1,12 @@
 "use client"
 
-import { motion, useScroll, useTransform } from "motion/react"
-import { useEffect, useRef } from "react"
+import {
+  motion,
+  useMotionValueEvent,
+  useScroll,
+  useTransform,
+} from "motion/react"
+import { useEffect, useRef, useState } from "react"
 import ChemistryComparison from "./section-cards/chemistry-comparison"
 import DetectionSection from "./section-cards/detection-methods"
 import SolutionsSection from "./section-cards/solution-section"
@@ -11,6 +16,7 @@ import QuizSection from "./section-cards/quiz-section"
 import PreventionSection from "./section-cards/prevention-section"
 
 const PANEL_COUNT = 7
+const STEP_SIZE = 1 / (PANEL_COUNT - 1)
 const SNAP_THRESHOLD = 0.08
 const SNAP_DEBOUNCE_MS = 60
 const SNAP_DURATION_MS = 280
@@ -46,6 +52,7 @@ export default function HorizontalScrollSection() {
   const snapTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastScrollYRef = useRef(0)
   const directionRef = useRef<"down" | "up">("down")
+  const [activeIndex, setActiveIndex] = useState(0)
 
   const { scrollYProgress } = useScroll({
     target: targetRef,
@@ -53,6 +60,14 @@ export default function HorizontalScrollSection() {
   })
 
   const x = useTransform(scrollYProgress, [0, 1], ["0vw", "-600vw"])
+
+  useMotionValueEvent(scrollYProgress, "change", (latest) => {
+    const idx = Math.min(
+      PANEL_COUNT - 1,
+      Math.max(0, Math.round(latest / STEP_SIZE))
+    )
+    setActiveIndex((prev) => (prev !== idx ? idx : prev))
+  })
 
   useEffect(() => {
     lastScrollYRef.current = window.scrollY
@@ -72,8 +87,7 @@ export default function HorizontalScrollSection() {
         const progress = scrollYProgress.get()
         if (progress <= 0 || progress >= 1) return
 
-        const stepSize = 1 / (PANEL_COUNT - 1)
-        const raw = progress / stepSize
+        const raw = progress / STEP_SIZE
         const floor = Math.floor(raw)
         const frac = raw - floor
 
@@ -86,7 +100,7 @@ export default function HorizontalScrollSection() {
         nearestIndex = Math.min(Math.max(nearestIndex, 0), PANEL_COUNT - 1)
 
         const scrollableHeight = el.offsetHeight - window.innerHeight
-        const targetProgress = nearestIndex * stepSize
+        const targetProgress = nearestIndex * STEP_SIZE
         const rect = el.getBoundingClientRect()
         const sectionTop = window.scrollY + rect.top
         const targetY = sectionTop + targetProgress * scrollableHeight
@@ -110,6 +124,16 @@ export default function HorizontalScrollSection() {
   return (
     <section ref={targetRef} className="relative h-[700vh]">
       <div className="sticky top-0 z-10 flex h-screen items-center overflow-hidden">
+        <div className="absolute top-8 left-1/2 z-20 flex -translate-x-1/2 gap-2">
+          {Array.from({ length: PANEL_COUNT }).map((_, i) => (
+            <div
+              key={i}
+              className={`h-1.5 w-10 rounded-full transition-colors duration-300 ${
+                i <= activeIndex ? "bg-primary" : "bg-foreground/15"
+              }`}
+            />
+          ))}
+        </div>
         <motion.div style={{ x }} className="relative top-0 flex w-max">
           <div className="flex h-screen w-screen shrink-0 items-center justify-center">
             <PreventionSection />
