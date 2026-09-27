@@ -449,7 +449,7 @@ function VideoCard({ clip }: { clip: VideoClip }) {
           </span>
           {clip.sourceUrl !== "#" && (
             <Button variant="ghost" size="sm" asChild className="ml-2 h-6 shrink-0 px-2">
-              <a
+              
                 href={clip.sourceUrl}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -502,7 +502,7 @@ function VideoGrid({
 function EventCard({ event }: { event: CatastrophicEvent }) {
   return (
     <Card className="flex flex-col overflow-hidden rounded-xl bg-card shadow-sm sm:flex-row">
-      <div className="relative h-36 w-full shrink-0 overflow-hidden bg-muted sm:h-auto sm:w-44">
+      <div className="relative h-40 w-full shrink-0 overflow-hidden bg-muted sm:h-auto sm:w-48">
         <ImageWithFallback
           src={event.imageUrl}
           alt={event.imageAlt}
@@ -521,7 +521,7 @@ function EventCard({ event }: { event: CatastrophicEvent }) {
         </div>
         <div className="flex justify-end">
           <Button asChild size="sm">
-            <a
+            
               href={event.learnMoreUrl}
               target="_blank"
               rel="noopener noreferrer"
@@ -606,14 +606,11 @@ function EventList({
 export default function LibraryClientView() {
   return (
     <div className="min-h-screen bg-[#dde9f5] font-sans dark:bg-background">
-      <main className="mx-auto h-full max-w-5xl space-y-14 p-6 pt-24">
+      <main className="mx-auto h-full max-w-5xl space-y-10 p-4 pt-16 sm:space-y-14 sm:p-6 sm:pt-24">
 
         {/* Page header */}
         <div className="space-y-1">
-          <p className="text-sm font-bold text-primary dark:text-cyan-500">
-            When things go wrong.
-          </p>
-          <h1 className="font-heading text-3xl font-bold text-foreground">
+          <h1 className="font-heading text-2xl font-bold text-foreground sm:text-3xl">
             Catastrophic Events Library
           </h1>
         </div>
@@ -621,10 +618,7 @@ export default function LibraryClientView() {
         {/* Visualization clips */}
         <section className="space-y-4">
           <div className="space-y-1">
-            <p className="text-sm font-bold text-primary dark:text-cyan-500">
-              See it to believe it.
-            </p>
-            <h2 className="font-heading text-2xl font-bold text-foreground">
+            <h2 className="font-heading text-xl font-bold text-foreground sm:text-2xl">
               Dendrite Growth Visualizations
             </h2>
             <p className="text-sm text-muted-foreground">
@@ -638,10 +632,7 @@ export default function LibraryClientView() {
         {/* Accident clips */}
         <section className="space-y-4">
           <div className="space-y-1">
-            <p className="text-sm font-bold text-primary dark:text-cyan-500">
-              Real-world consequences.
-            </p>
-            <h2 className="font-heading text-2xl font-bold text-foreground">
+            <h2 className="font-heading text-xl font-bold text-foreground sm:text-2xl">
               Thermal Runaway & Battery Failures
             </h2>
             <p className="text-sm text-muted-foreground">
@@ -655,10 +646,7 @@ export default function LibraryClientView() {
         {/* Notable incidents */}
         <section className="space-y-4">
           <div className="space-y-1">
-            <p className="text-sm font-bold text-primary dark:text-cyan-500">
-              Historical record.
-            </p>
-            <h2 className="font-heading text-2xl font-bold text-foreground">
+            <h2 className="font-heading text-xl font-bold text-foreground sm:text-2xl">
               Notable Incidents
             </h2>
           </div>

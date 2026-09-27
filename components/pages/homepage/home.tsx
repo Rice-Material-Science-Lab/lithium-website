@@ -67,16 +67,16 @@ function DailyLifeCard({
 
   return (
     <div className="flex flex-col items-center gap-3">
-      <div className="relative h-28 w-28">
+      <div className="relative h-20 w-20 sm:h-28 sm:w-28">
         <NextImage
           src={activeSrc}
           alt={label}
           fill
-          sizes="112px"
+          sizes="(max-width: 640px) 80px, 112px"
           className="object-contain"
         />
       </div>
-      <p className="text-center text-base font-bold text-foreground">
+      <p className="text-center text-sm font-bold text-foreground sm:text-base">
         {label}
       </p>
     </div>
@@ -108,7 +108,7 @@ const formationSteps = [
 
 function FormationMechanism() {
   return (
-    <div className="col-span-2 space-y-4">
+    <div className="col-span-1 space-y-4 md:col-span-2">
       <div>
         <p className="mb-1 text-xs font-bold tracking-widest text-primary uppercase dark:text-cyan-500">
           Mechanism
@@ -158,9 +158,9 @@ export default function HomepageClientView() {
     mounted && (
       <div className="min-h-screen bg-background font-sans">
         <div className="relative h-screen w-full max-w-screen overflow-hidden">
-          <div className="relative z-10 flex h-full w-full pl-20">
+          <div className="relative z-10 flex h-full w-full px-6 sm:pl-20">
             <div className="relative top-full flex max-w-2xl -translate-y-1/2 flex-col gap-4">
-              <h1 className="text-7xl font-bold">
+              <h1 className="text-4xl font-bold sm:text-5xl md:text-7xl">
                 Solving{" "}
                 <Highlighter
                   action="underline"
@@ -169,7 +169,7 @@ export default function HomepageClientView() {
                   Dendrites
                 </Highlighter>
               </h1>
-              <h2 className="text-4xl text-primary">
+              <h2 className="text-xl text-primary sm:text-2xl md:text-4xl">
                 A demo by the <Highlighter color="var(--color-accent-foreground)">Rice University</Highlighter> Material Science Lab
               </h2>
             </div>
@@ -196,17 +196,12 @@ export default function HomepageClientView() {
             colored={30}
           />
         </div>
-        <main className="mx-auto h-full max-w-5xl space-y-6 p-6">
-          <Card className="grid grid-cols-1 gap-10 rounded-2xl p-8 shadow-sm md:grid-cols-2">
+        <main className="mx-auto h-full max-w-5xl space-y-6 p-4 sm:p-6">
+          <Card className="grid grid-cols-1 gap-6 rounded-2xl p-5 shadow-sm sm:gap-10 sm:p-8 md:grid-cols-2">
             <div className="space-y-4">
-              <div>
-                <p className="mb-1 text-xs font-bold tracking-widest text-primary uppercase dark:text-cyan-500">
-                  The Basics
-                </p>
-                <h2 className="text-2xl font-bold text-foreground">
-                  What are dendrites?
-                </h2>
-              </div>
+              <h2 className="text-2xl font-bold text-foreground">
+                What are dendrites?
+              </h2>
               <p className="text-sm leading-relaxed text-muted-foreground">
                 Every time a lithium battery charges, lithium ions move to the
                 negative electrode and deposit as metal. Under ideal conditions,
@@ -214,21 +209,16 @@ export default function HomepageClientView() {
                 conditions, the metal instead grows in thin, branching filaments
                 called dendrites.
               </p>
-              <div className="flex h-40 items-center justify-center rounded-2xl bg-primary">
+              <div className="flex h-32 items-center justify-center rounded-2xl bg-primary sm:h-40">
                 <p className="text-center leading-snug font-semibold text-white">
                   Sim coming soon!
                 </p>
               </div>
             </div>
             <div className="space-y-4">
-              <div>
-                <p className="mb-1 text-xs font-bold tracking-widest text-destructive uppercase">
-                  Consequences
-                </p>
-                <h2 className="text-2xl font-bold text-foreground">
-                  Why are they dangerous?
-                </h2>
-              </div>
+              <h2 className="text-2xl font-bold text-foreground">
+                Why are they dangerous?
+              </h2>
               <div className="space-y-3">
                 <RiskCard
                   icon={Zap}
@@ -250,7 +240,7 @@ export default function HomepageClientView() {
 
             <FormationMechanism />
 
-            <div className="col-span-2">
+            <div className="col-span-1 md:col-span-2">
               <h2 className="text-2xl font-bold">
                 Where this shows up in daily life
               </h2>
@@ -260,7 +250,7 @@ export default function HomepageClientView() {
                 scooters, hearing aids, and of course electric vehicles and
                 grid-scale storage.
               </p>
-              <div className="mt-6 grid grid-cols-2 gap-6 sm:grid-cols-4">
+              <div className="mt-6 grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-4">
                 {dailyLifeItems.map((item) => (
                   <DailyLifeCard key={item.label} {...item} isDark={isDark} />
                 ))}
