@@ -188,7 +188,6 @@ export default function HorizontalScrollSection() {
               }`}
             />
           ))}
-          {scrollYProgress.get()}
         </div>
         <motion.div style={{ x }} className="relative top-0 flex w-max">
           {panels.map((panel, i) => (
