@@ -449,7 +449,7 @@ function VideoCard({ clip }: { clip: VideoClip }) {
           </span>
           {clip.sourceUrl !== "#" && (
             <Button variant="ghost" size="sm" asChild className="ml-2 h-6 shrink-0 px-2">
-              
+              <a
                 href={clip.sourceUrl}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -521,7 +521,7 @@ function EventCard({ event }: { event: CatastrophicEvent }) {
         </div>
         <div className="flex justify-end">
           <Button asChild size="sm">
-            
+            <a
               href={event.learnMoreUrl}
               target="_blank"
               rel="noopener noreferrer"
