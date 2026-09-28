@@ -168,3 +168,31 @@ h6 {
 html[data-magicui-theme-vt="active"]::view-transition-new(root) {
   clip-path: var(--magicui-theme-vt-clip-from);
 }
+
+.fadeBottom::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 50px;
+  background-image: linear-gradient(
+    to bottom,
+    rgba(237, 237, 237, 0),
+    #ffffff 100%
+  );
+}
+
+.fadeBottomDark::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 50px;
+  background-image: linear-gradient(
+    to bottom,
+    rgba(18, 18, 18, 0),
+    #020818 100%
+  );
+}

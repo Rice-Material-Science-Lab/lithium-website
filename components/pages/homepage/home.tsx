@@ -1,12 +1,7 @@
 "use client"
 
 import { Card } from "@/components/ui/card"
-import {
-  LucideIcon,
-  Zap,
-  BatteryLow,
-  Flame,
-} from "lucide-react"
+import { LucideIcon, Zap, BatteryLow, Flame } from "lucide-react"
 import { HexagonPattern } from "../../ui/hexagon-pattern"
 import { cn } from "@/lib/utils"
 import { useEffect, useState } from "react"
@@ -14,6 +9,7 @@ import { useTheme } from "next-themes"
 import { Highlighter } from "@/components/ui/highlighter"
 import NextImage from "next/image"
 import HorizontalScrollSection from "./horizontal-scroll-section"
+import { BlurFade } from "@/components/ui/blur-fade"
 
 function RiskCard({
   icon: Icon,
@@ -151,109 +147,121 @@ export default function HomepageClientView() {
     return () => cancelAnimationFrame(handle)
   }, [])
 
+  const mask =
+    "linear-gradient(to bottom, white 0%, white 70%, transparent 100%), linear-gradient(to right, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.5) 40%, rgba(255,255,255,0.3) 100%)"
+
   return (
     mounted && (
       <div className="min-h-screen bg-background font-sans">
         <div className="relative h-screen w-full max-w-screen overflow-hidden">
           <div className="relative z-10 flex h-full w-full px-6 sm:pl-20">
             <div className="relative top-full flex max-w-2xl -translate-y-1/2 flex-col gap-4">
-              <h1 className="text-4xl font-bold sm:text-5xl md:text-7xl">
-                Solving{" "}
-                <Highlighter
-                  action="underline"
-                  color="var(--color-destructive)"
-                >
-                  Dendrites
-                </Highlighter>
-              </h1>
-              <h2 className="text-xl text-primary sm:text-2xl md:text-4xl">
-                A demo by the <Highlighter color="var(--color-accent-foreground)">Rice University</Highlighter> Material Science Lab
-              </h2>
+              <BlurFade>
+                <h1 className="text-4xl font-bold sm:text-5xl md:text-7xl">
+                  Solving{" "}
+                  <Highlighter
+                    action="underline"
+                    color="var(--color-destructive)"
+                  >
+                    Dendrites
+                  </Highlighter>
+                </h1>
+                <h2 className="text-xl text-primary sm:text-2xl md:text-4xl">
+                  A demo by the{" "}
+                  <Highlighter color="var(--color-accent-foreground)">
+                    Rice University
+                  </Highlighter>{" "}
+                  Material Science Lab
+                </h2>
+              </BlurFade>
             </div>
           </div>
 
-          <HexagonPattern
+          <div
+            className="pointer-events-none absolute inset-0"
             style={{
-              maskImage:
-                "linear-gradient(to bottom right, white 0%, white 20%, transparent 80%), linear-gradient(to bottom, white 0%, white 40%, transparent 100%)",
+              maskImage: mask,
               maskComposite: "intersect",
-              WebkitMaskImage:
-                "linear-gradient(to bottom right, white 0%, white 20%, transparent 80%), linear-gradient(to bottom, white 0%, white 40%, transparent 100%)",
-              WebkitMaskComposite: "destination-in",
+              WebkitMaskImage: mask,
+              WebkitMaskComposite: "source-in",
             }}
-            gap={10}
-            radius={30}
-            color={isDark ? "oklch(1 0 0 / 10%)" : "#727272"}
-            className={cn(
-              "absolute inset-0",
-              "origin-center scale-[1.5]",
-              "transform-[rotateX(20deg)_rotateY(20deg)] perspective-[1000px]",
-              "[mask:linear-gradient(to_bottom_right,white_0%,white_20%,rgba(255,255,255,0.01)_80%),linear-gradient(to_bottom,white_0%,white_70%,transparent_100%)]"
-            )}
-            colored={30}
-          />
+          >
+            <HexagonPattern
+              gap={10}
+              radius={30}
+              color={isDark ? "oklch(1 0 0 / 10%)" : "#727272"}
+              className={cn(
+                "absolute inset-0",
+                "origin-center scale-[1.5]",
+                "transform-[rotateX(20deg)_rotateY(20deg)] perspective-[1000px]"
+              )}
+              colored={30}
+            />
+          </div>
         </div>
         <main className="mx-auto h-full max-w-5xl space-y-6 p-4 sm:p-6">
-          <Card className="grid grid-cols-1 gap-6 rounded-2xl p-5 shadow-sm sm:gap-10 sm:p-8 md:grid-cols-2">
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-foreground">
-                What are dendrites?
-              </h2>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                Every time a lithium battery charges, lithium ions move to the
-                negative electrode and deposit as metal. Under ideal conditions,
-                that metal lays down as a smooth, even layer. But under certain
-                conditions, the metal instead grows in thin, branching filaments
-                called dendrites.
-              </p>
-              <div className="flex h-32 items-center justify-center rounded-2xl bg-primary sm:h-40">
-                <p className="text-center leading-snug font-semibold text-white">
-                  Sim coming soon!
+          <BlurFade inView={true}>
+            <Card className="grid grid-cols-1 gap-6 rounded-2xl p-5 shadow-sm sm:gap-10 sm:p-8 md:grid-cols-2">
+              <div className="space-y-4">
+                <h2 className="text-2xl font-bold text-foreground">
+                  What are dendrites?
+                </h2>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  Every time a lithium battery charges, lithium ions move to the
+                  negative electrode and deposit as metal. Under ideal
+                  conditions, that metal lays down as a smooth, even layer. But
+                  under certain conditions, the metal instead grows in thin,
+                  branching filaments called dendrites.
                 </p>
+                <div className="flex h-32 items-center justify-center rounded-2xl bg-primary sm:h-40">
+                  <p className="text-center leading-snug font-semibold text-white">
+                    Sim coming soon!
+                  </p>
+                </div>
               </div>
-            </div>
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-foreground">
-                Why are they dangerous?
-              </h2>
-              <div className="space-y-3">
-                <RiskCard
-                  icon={Zap}
-                  text1="Short Circuits"
-                  text2="Dendrites pierce the protective internal separator to cause fatal battery short circuits."
-                />
-                <RiskCard
-                  icon={BatteryLow}
-                  text1="Accelerated Capacity Loss"
-                  text2="Dendrites permanently trap lithium ions to drastically reduce the battery lifespan."
-                />
-                <RiskCard
-                  icon={Flame}
-                  text1="Thermal Runaway and Fires"
-                  text2="Dendrite short circuits spark intense heat that triggers explosive battery fires."
-                />
+              <div className="space-y-4">
+                <h2 className="text-2xl font-bold text-foreground">
+                  Why are they dangerous?
+                </h2>
+                <div className="space-y-3">
+                  <RiskCard
+                    icon={Zap}
+                    text1="Short Circuits"
+                    text2="Dendrites pierce the protective internal separator to cause fatal battery short circuits."
+                  />
+                  <RiskCard
+                    icon={BatteryLow}
+                    text1="Accelerated Capacity Loss"
+                    text2="Dendrites permanently trap lithium ions to drastically reduce the battery lifespan."
+                  />
+                  <RiskCard
+                    icon={Flame}
+                    text1="Thermal Runaway and Fires"
+                    text2="Dendrite short circuits spark intense heat that triggers explosive battery fires."
+                  />
+                </div>
               </div>
-            </div>
 
-            <FormationMechanism />
+              <FormationMechanism />
 
-            <div className="col-span-1 md:col-span-2">
-              <h2 className="text-2xl font-bold">
-                Where this shows up in daily life
-              </h2>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                Lithium-ion batteries are in nearly everything that holds a
-                charge: phones, laptops, power tools, power banks, e-bikes and
-                scooters, hearing aids, and of course electric vehicles and
-                grid-scale storage.
-              </p>
-              <div className="mt-6 grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-4">
-                {dailyLifeItems.map((item) => (
-                  <DailyLifeCard key={item.label} {...item} isDark={isDark} />
-                ))}
+              <div className="col-span-1 md:col-span-2">
+                <h2 className="text-2xl font-bold">
+                  Where this shows up in daily life
+                </h2>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                  Lithium-ion batteries are in nearly everything that holds a
+                  charge: phones, laptops, power tools, power banks, e-bikes and
+                  scooters, hearing aids, and of course electric vehicles and
+                  grid-scale storage.
+                </p>
+                <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6">
+                  {dailyLifeItems.map((item) => (
+                    <DailyLifeCard key={item.label} {...item} isDark={isDark} />
+                  ))}
+                </div>
               </div>
-            </div>
-          </Card>
+            </Card>
+          </BlurFade>
         </main>
 
         <HorizontalScrollSection />
