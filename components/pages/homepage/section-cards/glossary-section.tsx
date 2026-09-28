@@ -1,4 +1,8 @@
-import { Card } from "@/components/ui/card"
+"use client"
+
+import { AnimatePresence, motion } from "motion/react"
+import { Search, X } from "lucide-react"
+import { useMemo, useState } from "react"
 
 const glossaryTerms = [
   {
@@ -48,29 +52,92 @@ const glossaryTerms = [
   },
 ]
 
+function highlight(text: string, query: string) {
+  if (!query) return text
+  const i = text.toLowerCase().indexOf(query.toLowerCase())
+  if (i === -1) return text
+  return (
+    <>
+      {text.slice(0, i)}
+      <mark className="rounded-sm bg-amber-200/80 text-foreground dark:bg-amber-500/30">
+        {text.slice(i, i + query.length)}
+      </mark>
+      {text.slice(i + query.length)}
+    </>
+  )
+}
 
 export default function GlossarySection() {
+  const [query, setQuery] = useState("")
+  const q = query.trim()
+
+  const results = useMemo(
+    () =>
+      glossaryTerms.filter(
+        (g) =>
+          g.term.toLowerCase().includes(q.toLowerCase()) ||
+          g.definition.toLowerCase().includes(q.toLowerCase())
+      ),
+    [q]
+  )
+
   return (
-    <Card className="space-y-4 rounded-2xl p-8 shadow-sm max-w-8/10">
-      <div>
-        <p className="mb-1 text-xs font-bold tracking-widest text-primary uppercase dark:text-cyan-500">
-          Reference
-        </p>
-        <h2 className="text-2xl font-bold text-foreground">Glossary</h2>
-        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          The vocabulary you&apos;ll run into throughout this site.
-        </p>
+    <div className="space-y-5">
+      <div className="relative max-w-md">
+        <Search className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search terms, e.g. separator"
+          aria-label="Search the glossary"
+          className="h-11 w-full rounded-full border border-border bg-card pr-10 pl-10 text-sm text-foreground shadow-sm transition-colors outline-none placeholder:text-muted-foreground focus:border-primary/50 focus:ring-4 focus:ring-primary/10 [&::-webkit-search-cancel-button]:hidden"
+        />
+        {query && (
+          <button
+            type="button"
+            onClick={() => setQuery("")}
+            aria-label="Clear search"
+            className="absolute top-1/2 right-2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
       </div>
-      <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {glossaryTerms.map((g) => (
-          <div key={g.term} className="rounded-xl border border-border p-4">
-            <dt className="text-sm font-bold text-foreground">{g.term}</dt>
-            <dd className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              {g.definition}
-            </dd>
-          </div>
-        ))}
-      </dl>
-    </Card>
+
+      <p className="sr-only" aria-live="polite">
+        {results.length} {results.length === 1 ? "term" : "terms"} found
+      </p>
+
+      <motion.dl layout className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <AnimatePresence mode="popLayout">
+          {results.map((g) => (
+            <motion.div
+              layout
+              key={g.term}
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.97 }}
+              transition={{ duration: 0.2 }}
+              className="rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/40 dark:hover:border-cyan-500/40"
+            >
+              <dt className="text-sm font-bold text-foreground">
+                {highlight(g.term, q)}
+              </dt>
+              <dd className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                {highlight(g.definition, q)}
+              </dd>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </motion.dl>
+
+      {results.length === 0 && (
+        <p className="text-sm text-muted-foreground">
+          No terms match &ldquo;{q}&rdquo;. Try the chat assistant in the top
+          bar for anything else.
+        </p>
+      )}
+    </div>
   )
 }

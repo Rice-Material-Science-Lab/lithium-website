@@ -1,54 +1,39 @@
-import { Card } from "@/components/ui/card"
-import { Microscope, Atom, Activity, Waves } from "lucide-react"
+import { Scan, Microscope, Snowflake, Eye } from "lucide-react"
 import { PreventionCard } from "../prevention-card"
 
 const detectionMethods = [
   {
+    icon: Scan,
+    text1: "X-ray Tomography (CT)",
+    text2:
+      "Like a hospital CT scan for batteries. Powerful X-rays build a 3D picture of a sealed cell, showing where dendrites grow and when they reach the separator, all without opening it.",
+  },
+  {
     icon: Microscope,
-    text1: "In-Situ Microscopy",
+    text1: "Scanning Electron Microscopy (SEM)",
     text2:
-      "Optical and electron microscopy image dendrite nucleation and growth in real time inside a live cell.",
+      "A focused electron beam images the anode surface in fine detail, showing whether the lithium formed a smooth layer, a mossy mat, or sharp needles.",
   },
   {
-    icon: Atom,
-    text1: "Neutron Imaging",
+    icon: Snowflake,
+    text1: "Cryo-Electron Microscopy",
     text2:
-      "Neutrons are far more sensitive to lithium than X-rays, revealing metal distribution X-ray CT can miss.",
+      "Lithium is so delicate that an electron beam can damage it. Freezing the sample first protects it, so researchers can image dendrites down to individual rows of atoms.",
   },
   {
-    icon: Activity,
-    text1: "Impedance Spectroscopy",
+    icon: Eye,
+    text1: "In-Situ Optical Microscopy",
     text2:
-      "Tracking how internal resistance shifts over cycles flags the early signs of uneven plating.",
-  },
-  {
-    icon: Waves,
-    text1: "Acoustic Emission",
-    text2:
-      "Dendrite growth and fracture emit faint stress waves that acoustic sensors can pick up non-destructively.",
+      "Cells built with a see-through window let researchers watch dendrites sprout and branch live, while the battery is charging.",
   },
 ]
 
 export default function DetectionSection() {
   return (
-    <Card className="space-y-4 rounded-2xl p-8 shadow-sm max-w-8/10">
-      <div>
-        <p className="mb-1 text-xs font-bold tracking-widest text-primary uppercase dark:text-cyan-500">
-          Detection
-        </p>
-        <h2 className="text-2xl font-bold text-foreground">
-          How researchers actually see dendrites
-        </h2>
-        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          Dendrites form inside a sealed cell, so studying them takes
-          specialized imaging and sensing.
-        </p>
-      </div>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {detectionMethods.map((m) => (
-          <PreventionCard key={m.text1} {...m} />
-        ))}
-      </div>
-    </Card>
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      {detectionMethods.map((m) => (
+        <PreventionCard key={m.text1} {...m} />
+      ))}
+    </div>
   )
 }

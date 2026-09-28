@@ -52,13 +52,11 @@ function NewsPanel() {
       setNews(data)
       setLastUpdated(new Date())
     } catch {
-      // keep stale data on error
     } finally {
       setLoading(false)
     }
   }, [])
 
-  // Fetch immediately when panel opens, then poll every 5 minutes while open
   useEffect(() => {
     if (!open) return
     (() => fetchNews())()
@@ -93,7 +91,6 @@ function NewsPanel() {
           </div>
 
           <div className="flex-1 space-y-2 overflow-y-auto px-3 pb-3">
-            {/* Only show skeleton on first load, not background refreshes */}
             {loading && news.length === 0 &&
               Array.from({ length: 5 }).map((_, i) => (
                 <div
@@ -149,6 +146,7 @@ export default function Navbar() {
     { label: "Home", href: "/" },
     { label: "Sim", href: "/sim" },
     { label: "Library", href: "/library" },
+    { label: "References", href: "/references" },
   ]
 
   const { resolvedTheme, setTheme } = useTheme()
