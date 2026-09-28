@@ -116,7 +116,7 @@ function Hero({ isDark }: { isDark: boolean }) {
         }
 
   return (
-    <header className="relative h-svh min-h-[640px] w-full max-w-screen overflow-hidden">
+    <header className="relative h-svh min-h-160 w-full max-w-screen overflow-hidden">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
@@ -142,11 +142,11 @@ function Hero({ isDark }: { isDark: boolean }) {
       {/* soft wash so the text always has contrast over the hexagons */}
       <div
         aria-hidden
-        className="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-transparent"
+        className="absolute inset-0 bg-linear-to-r from-background via-background/70 to-transparent"
       />
       <div
         aria-hidden
-        className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-background"
+        className="absolute inset-x-0 bottom-0 h-40 bg-linear-to-b from-transparent to-background"
       />
 
       <div className="relative z-10 flex h-full items-center px-6 pt-20 sm:px-20">
@@ -366,11 +366,11 @@ export default function HomepageClientView() {
       <section
         id="quiz"
         aria-labelledby="quiz-title"
-        className="relative mt-8 overflow-hidden border-t border-border bg-gradient-to-b from-primary/10 via-background to-background py-20 sm:py-28 dark:from-cyan-950/40"
+        className="relative mt-8 overflow-hidden border-t border-border bg-linear-to-b from-primary/10 via-background to-background py-20 sm:py-28 dark:from-cyan-950/40"
       >
         <div
           aria-hidden
-          className="pointer-events-none absolute top-0 left-1/2 h-80 w-[48rem] -translate-x-1/2 rounded-full bg-primary/20 blur-3xl dark:bg-cyan-500/10"
+          className="pointer-events-none absolute top-0 left-1/2 h-80 w-3xl -translate-x-1/2 rounded-full bg-primary/20 blur-3xl dark:bg-cyan-500/10"
         />
         <div className="relative mx-auto max-w-3xl px-4 sm:px-6">
           <Reveal className="mb-10 text-center">

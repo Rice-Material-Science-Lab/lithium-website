@@ -254,15 +254,15 @@ function FormationDiagram({ step, reduced }: { step: number; reduced: boolean })
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: reduced ? 0 : 1.5 }}
           >
-            <rect x="352" y="96" width="92" height="24" rx="12" className="fill-destructive" />
-            <text x="398" y="112" textAnchor="middle" fontSize="11" fontWeight={700} fill="white" letterSpacing="0.08em">
+            <rect x="352" y="96" width="120" height="24" rx="12" className="fill-destructive" />
+            <text x="412" y="112" textAnchor="middle" fontSize="11" fontWeight={700} fill="white" letterSpacing="0.08em">
               SHORT CIRCUIT
             </text>
           </motion.g>
         </g>
       )}
 
-      {/* travelling ions */}
+      {/* traveling ions */}
       {step < 4 &&
         ionLanes.map((y, i) => (
           <MovingIon
