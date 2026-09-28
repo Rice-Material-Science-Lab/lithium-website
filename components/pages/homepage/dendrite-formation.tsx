@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils"
 import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react"
-import { useEffect, useId, useState } from "react"
+import { Dispatch, SetStateAction, useEffect, useId, useState } from "react"
 
 const STEP_MS = 5000
 
@@ -49,7 +49,11 @@ const BRANCHES_A = [
   "M 238 147 L 254 168",
 ]
 const MAIN_B = "M 262 150 C 290 156, 316 146, 336 150 S 400 154, 450 150"
-const BRANCHES_B = ["M 292 153 L 306 134", "M 380 152 L 398 172", "M 420 150 L 436 132"]
+const BRANCHES_B = [
+  "M 292 153 L 306 134",
+  "M 380 152 L 398 172",
+  "M 420 150 L 436 132",
+]
 
 // Curved field lines that converge on the tip of the bump.
 const FIELD_LINES = [
@@ -62,7 +66,14 @@ const FIELD_LINES = [
 function Ion({ x, y, r = 6 }: { x: number; y: number; r?: number }) {
   return (
     <g>
-      <circle cx={x} cy={y} r={r} fill={ION} stroke={ION_STROKE} strokeWidth={1} />
+      <circle
+        cx={x}
+        cy={y}
+        r={r}
+        fill={ION}
+        stroke={ION_STROKE}
+        strokeWidth={1}
+      />
       <path
         d={`M ${x - r * 0.45} ${y} H ${x + r * 0.45} M ${x} ${y - r * 0.45} V ${y + r * 0.45}`}
         stroke="white"
@@ -101,7 +112,12 @@ function MovingIon({
         delay,
         repeat: Infinity,
         ease: "easeIn",
-        opacity: { duration: 2.6, delay, repeat: Infinity, times: [0, 0.15, 0.85, 1] },
+        opacity: {
+          duration: 2.6,
+          delay,
+          repeat: Infinity,
+          times: [0, 0.15, 0.85, 1],
+        },
       }}
     >
       <Ion x={0} y={0} />
@@ -109,7 +125,23 @@ function MovingIon({
   )
 }
 
-function FormationDiagram({ step, reduced }: { step: number; reduced: boolean }) {
+function FormationDiagram({
+  step,
+  reduced,
+  enteredA,
+  enteredB,
+  setEnteredA,
+  setEnteredB,
+}: {
+  step: number
+  reduced: boolean
+  enteredA: boolean
+  enteredB: boolean
+  setEnteredA: Dispatch<SetStateAction<boolean>>
+  setEnteredB: Dispatch<SetStateAction<boolean>>
+}) {
+  const bothEntered = enteredA && enteredB
+
   const uid = useId().replace(/:/g, "")
   const poreId = `pore-${uid}`
   const heatId = `heat-${uid}`
@@ -133,7 +165,11 @@ function FormationDiagram({ step, reduced }: { step: number; reduced: boolean })
       : {
           initial: { pathLength: 0, opacity: 0 },
           animate: { pathLength: 1, opacity: 1 },
-          transition: { duration: 1.2, delay, ease: [0.22, 1, 0.36, 1] as const },
+          transition: {
+            duration: 1.2,
+            delay,
+            ease: [0.22, 1, 0.36, 1] as const,
+          },
         }
 
   return (
@@ -154,21 +190,68 @@ function FormationDiagram({ step, reduced }: { step: number; reduced: boolean })
       </defs>
 
       {/* electrolyte */}
-      <rect x="0" y="10" width="520" height="280" rx="14" className="fill-sky-500/10" />
+      <rect
+        x="0"
+        y="10"
+        width="520"
+        height="280"
+        rx="14"
+        className="fill-sky-500/10"
+      />
 
       {/* anode + cathode */}
-      <rect x="10" y="20" width={SURFACE_X - 10} height="260" rx="6" className="fill-foreground/15" />
+      <rect
+        x="10"
+        y="20"
+        width={SURFACE_X - 10}
+        height="260"
+        rx="6"
+        className="fill-foreground/15"
+      />
       {[45, 85, 125, 165, 205, 245].map((y) => (
-        <line key={y} x1="18" x2={SURFACE_X - 6} y1={y} y2={y} className="stroke-foreground/30" strokeWidth={2} />
+        <line
+          key={y}
+          x1="18"
+          x2={SURFACE_X - 6}
+          y1={y}
+          y2={y}
+          className="stroke-foreground/30"
+          strokeWidth={2}
+        />
       ))}
-      <rect x="450" y="20" width="60" height="260" rx="6" className="fill-indigo-500/25" />
+      <rect
+        x="450"
+        y="20"
+        width="60"
+        height="260"
+        rx="6"
+        className="fill-indigo-500/25"
+      />
       {[45, 85, 125, 165, 205, 245].map((y) => (
-        <line key={y} x1="456" x2="504" y1={y} y2={y} className="stroke-indigo-500/60 dark:stroke-indigo-300/60" strokeWidth={3} strokeDasharray="2 5" strokeLinecap="round" />
+        <line
+          key={y}
+          x1="456"
+          x2="504"
+          y1={y}
+          y2={y}
+          className="stroke-indigo-500/60 dark:stroke-indigo-300/60"
+          strokeWidth={3}
+          strokeDasharray="2 5"
+          strokeLinecap="round"
+        />
       ))}
 
       {/* separator */}
       <rect x="330" y="14" width="12" height="272" fill={`url(#${poreId})`} />
-      <rect x="330" y="14" width="12" height="272" fill="none" className="stroke-foreground/35" strokeDasharray="4 4" />
+      <rect
+        x="330"
+        y="14"
+        width="12"
+        height="272"
+        fill="none"
+        className="stroke-foreground/35"
+        strokeDasharray="4 4"
+      />
 
       {/* field lines */}
       <AnimatePresence>
@@ -213,15 +296,30 @@ function FormationDiagram({ step, reduced }: { step: number; reduced: boolean })
           strokeLinecap="round"
           strokeLinejoin="round"
         >
-          <motion.path key={`a-${step}`} d={MAIN_A} strokeWidth={4} {...draw()} />
+          <motion.path
+            key={`a-${step}`}
+            d={MAIN_A}
+            strokeWidth={4}
+            {...draw()}
+          />
           {BRANCHES_A.map((d, i) => (
-            <motion.path key={`${d}-${step}`} d={d} strokeWidth={2.5} {...draw(0.4 + i * 0.12)} />
+            <motion.path
+              key={`${d}-${step}`}
+              d={d}
+              strokeWidth={2.5}
+              {...draw(0.4 + i * 0.12)}
+            />
           ))}
           {shorted && (
             <>
               <motion.path key="b" d={MAIN_B} strokeWidth={4} {...draw(0.3)} />
               {BRANCHES_B.map((d, i) => (
-                <motion.path key={d} d={d} strokeWidth={2.5} {...draw(0.9 + i * 0.12)} />
+                <motion.path
+                  key={d}
+                  d={d}
+                  strokeWidth={2.5}
+                  {...draw(0.9 + i * 0.12)}
+                />
               ))}
             </>
           )}
@@ -229,6 +327,7 @@ function FormationDiagram({ step, reduced }: { step: number; reduced: boolean })
       )}
 
       {/* short circuit */}
+
       {shorted && (
         <g>
           <motion.circle
@@ -237,25 +336,71 @@ function FormationDiagram({ step, reduced }: { step: number; reduced: boolean })
             r="60"
             fill={`url(#${heatId})`}
             initial={{ opacity: 0 }}
-            animate={reduced ? { opacity: 1 } : { opacity: [0.5, 1, 0.5] }}
-            transition={reduced ? {} : { duration: 1.2, repeat: Infinity, delay: 1.4 }}
+            animate={
+              reduced
+                ? { opacity: 1 }
+                : bothEntered
+                  ? { opacity: [1, 0.5, 1] }
+                  : { opacity: 1 }
+            }
+            transition={
+              reduced
+                ? { duration: 1.2 }
+                : bothEntered
+                  ? { duration: 1.2, repeat: Infinity }
+                  : { duration: 1.2, delay: 1.4 }
+            }
+            onAnimationComplete={() => {
+              if (!reduced && !enteredA) setEnteredA(true)
+            }}
           />
+
           <motion.circle
             cx="450"
             cy={TIP_Y}
             r="40"
             fill={`url(#${heatId})`}
             initial={{ opacity: 0 }}
-            animate={reduced ? { opacity: 1 } : { opacity: [0.4, 1, 0.4] }}
-            transition={reduced ? {} : { duration: 0.9, repeat: Infinity, delay: 1.6 }}
+            animate={
+              reduced
+                ? { opacity: 1 }
+                : bothEntered
+                  ? { opacity: [1, 0.4, 1] }
+                  : { opacity: 1 }
+            }
+            transition={
+              reduced
+                ? { duration: 0.9 }
+                : bothEntered
+                  ? { duration: 1.2, repeat: Infinity, delay: 0.6 }
+                  : { duration: 0.9, delay: 1.6 }
+            }
+            onAnimationComplete={() => {
+              if (!reduced && !enteredB) setEnteredB(true)
+            }}
           />
           <motion.g
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: reduced ? 0 : 1.5 }}
           >
-            <rect x="352" y="96" width="120" height="24" rx="12" className="fill-destructive" />
-            <text x="412" y="112" textAnchor="middle" fontSize="11" fontWeight={700} fill="white" letterSpacing="0.08em">
+            <rect
+              x="352"
+              y="96"
+              width="120"
+              height="24"
+              rx="12"
+              className="fill-destructive"
+            />
+            <text
+              x="412"
+              y="112"
+              textAnchor="middle"
+              fontSize="11"
+              fontWeight={700}
+              fill="white"
+              letterSpacing="0.08em"
+            >
               SHORT CIRCUIT
             </text>
           </motion.g>
@@ -275,10 +420,21 @@ function FormationDiagram({ step, reduced }: { step: number; reduced: boolean })
         ))}
 
       {/* labels */}
-      <g fontSize="11" fontWeight={600} className="fill-muted-foreground" textAnchor="middle">
-        <text x="40" y="298">ANODE</text>
-        <text x="336" y="298">SEPARATOR</text>
-        <text x="480" y="298">CATHODE</text>
+      <g
+        fontSize="11"
+        fontWeight={600}
+        className="fill-muted-foreground"
+        textAnchor="middle"
+      >
+        <text x="40" y="298">
+          ANODE{reduced ? "t" : "f"}
+        </text>
+        <text x="336" y="298">
+          SEPARATOR
+        </text>
+        <text x="480" y="298">
+          CATHODE
+        </text>
       </g>
     </svg>
   )
@@ -289,16 +445,24 @@ export default function DendriteFormation() {
   const reduced = !!reducedPref
   const [step, setStep] = useState(0)
   const [playing, setPlaying] = useState(true)
+  const [enteredA, setEnteredA] = useState(false)
+  const [enteredB, setEnteredB] = useState(false)
 
   useEffect(() => {
     if (!playing) return
     const t = setTimeout(() => {
+      setEnteredA(false)
+      setEnteredB(false)
       setStep((s) => (s + 1) % steps.length)
     }, STEP_MS)
     return () => clearTimeout(t)
   }, [playing, step])
 
   function go(i: number) {
+    if (i !== 4) {
+      setEnteredA(false)
+      setEnteredB(false)
+    }
     setPlaying(false)
     setStep((i + steps.length) % steps.length)
   }
@@ -372,7 +536,14 @@ export default function DendriteFormation() {
 
       <div className="flex flex-col gap-3">
         <div className="rounded-2xl border border-border bg-muted/30 p-3 sm:p-5">
-          <FormationDiagram step={step} reduced={reduced} />
+          <FormationDiagram
+            step={step}
+            reduced={reduced}
+            enteredA={enteredA}
+            enteredB={enteredB}
+            setEnteredA={setEnteredA}
+            setEnteredB={setEnteredB}
+          />
         </div>
         <div className="flex items-center justify-between">
           <p className="text-xs text-muted-foreground">
@@ -393,7 +564,11 @@ export default function DendriteFormation() {
               aria-label={playing ? "Pause" : "Play"}
               className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground transition-opacity hover:opacity-90 dark:bg-cyan-600"
             >
-              {playing ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
+              {playing ? (
+                <Pause className="h-3.5 w-3.5" />
+              ) : (
+                <Play className="h-3.5 w-3.5" />
+              )}
             </button>
             <button
               type="button"
