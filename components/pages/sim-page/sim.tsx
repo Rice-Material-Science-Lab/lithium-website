@@ -21,6 +21,7 @@ import HelpDialog from "./help-dialog"
 import ParamsCard from "./cards/params-card"
 import { Slider } from "@/components/ui/slider"
 import { CellInfo } from "@/lib/types"
+import { Reveal } from "../homepage/layout-primitives"
 
 interface CustomWasmModule {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -715,11 +716,10 @@ export default function SimPageClientView() {
   }, [isRunning, isPaused, wasmModule])
 
   const toggleCarbonSite = (x: number, y: number) => {
-
     // Ensure substrate not turned to carbon
 
     const index = y * gridDimensions[0] + x
-    
+
     if (simState[index] === 3) {
       return
     }
@@ -1111,330 +1111,339 @@ export default function SimPageClientView() {
             </Button>
           </div>
           <div className="flex min-h-0 flex-1 gap-4 p-4">
-            <ParamsCard
-              handleSubmit={handleSubmit}
-              isLiveMode={isLiveMode}
-              setIsLiveMode={setIsLiveMode}
-              width={width}
-              setWidth={setWidth}
-              height={height}
-              setHeight={setHeight}
-              drawingCarbon={drawingCarbon}
-              setDrawingCarbon={setDrawingCarbon}
-              carbonEnergy={carbonEnergy}
-              setCarbonEnergy={setCarbonEnergy}
-              carbonSites={carbonSites}
-              carbonUndoStack={carbonUndoStack}
-              setCarbonSites={setCarbonSites}
-              undoCarbonSite={undoCarbonSite}
-              temp={temp}
-              setTemp={setTemp}
-              dropRate={dropRate}
-              setDropRate={setDropRate}
-              stepsToRun={stepsToRun}
-              setStepsToRun={setStepsToRun}
-              updateInterval={updateInterval}
-              setUpdateInterval={setUpdateInterval}
-              seed={seed}
-              setSeed={setSeed}
-              bondedEnergy={bondedEnergy}
-              setBondedEnergy={setBondedEnergy}
-              atomSubstrate={atomSubstrate}
-              setAtomSubstrate={setAtomSubstrate}
-              freeAttFreq={freeAttFreq}
-              setFreeAttFreq={setFreeAttFreq}
-              depAttFreq={depAttFreq}
-              setDepAttFreq={setDepAttFreq}
-              passAttFreq={passAttFreq}
-              setPassAttFreq={setPassAttFreq}
-              wasmModule={wasmModule}
-              isPaused={isPaused}
-              handleResumeSim={handleResumeSim}
-              handlePauseSim={handlePauseSim}
-              isRunning={isRunning}
-              handleStopSim={handleStopSim}
-            />
-            <div className="flex min-h-0 flex-1 flex-col gap-4">
-              <Card className="flex min-h-0 flex-1 flex-col items-center justify-between gap-0 rounded-2xl border p-4 backdrop-blur-xl">
-                <div className="flex min-h-0 w-full grow flex-row justify-between gap-2">
-                  <div className="flex grow flex-col">
-                    <div className="flex h-full w-full flex-1 gap-4">
-                      <div className="flex h-full flex-1 grow flex-col items-center">
-                        <div className="flex items-center gap-2">
-                          <div className="flex items-center gap-1.5 rounded-full border border-black/5 px-3 py-1 dark:border-white/10">
-                            <span
-                              className={
-                                "h-2 w-2 rounded-full " +
-                                (simTerminated
-                                  ? "bg-destructive"
-                                  : isPaused
-                                    ? "bg-yellow-500"
-                                    : isRunning
-                                      ? "animate-pulse bg-green-500"
-                                      : "bg-muted-foreground")
-                              }
-                            />
-                            <span className="text-xs font-medium text-muted-foreground">
-                              {simTerminated
-                                ? "Jammed"
-                                : isPaused
-                                  ? "Paused"
-                                  : isRunning
-                                    ? "Running"
-                                    : "Stopped"}
-                            </span>
-                          </div>
-                          <h3 className="text-center text-sm font-medium text-muted-foreground">
-                            After {stepsRan.toLocaleString()} steps and{" "}
-                            {runTime.toFixed(2)} seconds
-                          </h3>
+            <Reveal className="w-[30%]">
+              <ParamsCard
+                handleSubmit={handleSubmit}
+                isLiveMode={isLiveMode}
+                setIsLiveMode={setIsLiveMode}
+                width={width}
+                setWidth={setWidth}
+                height={height}
+                setHeight={setHeight}
+                drawingCarbon={drawingCarbon}
+                setDrawingCarbon={setDrawingCarbon}
+                carbonEnergy={carbonEnergy}
+                setCarbonEnergy={setCarbonEnergy}
+                carbonSites={carbonSites}
+                carbonUndoStack={carbonUndoStack}
+                setCarbonSites={setCarbonSites}
+                undoCarbonSite={undoCarbonSite}
+                temp={temp}
+                setTemp={setTemp}
+                dropRate={dropRate}
+                setDropRate={setDropRate}
+                stepsToRun={stepsToRun}
+                setStepsToRun={setStepsToRun}
+                updateInterval={updateInterval}
+                setUpdateInterval={setUpdateInterval}
+                seed={seed}
+                setSeed={setSeed}
+                bondedEnergy={bondedEnergy}
+                setBondedEnergy={setBondedEnergy}
+                atomSubstrate={atomSubstrate}
+                setAtomSubstrate={setAtomSubstrate}
+                freeAttFreq={freeAttFreq}
+                setFreeAttFreq={setFreeAttFreq}
+                depAttFreq={depAttFreq}
+                setDepAttFreq={setDepAttFreq}
+                passAttFreq={passAttFreq}
+                setPassAttFreq={setPassAttFreq}
+                wasmModule={wasmModule}
+                isPaused={isPaused}
+                handleResumeSim={handleResumeSim}
+                handlePauseSim={handlePauseSim}
+                isRunning={isRunning}
+                handleStopSim={handleStopSim}
+              />
+            </Reveal>
 
-                          {selectedCell &&
-                            `Cell (${selectedCell.x}, ${selectedCell.y}): 
+            <div className="flex min-h-0 flex-1 flex-col gap-4">
+              <Reveal className="flex h-1/2 flex-1" delay={0.1}>
+                <Card className="flex min-h-0 flex-1 flex-col items-center justify-between gap-0 rounded-2xl border p-4 backdrop-blur-xl">
+                  <div className="flex min-h-0 w-full grow flex-row justify-between gap-2">
+                    <div className="flex grow flex-col">
+                      <div className="flex h-full w-full flex-1 gap-4">
+                        <div className="flex h-full flex-1 grow flex-col items-center">
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1.5 rounded-full border border-black/5 px-3 py-1 dark:border-white/10">
+                              <span
+                                className={
+                                  "h-2 w-2 rounded-full " +
+                                  (simTerminated
+                                    ? "bg-destructive"
+                                    : isPaused
+                                      ? "bg-yellow-500"
+                                      : isRunning
+                                        ? "animate-pulse bg-green-500"
+                                        : "bg-muted-foreground")
+                                }
+                              />
+                              <span className="text-xs font-medium text-muted-foreground">
+                                {simTerminated
+                                  ? "Jammed"
+                                  : isPaused
+                                    ? "Paused"
+                                    : isRunning
+                                      ? "Running"
+                                      : "Stopped"}
+                              </span>
+                            </div>
+                            <h3 className="text-center text-sm font-medium text-muted-foreground">
+                              After {stepsRan.toLocaleString()} steps and{" "}
+                              {runTime.toFixed(2)} seconds
+                            </h3>
+
+                            {selectedCell &&
+                              `Cell (${selectedCell.x}, ${selectedCell.y}): 
                         ${CELL_STATE_LABELS[selectedCell.state] ?? "Unknown"}
                         ${
                           selectedCell.coordination >= 0 &&
                           ` · coordination ${selectedCell.coordination}`
                         }`}
-                        </div>
+                          </div>
 
-                        <div
-                          ref={gridContainerRef}
-                          className="relative flex w-full flex-1 grow items-center justify-center overflow-hidden"
-                          style={
-                            {
-                              touchAction: "manipulation",
-                              WebkitUserSelect: "none",
-                              userSelect: "none",
-                              // Chrome/Firefox try to start a native HTML5
-                              // drag gesture on mousedown over SVG content,
-                              // which swallows the click before it reaches
-                              // the hexagon's onClick. Safari doesn't do
-                              // this, so this is a no-op there.
-                              WebkitUserDrag: "none",
-                            } as React.CSSProperties
-                          }
-                          draggable={false}
-                          onDragStart={(e) => e.preventDefault()}
-                          onPointerDown={(e) => e.preventDefault()}
-                        >
                           <div
-                            ref={gridContentRef}
-                            className="h-full w-full grow"
+                            ref={gridContainerRef}
+                            className="relative flex w-full flex-1 grow items-center justify-center overflow-hidden"
+                            style={
+                              {
+                                touchAction: "manipulation",
+                                WebkitUserSelect: "none",
+                                userSelect: "none",
+                                // Chrome/Firefox try to start a native HTML5
+                                // drag gesture on mousedown over SVG content,
+                                // which swallows the click before it reaches
+                                // the hexagon's onClick. Safari doesn't do
+                                // this, so this is a no-op there.
+                                WebkitUserDrag: "none",
+                              } as React.CSSProperties
+                            }
+                            draggable={false}
+                            onDragStart={(e) => e.preventDefault()}
+                            onPointerDown={(e) => e.preventDefault()}
                           >
-                            <DisplayHexGrid
-                              width={gridDimensions[0]}
-                              height={gridDimensions[1]}
-                              data={simState}
-                              onCellClick={
-                                historyMode
-                                  ? undefined
-                                  : drawingCarbon
-                                    ? (x: number, y: number) =>
-                                        toggleCarbonSite(x, y)
-                                    : (x: number, y: number) =>
-                                        inspectCell(x, y)
-                              }
-                            />
+                            <div
+                              ref={gridContentRef}
+                              className="h-full w-full grow"
+                            >
+                              <DisplayHexGrid
+                                width={gridDimensions[0]}
+                                height={gridDimensions[1]}
+                                data={simState}
+                                onCellClick={
+                                  historyMode
+                                    ? undefined
+                                    : drawingCarbon
+                                      ? (x: number, y: number) =>
+                                          toggleCarbonSite(x, y)
+                                      : (x: number, y: number) =>
+                                          inspectCell(x, y)
+                                }
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
+                    <AtomColorKey carbonSpeciesColors={CARBON_SPECIES_COLORS} />
                   </div>
-                  <AtomColorKey carbonSpeciesColors={CARBON_SPECIES_COLORS} />
-                </div>
-                <div
-                  className={
-                    "mt-2 flex h-8 w-full shrink-0 items-center gap-2 " +
-                    (!(snapshotCount > 1) && "pointer-events-none opacity-50")
-                  }
-                >
-                  <Slider
-                    min={0}
-                    max={Math.max(0, snapshotCount - 1)}
-                    value={[
-                      historyMode
-                        ? snapshotIndex
-                        : Math.max(0, snapshotCount - 1),
-                    ]}
-                    onValueChange={(values) => loadSnapshot(values[0])}
-                    className="flex-1"
-                  />
-                  <span className="text-xs whitespace-nowrap text-muted-foreground">
-                    {historyMode
-                      ? `step ${snapshotStep.toLocaleString()}`
-                      : "live"}
-                  </span>
-                  {historyMode && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="rounded-full text-primary"
-                      onClick={returnToLive}
-                    >
-                      Back to Live
-                    </Button>
-                  )}
-                </div>
-              </Card>
-              <Card className="flex h-1/2 min-h-0 flex-1 flex-col rounded-2xl p-4 backdrop-blur-xl">
-                <Tabs defaultValue="atom-counts" className="h-full w-full">
-                  <TabsList>
-                    <TabsTrigger value="atom-counts">Atom Counts</TabsTrigger>
-                    <TabsTrigger value="batch-run">Batch Run</TabsTrigger>
-                  </TabsList>
-                  <TabsContent
-                    value="atom-counts"
-                    className="flex h-full flex-col"
+                  <div
+                    className={
+                      "mt-2 flex h-8 w-full shrink-0 items-center gap-2 " +
+                      (!(snapshotCount > 1) && "pointer-events-none opacity-50")
+                    }
                   >
-                    <div className="min-h-0 flex-1">
-                      <AtomCountsChart data={statsData} />
-                    </div>
-
-                    <div className="mt-4 flex shrink-0 gap-2 pb-4">
+                    <Slider
+                      min={0}
+                      max={Math.max(0, snapshotCount - 1)}
+                      value={[
+                        historyMode
+                          ? snapshotIndex
+                          : Math.max(0, snapshotCount - 1),
+                      ]}
+                      onValueChange={(values) => loadSnapshot(values[0])}
+                      className="flex-1"
+                    />
+                    <span className="text-xs whitespace-nowrap text-muted-foreground">
+                      {historyMode
+                        ? `step ${snapshotStep.toLocaleString()}`
+                        : "live"}
+                    </span>
+                    {historyMode && (
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="rounded-full"
-                        onClick={exportStatsCSV}
-                        disabled={statsData.length === 0}
+                        className="rounded-full text-primary"
+                        onClick={returnToLive}
                       >
-                        Export Stats CSV
+                        Back to Live
                       </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="rounded-full"
-                        onClick={exportLatticeCSV}
-                        disabled={simState.length === 0}
-                      >
-                        Export Lattice CSV
-                      </Button>
-                    </div>
-                  </TabsContent>
-                  <TabsContent value="batch-run">
-                    <div className="mb-4 flex shrink-0 items-center justify-between">
-                      <h3 className="text-lg font-semibold">Batch Run</h3>
-                    </div>
-                    <div className="flex flex-wrap items-end gap-2">
-                      <div className="flex flex-col gap-1">
-                        <Label className="text-xs">Sweep parameter</Label>
-                        <Select
-                          value={batchParam}
-                          onValueChange={(value) =>
-                            setBatchParam(value as "temp" | "dropRate")
-                          }
-                        >
-                          <SelectTrigger className="rounded-xl px-2 py-1 text-sm">
-                            <SelectValue placeholder="Theme" />
-                          </SelectTrigger>
+                    )}
+                  </div>
+                </Card>
+              </Reveal>
+              <Reveal className="flex h-1/2 flex-1" delay={0.2}>
+                <Card className="flex min-h-0 flex-1 flex-col rounded-2xl p-4 backdrop-blur-xl">
+                  <Tabs defaultValue="atom-counts" className="h-full w-full">
+                    <TabsList>
+                      <TabsTrigger value="atom-counts">Atom Counts</TabsTrigger>
+                      <TabsTrigger value="batch-run">Batch Run</TabsTrigger>
+                    </TabsList>
+                    <TabsContent
+                      value="atom-counts"
+                      className="flex h-full flex-col"
+                    >
+                      <div className="min-h-0 flex-1">
+                        <AtomCountsChart data={statsData} />
+                      </div>
 
-                          <SelectContent>
-                            <SelectItem value="temp">Temperature</SelectItem>
-                            <SelectItem value="dropRate">Drop Rate</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <Label className="text-xs">Min</Label>
-                        <Input
-                          className="w-24 rounded-xl"
-                          type="number"
-                          value={batchMin}
-                          onChange={(e) => setBatchMin(e.target.value)}
-                        />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <Label className="text-xs">Max</Label>
-                        <Input
-                          className="w-24 rounded-xl"
-                          type="number"
-                          value={batchMax}
-                          onChange={(e) => setBatchMax(e.target.value)}
-                        />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <Label className="text-xs">Runs</Label>
-                        <Input
-                          className="w-20 rounded-xl"
-                          type="number"
-                          min={1}
-                          value={batchCount}
-                          onChange={(e) => setBatchCount(e.target.value)}
-                        />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <Label className="text-xs">Steps / run</Label>
-                        <Input
-                          className="w-28 rounded-xl"
-                          type="number"
-                          min={1}
-                          value={batchSteps}
-                          onChange={(e) => setBatchSteps(e.target.value)}
-                        />
-                      </div>
-                      <Button
-                        type="button"
-                        className="rounded-xl"
-                        onClick={runBatch}
-                        disabled={!wasmModule || batchRunning}
-                      >
-                        {batchRunning
-                          ? `Running ${batchProgress.done}/${batchProgress.total}...`
-                          : "Run Batch"}
-                      </Button>
-                      {batchResults.length > 0 && (
+                      <div className="mt-4 flex shrink-0 gap-2 pb-4">
                         <Button
                           type="button"
                           variant="outline"
+                          size="sm"
                           className="rounded-full"
-                          onClick={exportBatchCSV}
+                          onClick={exportStatsCSV}
+                          disabled={statsData.length === 0}
                         >
-                          Export CSV
+                          Export Stats CSV
                         </Button>
-                      )}
-                    </div>
-                    {batchResults.length > 0 && (
-                      <div className="mt-2 max-h-40 shrink-0 overflow-auto rounded-xl border border-border">
-                        <table className="w-full text-xs">
-                          <thead className="sticky top-0 bg-primary/30">
-                            <tr>
-                              <th className="p-1 text-left">#</th>
-                              <th className="p-1 text-left">T</th>
-                              <th className="p-1 text-left">d0</th>
-                              <th className="p-1 text-left">Fill %</th>
-                              <th className="p-1 text-left">Passivated</th>
-                              <th className="p-1 text-left">Jammed</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {batchResults.map((r) => (
-                              <tr
-                                key={r.index}
-                                className="border-t border-border hover:bg-primary/5 dark:border-border dark:hover:bg-primary/5"
-                              >
-                                <td className="p-1">{r.index}</td>
-                                <td className="p-1">{r.T}</td>
-                                <td className="p-1">{r.d0}</td>
-                                <td className="p-1">
-                                  {r.fill_pct?.toFixed(1)}
-                                </td>
-                                <td className="p-1">{r.passivated}</td>
-                                <td className="p-1">
-                                  {r.terminated ? "yes" : "no"}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="rounded-full"
+                          onClick={exportLatticeCSV}
+                          disabled={simState.length === 0}
+                        >
+                          Export Lattice CSV
+                        </Button>
                       </div>
-                    )}
-                  </TabsContent>
-                </Tabs>
-              </Card>
+                    </TabsContent>
+                    <TabsContent value="batch-run">
+                      <div className="mb-4 flex shrink-0 items-center justify-between">
+                        <h3 className="text-lg font-semibold">Batch Run</h3>
+                      </div>
+                      <div className="flex flex-wrap items-end gap-2">
+                        <div className="flex flex-col gap-1">
+                          <Label className="text-xs">Sweep parameter</Label>
+                          <Select
+                            value={batchParam}
+                            onValueChange={(value) =>
+                              setBatchParam(value as "temp" | "dropRate")
+                            }
+                          >
+                            <SelectTrigger className="rounded-xl px-2 py-1 text-sm">
+                              <SelectValue placeholder="Theme" />
+                            </SelectTrigger>
+
+                            <SelectContent>
+                              <SelectItem value="temp">Temperature</SelectItem>
+                              <SelectItem value="dropRate">
+                                Drop Rate
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <Label className="text-xs">Min</Label>
+                          <Input
+                            className="w-24 rounded-xl"
+                            type="number"
+                            value={batchMin}
+                            onChange={(e) => setBatchMin(e.target.value)}
+                          />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <Label className="text-xs">Max</Label>
+                          <Input
+                            className="w-24 rounded-xl"
+                            type="number"
+                            value={batchMax}
+                            onChange={(e) => setBatchMax(e.target.value)}
+                          />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <Label className="text-xs">Runs</Label>
+                          <Input
+                            className="w-20 rounded-xl"
+                            type="number"
+                            min={1}
+                            value={batchCount}
+                            onChange={(e) => setBatchCount(e.target.value)}
+                          />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <Label className="text-xs">Steps / run</Label>
+                          <Input
+                            className="w-28 rounded-xl"
+                            type="number"
+                            min={1}
+                            value={batchSteps}
+                            onChange={(e) => setBatchSteps(e.target.value)}
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          className="rounded-xl"
+                          onClick={runBatch}
+                          disabled={!wasmModule || batchRunning}
+                        >
+                          {batchRunning
+                            ? `Running ${batchProgress.done}/${batchProgress.total}...`
+                            : "Run Batch"}
+                        </Button>
+                        {batchResults.length > 0 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="rounded-full"
+                            onClick={exportBatchCSV}
+                          >
+                            Export CSV
+                          </Button>
+                        )}
+                      </div>
+                      {batchResults.length > 0 && (
+                        <div className="mt-2 max-h-40 shrink-0 overflow-auto rounded-xl border border-border">
+                          <table className="w-full text-xs">
+                            <thead className="sticky top-0 bg-primary/30">
+                              <tr>
+                                <th className="p-1 text-left">#</th>
+                                <th className="p-1 text-left">T</th>
+                                <th className="p-1 text-left">d0</th>
+                                <th className="p-1 text-left">Fill %</th>
+                                <th className="p-1 text-left">Passivated</th>
+                                <th className="p-1 text-left">Jammed</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {batchResults.map((r) => (
+                                <tr
+                                  key={r.index}
+                                  className="border-t border-border hover:bg-primary/5 dark:border-border dark:hover:bg-primary/5"
+                                >
+                                  <td className="p-1">{r.index}</td>
+                                  <td className="p-1">{r.T}</td>
+                                  <td className="p-1">{r.d0}</td>
+                                  <td className="p-1">
+                                    {r.fill_pct?.toFixed(1)}
+                                  </td>
+                                  <td className="p-1">{r.passivated}</td>
+                                  <td className="p-1">
+                                    {r.terminated ? "yes" : "no"}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </TabsContent>
+                  </Tabs>
+                </Card>
+              </Reveal>
             </div>
           </div>
         </div>

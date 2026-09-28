@@ -73,7 +73,7 @@ export default function ParamsCard({
     <>
       <form
         onSubmit={handleSubmit}
-        className="flex h-full w-[30%] shrink-0 flex-col justify-between gap-6"
+        className="flex h-full shrink-0 flex-col justify-between gap-6"
       >
         <Card className="flex h-full flex-col justify-start rounded-2xl border border-border backdrop-blur-xl">
           <CardHeader className="pl-2">
