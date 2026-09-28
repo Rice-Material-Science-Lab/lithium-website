@@ -5,9 +5,13 @@ import { Panel } from "../layout-primitives"
 export default function PreventionSection() {
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {preventionTips.map((tip) => (
-          <PreventionCard key={tip.text1} {...tip} />
+          <PreventionCard
+            key={tip.text1}
+            {...tip}
+            className={tip.tip ? "md:col-span-3" : undefined}
+          />
         ))}
       </div>
       <Panel>

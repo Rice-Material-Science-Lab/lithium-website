@@ -3,7 +3,8 @@
 import { cn } from "@/lib/utils"
 import { motion, useReducedMotion } from "motion/react"
 import type { ReactNode } from "react"
-import type { LucideIcon } from "lucide-react"
+import Link from "next/link"
+import { ArrowRight, type LucideIcon } from "lucide-react"
 
 export function Reveal({
   children,
@@ -122,21 +123,26 @@ export function FeatureCard({
   children,
   className,
   tone = "primary",
+  href,
+  linkLabel = "Learn more",
 }: {
   icon: LucideIcon
   title: string
   children: ReactNode
   className?: string
   tone?: "primary" | "danger"
+  /** When set, the whole card becomes a link. */
+  href?: string
+  linkLabel?: string
 }) {
-  return (
-    <div
-      className={cn(
-        "group relative flex gap-4 rounded-2xl border border-border bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[0_16px_40px_-20px_rgb(0_0_0/0.35)] dark:hover:border-cyan-500/40",
-        tone === "danger" && "hover:border-destructive/40 dark:hover:border-destructive/40",
-        className
-      )}
-    >
+  const cardClass = cn(
+    "group relative flex gap-4 rounded-2xl border border-border bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[0_16px_40px_-20px_rgb(0_0_0/0.35)] dark:hover:border-cyan-500/40",
+    tone === "danger" &&
+      "hover:border-destructive/40 dark:hover:border-destructive/40",
+    className
+  )
+  const inner = (
+    <>
       <div
         className={cn(
           "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-colors",
@@ -148,12 +154,25 @@ export function FeatureCard({
       >
         <Icon className="h-5 w-5" />
       </div>
-      <div className="min-w-0">
+      <div className="flex min-w-0 flex-col">
         <p className="text-sm font-semibold text-foreground">{title}</p>
         <div className="mt-1 text-sm leading-relaxed text-muted-foreground">
           {children}
         </div>
+        {href && (
+          <span className="mt-auto inline-flex items-center gap-1 pt-3 text-sm font-semibold text-primary dark:text-cyan-400">
+            {linkLabel}
+            <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+          </span>
+        )}
       </div>
-    </div>
+    </>
+  )
+  return href ? (
+    <Link href={href} className={cardClass}>
+      {inner}
+    </Link>
+  ) : (
+    <div className={cardClass}>{inner}</div>
   )
 }

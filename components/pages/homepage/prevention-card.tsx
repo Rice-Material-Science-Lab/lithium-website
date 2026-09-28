@@ -13,14 +13,26 @@ export function PreventionCard({
   text1,
   text2,
   tip,
+  href,
+  linkLabel,
+  className,
 }: {
   icon: LucideIcon
   text1: string
   text2: string
   tip?: string
+  href?: string
+  linkLabel?: string
+  className?: string
 }) {
   return (
-    <FeatureCard icon={icon} title={text1}>
+    <FeatureCard
+      icon={icon}
+      title={text1}
+      href={href}
+      linkLabel={linkLabel}
+      className={className}
+    >
       <p>{text2}</p>
       {tip && (
         <p className="mt-3 flex items-start gap-2 rounded-lg border border-primary/15 bg-primary/5 px-3 py-2 text-xs leading-relaxed text-foreground/80 dark:border-cyan-500/20 dark:bg-cyan-500/5">
