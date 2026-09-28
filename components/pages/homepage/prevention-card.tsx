@@ -1,34 +1,49 @@
-import { Card } from "@/components/ui/card"
-import { LucideIcon, Zap, Snowflake, BatteryCharging, Thermometer } from "lucide-react"
+import {
+  LucideIcon,
+  Zap,
+  Snowflake,
+  BatteryCharging,
+  Thermometer,
+  Smartphone,
+} from "lucide-react"
+import { FeatureCard } from "./layout-primitives"
 
 export function PreventionCard({
-  icon: Icon,
+  icon,
   text1,
   text2,
+  tip,
 }: {
   icon: LucideIcon
   text1: string
   text2: string
+  tip?: string
 }) {
   return (
-    <Card className="flex flex-row items-center gap-4 border border-primary/20 bg-blue-100 px-5 py-4 dark:border-cyan-900/60 dark:bg-blue-950/60">
-      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-blue-400/70 dark:bg-cyan-600/60">
-        <Icon className="h-6 w-6 text-white" />
-      </div>
-      <div>
-        <p className="text-sm font-semibold text-foreground/90">{text1}</p>
-        <p className="text-sm text-muted-foreground">{text2}</p>
-      </div>
-    </Card>
+    <FeatureCard icon={icon} title={text1}>
+      <p>{text2}</p>
+      {tip && (
+        <p className="mt-3 flex items-start gap-2 rounded-lg border border-primary/15 bg-primary/5 px-3 py-2 text-xs leading-relaxed text-foreground/80 dark:border-cyan-500/20 dark:bg-cyan-500/5">
+          <Smartphone className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary dark:text-cyan-400" />
+          <span>{tip}</span>
+        </p>
+      )}
+    </FeatureCard>
   )
 }
 
-export const preventionTips = [
+export const preventionTips: {
+  icon: LucideIcon
+  text1: string
+  text2: string
+  tip?: string
+}[] = [
   {
     icon: Zap,
     text1: "Charge at Moderate Rates",
     text2:
       "Fast charging pushes ions in faster than they can settle evenly, encouraging dendrite growth.",
+    tip: "Try it on your phone: turn on Optimized Battery Charging (iPhone) or Adaptive Charging / Battery Protection (Android) in your battery settings. Your phone learns your routine and eases off the last stretch of charging instead of rushing to 100%.",
   },
   {
     icon: Snowflake,

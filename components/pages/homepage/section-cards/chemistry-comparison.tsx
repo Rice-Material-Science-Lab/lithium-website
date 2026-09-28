@@ -1,83 +1,204 @@
-import { Card } from "@/components/ui/card"
+"use client"
 
-const chemistryRows = [
+import { cn } from "@/lib/utils"
+import { useState, type ReactNode } from "react"
+import { Panel } from "../layout-primitives"
+
+type Risk = "Very high" | "Intermediate" | "Moderate" | "Very low"
+
+const riskStyles: Record<Risk, string> = {
+  "Very high":
+    "border-red-500/40 bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300",
+  Intermediate:
+    "border-orange-500/40 bg-orange-100 text-orange-700 dark:bg-orange-950/60 dark:text-orange-300",
+  Moderate:
+    "border-amber-500/40 bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300",
+  "Very low":
+    "border-emerald-500/40 bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300",
+}
+
+type Anode = {
+  material: string
+  risk: Risk
+  energy: { value: string; note: string }
+  thermal: { value: string; note: string }
+  cycles: { value: string; note: string }
+  why: string
+  usedIn: string
+}
+
+const anodes: Anode[] = [
   {
-    label: "Typical energy density",
-    nmc: "~200–270 Wh/kg",
-    lfp: "~150–160 Wh/kg",
-    solidState: "300+ Wh/kg (projected)",
+    material: "Lithium metal",
+    risk: "Very high",
+    energy: { value: "~350–500 Wh/kg", note: "Prototype cells; highest possible" },
+    thermal: { value: "Low", note: "Very reactive, melts at ~180\u00a0°C" },
+    cycles: { value: "~100–500", note: "Still in development" },
+    why: "Nothing holds the lithium, so it plates bare metal onto bare metal every charge.",
+    usedIn: "Next-generation and solid-state research cells",
   },
   {
-    label: "Dendrite susceptibility",
-    nmc: "Higher",
-    lfp: "Lower",
-    solidState: "Lower at the electrode, but can form along grain boundaries",
+    material: "Graphite",
+    risk: "Intermediate",
+    energy: { value: "~200–300 Wh/kg", note: "Today's standard" },
+    thermal: { value: "Moderate", note: "Its protective surface film breaks down when overheated" },
+    cycles: { value: "~1,000–3,000", note: "Depends on the cathode" },
+    why: "Stores lithium very close to the voltage where lithium metal plates out.",
+    usedIn: "Most phones, laptops, and EVs today",
   },
   {
-    label: "Thermal stability",
-    nmc: "Moderate",
-    lfp: "High",
-    solidState: "High (no flammable liquid electrolyte)",
+    material: "Silicon",
+    risk: "Moderate",
+    energy: { value: "~300–400+ Wh/kg", note: "About 10× graphite's capacity" },
+    thermal: { value: "Moderate", note: "Similar to graphite" },
+    cycles: { value: "~500–1,000", note: "More silicon means fewer cycles" },
+    why: "Swells up to ~3× as it charges; the cracking makes deposition uneven.",
+    usedIn: "Blended into graphite in some newer phones and EVs",
   },
   {
-    label: "Typical cycle life",
-    nmc: "~1,000–2,000 cycles",
-    lfp: "~3,000–6,000 cycles",
-    solidState: "Still being characterized",
-  },
-  {
-    label: "Commercial maturity",
-    nmc: "Mature, widespread",
-    lfp: "Mature, widespread",
-    solidState: "Early-stage / pilot production",
+    material: "Lithium titanate (LTO)",
+    risk: "Very low",
+    energy: { value: "~60–100 Wh/kg", note: "Lowest of the four" },
+    thermal: { value: "Very high", note: "Highly resistant to thermal runaway" },
+    cycles: { value: "~5,000–20,000+", note: "Barely changes size as it charges" },
+    why: "Works at a voltage far above where lithium metal can form.",
+    usedIn: "Electric buses, grid storage, very fast-charging systems",
   },
 ]
 
-export default function ChemistryComparison() {
+const rows: { label: string; render: (a: Anode) => ReactNode }[] = [
+  {
+    label: "Dendrite growth risk",
+    render: (a) => (
+      <span
+        className={cn(
+          "inline-block rounded-full border px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap",
+          riskStyles[a.risk]
+        )}
+      >
+        {a.risk}
+      </span>
+    ),
+  },
+  {
+    label: "Typical energy density",
+    render: (a) => <ValueCell {...a.energy} />,
+  },
+  {
+    label: "Thermal stability",
+    render: (a) => <ValueCell {...a.thermal} />,
+  },
+  {
+    label: "Typical cycle life",
+    render: (a) => <ValueCell {...a.cycles} />,
+  },
+  {
+    label: "Why the dendrite risk",
+    render: (a) => (
+      <span className="text-xs leading-relaxed text-muted-foreground">{a.why}</span>
+    ),
+  },
+  {
+    label: "Where you'll find it",
+    render: (a) => <span className="text-xs text-foreground/90">{a.usedIn}</span>,
+  },
+]
+
+function ValueCell({ value, note }: { value: string; note: string }) {
   return (
-    <Card className="space-y-4 rounded-2xl p-8 shadow-sm max-w-8/10">
-      <div>
-        <p className="mb-1 text-xs font-bold tracking-widest text-primary uppercase dark:text-cyan-500">
-          Chemistry
-        </p>
-        <h2 className="text-2xl font-bold text-foreground">
-          Not all lithium batteries carry the same risk
-        </h2>
-        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          Chemistry changes how easily dendrites form and how a cell behaves if
-          one gets through anyway.
-        </p>
+    <div>
+      <p className="text-foreground/90">{value}</p>
+      <p className="mt-0.5 text-xs text-muted-foreground">{note}</p>
+    </div>
+  )
+}
+
+export default function ChemistryComparison() {
+  const [focus, setFocus] = useState<string | null>(null)
+
+  return (
+    <Panel className="space-y-5">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="mr-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+          Highlight
+        </span>
+        {anodes.map((a) => {
+          const selected = focus === a.material
+          return (
+            <button
+              key={a.material}
+              type="button"
+              aria-pressed={selected}
+              onClick={() => setFocus(selected ? null : a.material)}
+              className={cn(
+                "rounded-full border px-3 py-1 text-sm font-medium transition-all",
+                selected
+                  ? "border-primary bg-primary text-primary-foreground dark:border-cyan-600 dark:bg-cyan-600"
+                  : "border-border bg-background text-foreground/80 hover:border-primary/40 hover:text-foreground"
+              )}
+            >
+              {a.material}
+            </button>
+          )
+        })}
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-140 border-collapse text-sm">
+      <div className="-mx-5 overflow-x-auto px-5 sm:mx-0 sm:px-0">
+        <table className="w-full min-w-160 border-collapse text-sm">
           <thead>
             <tr className="border-b border-border text-left">
-              <th className="py-2 pr-4 font-semibold text-foreground/70">
-                &nbsp;
+              <th className="w-36 py-3 pr-4 font-semibold text-foreground/70">
+                <span className="sr-only">Property</span>
               </th>
-              <th className="py-2 pr-4 font-semibold text-foreground">NMC</th>
-              <th className="py-2 pr-4 font-semibold text-foreground">LFP</th>
-              <th className="py-2 pr-4 font-semibold text-foreground">
-                Solid-State
-              </th>
+              {anodes.map((a) => (
+                <th
+                  key={a.material}
+                  scope="col"
+                  className={cn(
+                    "rounded-t-xl px-3 py-3 font-semibold text-foreground transition-all duration-300",
+                    focus === a.material && "bg-primary/8 dark:bg-cyan-500/10",
+                    focus && focus !== a.material && "opacity-40"
+                  )}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setFocus(focus === a.material ? null : a.material)}
+                    className="text-left hover:underline hover:underline-offset-4"
+                  >
+                    {a.material}
+                  </button>
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {chemistryRows.map((row) => (
-              <tr key={row.label} className="border-b border-border/60">
-                <td className="py-3 pr-4 font-medium text-muted-foreground">
+            {rows.map((row, ri) => (
+              <tr key={row.label} className="border-b border-border/60 align-top last:border-0">
+                <th scope="row" className="py-3 pr-4 text-left font-medium text-muted-foreground">
                   {row.label}
-                </td>
-                <td className="py-3 pr-4 text-foreground/90">{row.nmc}</td>
-                <td className="py-3 pr-4 text-foreground/90">{row.lfp}</td>
-                <td className="py-3 pr-4 text-foreground/90">
-                  {row.solidState}
-                </td>
+                </th>
+                {anodes.map((a) => (
+                  <td
+                    key={a.material}
+                    className={cn(
+                      "px-3 py-3 transition-all duration-300",
+                      focus === a.material && "bg-primary/8 dark:bg-cyan-500/10",
+                      focus === a.material && ri === rows.length - 1 && "rounded-b-xl",
+                      focus && focus !== a.material && "opacity-40"
+                    )}
+                  >
+                    {row.render(a)}
+                  </td>
+                ))}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-    </Card>
+      <p className="text-xs text-muted-foreground">
+        Energy density is for a full cell, and all values are typical ranges.
+        Real numbers depend on the cathode, cell design, and how the battery is
+        used.
+      </p>
+    </Panel>
   )
 }
