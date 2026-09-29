@@ -39,8 +39,8 @@ export default function ParamsCard({
   setCarbonEnergy,
   carbonSites,
   carbonUndoStack,
-  setCarbonSites,
   undoCarbonSite,
+  clearCarbon,
   graphiteHeight,
   setGraphiteHeight,
   addGraphiteLattice,
@@ -276,10 +276,7 @@ export default function ParamsCard({
                     type="button"
                     variant="outline"
                     className="flex-1 rounded-full"
-                    onClick={() => {
-                      carbonUndoStack.push(new Set(carbonSites))
-                      setCarbonSites(new Set())
-                    }}
+                    onClick={clearCarbon}
                   >
                     Clear Carbon ({carbonSites.size})
                   </Button>
