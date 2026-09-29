@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import DisplayHexGrid from "@/components/pages/sim-page/hex-grid"
 import { Input } from "@/components/ui/input"
 import { Atom, HelpCircle } from "lucide-react"
@@ -119,12 +119,56 @@ function applyCarbonOverlay(
   const out = base.slice()
   for (const key of carbonSites.keys()) {
     const [x, y] = key.split(",").map(Number)
+    // Guard x/y individually: a key from a wider grid (x >= w) would
+    // otherwise wrap into the next row and warp the preview.
+    if (x < 0 || x >= w || y < 0) continue
     const idx = y * w + x
-    if (idx >= 0 && idx < out.length) {
+    if (idx < out.length) {
       out[idx] = CARBON_VALUE
     }
   }
   return out
+}
+
+// Fixed graphite lattice for an nx*ny grid: vertical columns at every other
+// x (one empty lattice column between each), `height` atoms tall starting
+// on the substrate, capped so the top two rows stay free for drops.
+function graphiteKeys(nx: number, ny: number, height: number): string[] {
+  const h = Math.min(Math.max(1, Math.floor(height)), Math.max(1, ny - 3))
+  const xs: number[] = []
+  for (let x = 0; x < nx; x += 2) xs.push(x)
+  // Periodic x: the last column must also keep a gap to column 0.
+  if (xs.length > 1 && nx - xs[xs.length - 1] <= 1) xs.pop()
+  const keys: string[] = []
+  for (const x of xs) for (let y = 1; y <= h; y++) keys.push(`${x},${y}`)
+  return keys
+}
+
+type CarbonSnapshot = {
+  sites: Set<string>
+  graphite: Set<string>
+  height: number | null
+}
+
+// Re-fit stored carbon to a (possibly different) grid size: hand-drawn
+// sites are clipped to the grid, and the graphite lattice is regenerated
+// for the new width/height instead of reusing old coordinates.
+function fitCarbonToGrid(
+  sites: Set<string>,
+  graphite: Set<string>,
+  height: number | null,
+  nx: number,
+  ny: number
+): { sites: Set<string>; graphite: Set<string> } {
+  const out = new Set<string>()
+  for (const key of sites) {
+    if (graphite.has(key)) continue
+    const [x, y] = key.split(",").map(Number)
+    if (x >= 0 && x < nx && y >= 1 && y < ny) out.add(key)
+  }
+  const g = new Set<string>(height === null ? [] : graphiteKeys(nx, ny, height))
+  for (const key of g) out.add(key)
+  return { sites: out, graphite: g }
 }
 
 export default function SimPageClientView() {
@@ -147,8 +191,14 @@ export default function SimPageClientView() {
   const [simTerminated, setSimTerminated] = useState(false)
   const [drawingCarbon, setDrawingCarbon] = useState(false)
   const [carbonSites, setCarbonSites] = useState<Set<string>>(new Set())
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [carbonUndoStack, setCarbonUndoStack] = useState<any[]>([])
+  const [carbonUndoStack, setCarbonUndoStack] = useState<CarbonSnapshot[]>([])
+  // Cells that belong to the graphite lattice, and the column height it was
+  // built with (null = no lattice). Lets the lattice be rebuilt for a new
+  // grid size instead of keeping stale coordinates.
+  const [graphiteSites, setGraphiteSites] = useState<Set<string>>(new Set())
+  const [graphiteHeightApplied, setGraphiteHeightApplied] = useState<
+    number | null
+  >(null)
   const CARBON_SPECIES_COLORS = ["#DC2626"]
   const [carbonEnergy, setCarbonEnergy] = useState(-0.6)
   const [selectedCell, setSelectedCell] = useState<CellInfo | null>(null)
@@ -162,6 +212,23 @@ export default function SimPageClientView() {
     5: "Carbon",
   }
 
+  // Carbon as it applies to the grid currently shown. Before the first run
+  // it's re-fitted to the Width/Height inputs (non-destructively, so typing
+  // an intermediate size doesn't throw away drawn sites).
+  const effectiveCarbon = useMemo(
+    () =>
+      hasRunOnce
+        ? { sites: carbonSites, graphite: graphiteSites }
+        : fitCarbonToGrid(
+            carbonSites,
+            graphiteSites,
+            graphiteHeightApplied,
+            gridDimensions[0],
+            gridDimensions[1]
+          ),
+    [hasRunOnce, carbonSites, graphiteSites, graphiteHeightApplied, gridDimensions]
+  )
+
   // Live preview: before the first run, reflect drawn carbon sites
   // directly on the displayed grid so users can see what they're placing.
   useEffect(() => {
@@ -172,13 +239,13 @@ export default function SimPageClientView() {
         applyCarbonOverlay(
           generateStartingLattice(...gridDimensions),
           gridDimensions[0],
-          carbonSites
+          effectiveCarbon.sites
         )
       )
     }
 
     setDefaultSimState()
-  }, [carbonSites, gridDimensions, hasRunOnce])
+  }, [effectiveCarbon, gridDimensions, hasRunOnce])
 
   // Keep the displayed lattice in sync with the Width/Height inputs
   // before the first run, so carbon can be drawn at the correct size
@@ -354,9 +421,12 @@ export default function SimPageClientView() {
         // this is the main lever on load time, since re-fetching a
         // multi-MB .wasm binary on every visit was otherwise unavoidable.
         const isDev = process.env.NODE_ENV !== "production"
+        // Bump whenever lkmc-wasm.js/.wasm are rebuilt, so browsers don't
+        // keep running a cached old simulator after a deploy.
+        const WASM_VERSION = "2026-09-29"
         const scriptUrl = isDev
           ? `/lkmc-wasm.js?v=${Date.now()}`
-          : `/lkmc-wasm.js`
+          : `/lkmc-wasm.js?v=${WASM_VERSION}`
         const wasmGlueCode = await import(
           /* @vite-ignore */ /* webpackIgnore: true */ scriptUrl
         )
@@ -373,7 +443,9 @@ export default function SimPageClientView() {
           const initializedModule = await moduleFactory({
             locateFile: (path: string) => {
               if (path.endsWith(".wasm")) {
-                return isDev ? `/${path}?v=${wasmCacheBust}` : `/${path}`
+                return isDev
+                  ? `/${path}?v=${wasmCacheBust}`
+                  : `/${path}?v=${WASM_VERSION}`
               }
               return path
             },
@@ -582,11 +654,21 @@ export default function SimPageClientView() {
     // Apply user-drawn carbon (graphite anode) sites, then rebuild the
     // rate table once for all of them together.
 
-    for (const key of carbonSites) {
+    // Re-fit carbon to this run's grid size (clip drawn sites, rebuild the
+    // graphite lattice for the new width/height), commit it, then place it.
+    const fitted = fitCarbonToGrid(
+      carbonSites,
+      graphiteSites,
+      graphiteHeightApplied,
+      nx,
+      ny
+    )
+    setCarbonSites(fitted.sites)
+    setGraphiteSites(fitted.graphite)
+    prevCarbonSitesRef.current = fitted.sites
+    for (const key of fitted.sites) {
       const [cx, cy] = key.split(",").map(Number)
-      if (cx < nx && cy < ny) {
-        wasmModule._mark_carbon(cx, cy)
-      }
+      wasmModule._mark_carbon(cx, cy)
     }
     wasmModule._finalize_carbon_placement()
 
@@ -715,92 +797,117 @@ export default function SimPageClientView() {
     return () => window.removeEventListener("keydown", onKeyDown)
   }, [isRunning, isPaused, wasmModule])
 
+  // Carbon exactly as it applies to the visible grid, used as the base for
+  // any edit (so edits always act on what the user actually sees).
+  const currentCarbon = (): { sites: Set<string>; graphite: Set<string> } =>
+    effectiveCarbon
+
+  const pushCarbonUndo = () =>
+    setCarbonUndoStack((stack) =>
+      [
+        ...stack,
+        {
+          sites: new Set(carbonSites),
+          graphite: new Set(graphiteSites),
+          height: graphiteHeightApplied,
+        },
+      ].slice(-100)
+    )
+
+  // Running sim without Live Mode: push carbon edits straight to the sim.
+  // (With Live Mode on, the carbon-sync effect below does this.)
+  const pushCarbonDiffToSim = (before: Set<string>, after: Set<string>) => {
+    if (!wasmModule || !hasRunOnce || isLiveMode) return
+    let changed = false
+    for (const key of after) {
+      if (!before.has(key)) {
+        const [x, y] = key.split(",").map(Number)
+        wasmModule._mark_carbon(x, y)
+        changed = true
+      }
+    }
+    for (const key of before) {
+      if (!after.has(key)) {
+        const [x, y] = key.split(",").map(Number)
+        wasmModule._unmark_carbon(x, y)
+        changed = true
+      }
+    }
+    if (changed) {
+      wasmModule._finalize_carbon_placement()
+      wasmModule._force_update_frontend()
+    }
+  }
+
   const toggleCarbonSite = (x: number, y: number) => {
     // Ensure substrate not turned to carbon
-
     const index = y * gridDimensions[0] + x
+    if (simState[index] === 3) return
 
-    if (simState[index] === 3) {
-      return
+    const base = currentCarbon()
+    const key = `${x},${y}`
+    const next = new Set<string>(base.sites)
+    const nextGraphite = new Set<string>(base.graphite)
+    if (next.has(key)) {
+      next.delete(key)
+      nextGraphite.delete(key)
+    } else {
+      next.add(key)
     }
-
-    setCarbonSites((prev) => {
-      setCarbonUndoStack((currentStack) => {
-        const newStack = [...currentStack, new Set(prev)]
-
-        if (newStack.length > 100) {
-          newStack.shift()
-        }
-
-        return newStack
-      })
-      const key = `${x},${y}`
-      const next = new Set(prev)
-      if (next.has(key)) {
-        next.delete(key)
-      } else {
-        next.add(key)
-      }
-      return next
-    })
+    pushCarbonUndo()
+    setCarbonSites(next)
+    setGraphiteSites(nextGraphite)
   }
 
   const undoCarbonSite = () => {
     if (carbonUndoStack.length === 0) return
-
     const prev = carbonUndoStack[carbonUndoStack.length - 1]
+    setCarbonSites(prev.sites)
+    setGraphiteSites(prev.graphite)
+    setGraphiteHeightApplied(prev.height)
+    setCarbonUndoStack((stack) => stack.slice(0, -1))
+  }
 
-    if (prev !== undefined) {
-      setCarbonSites(prev)
-
-      setCarbonUndoStack((currentStack) => currentStack.slice(0, -1))
-    }
+  const clearCarbon = () => {
+    const before = currentCarbon().sites
+    if (before.size === 0) return
+    pushCarbonUndo()
+    setCarbonSites(new Set<string>())
+    setGraphiteSites(new Set<string>())
+    setGraphiteHeightApplied(null)
+    pushCarbonDiffToSim(before, new Set<string>())
   }
 
   const [graphiteHeight, setGraphiteHeight] = useState("15")
 
   // Fixed (not random) graphite lattice: identical vertical columns of
   // `graphiteHeight` carbon atoms standing on the substrate, one empty
-  // lattice column between each.
+  // lattice column between each. Replaces any previous lattice, and is
+  // rebuilt automatically if the grid size changes.
   const addGraphiteLattice = () => {
     const [nx, ny] = gridDimensions
-    const cap = Math.max(1, ny - 3) // keep the top two rows free for drops
-    const h = Math.min(
-      Math.max(1, Math.floor(Number(graphiteHeight) || 15)),
-      cap
-    )
+    const h = Math.max(1, Math.floor(Number(graphiteHeight) || 15))
+    const base = currentCarbon()
 
-    // Columns at every other x -> one empty lattice column between each.
-    const xs: number[] = []
-    for (let x = 0; x < nx; x += 2) xs.push(x)
-    // Periodic x: the last column must also keep a gap to column 0.
-    if (xs.length > 1 && nx - xs[xs.length - 1] <= 1) xs.pop()
+    // Drop the previous lattice (hand-drawn cells are kept).
+    const next = new Set<string>(base.sites)
+    for (const key of base.graphite) next.delete(key)
 
-    const next = new Set(carbonSites)
-    const added: [number, number][] = []
-    for (const x of xs) {
-      for (let y = 1; y <= h; y++) {
-        const key = `${x},${y}`
-        if (next.has(key)) continue
-        // during mid run - don't claim a cell that already holds an atom.
-        if (hasRunOnce && simState[y * nx + x] !== 0) continue
-        next.add(key)
-        added.push([x, y])
-      }
+    const nextGraphite = new Set<string>()
+    for (const key of graphiteKeys(nx, ny, h)) {
+      const [x, y] = key.split(",").map(Number)
+      const v = simState[y * nx + x]
+      // Mid-run, never claim a cell that already holds an atom.
+      if (hasRunOnce && v !== 0 && v !== CARBON_VALUE) continue
+      nextGraphite.add(key)
+      next.add(key)
     }
-    if (added.length === 0) return
 
-    setCarbonUndoStack((stack) => [...stack, new Set(carbonSites)].slice(-100))
+    pushCarbonUndo()
     setCarbonSites(next)
-
-    // Running sim without Live Mode: push directly so the button always
-    // affects the current run. (With Live Mode on, the carbon-sync effect
-    // below already pushes new sites.)
-    if (wasmModule && hasRunOnce && !isLiveMode) {
-      for (const [x, y] of added) wasmModule._mark_carbon(x, y)
-      wasmModule._finalize_carbon_placement()
-      wasmModule._force_update_frontend()
-    }
+    setGraphiteSites(nextGraphite)
+    setGraphiteHeightApplied(h)
+    pushCarbonDiffToSim(base.sites, next)
   }
 
   const inspectCell = (x: number, y: number) => {
@@ -1170,8 +1277,9 @@ export default function SimPageClientView() {
                 setDrawingCarbon={setDrawingCarbon}
                 carbonEnergy={carbonEnergy}
                 setCarbonEnergy={setCarbonEnergy}
-                carbonSites={carbonSites}
+                carbonSites={effectiveCarbon.sites}
                 carbonUndoStack={carbonUndoStack}
+                clearCarbon={clearCarbon}
                 setCarbonSites={setCarbonSites}
                 undoCarbonSite={undoCarbonSite}
                 graphiteHeight={graphiteHeight}
