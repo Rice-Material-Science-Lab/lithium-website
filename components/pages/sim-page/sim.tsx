@@ -757,39 +757,28 @@ export default function SimPageClientView() {
     }
   }
 
-  const [graphiteMinH, setGraphiteMinH] = useState("10")
-  const [graphiteMaxH, setGraphiteMaxH] = useState("20")
+  const [graphiteHeight, setGraphiteHeight] = useState("15")
 
+  // Fixed (not random) graphite lattice: identical vertical columns of
+  // `graphiteHeight` carbon atoms standing on the substrate, one empty
+  // lattice column between each.
   const addGraphiteLattice = () => {
     const [nx, ny] = gridDimensions
-    const lo = Math.max(1, Math.floor(Number(graphiteMinH) || 1))
-    const hi = Math.max(lo, Math.floor(Number(graphiteMaxH) || lo))
-    const cap = Math.max(0, ny - 3) // keep the top two rows free for drops
-
-    // Seeded RNG (mulberry32) so a fixed Seed reproduces the same lattice.
-    const trimmedSeed = seed.trim()
-    let a =
-      (trimmedSeed !== "" && !Number.isNaN(Number(trimmedSeed))
-        ? Math.floor(Number(trimmedSeed))
-        : Math.floor(Math.random() * 2 ** 31)) >>> 0
-    const rand = () => {
-      a = (a + 0x6d2b79f5) >>> 0
-      let t = a
-      t = Math.imul(t ^ (t >>> 15), t | 1)
-      t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-    }
+    const cap = Math.max(1, ny - 3) // keep the top two rows free for drops
+    const h = Math.min(
+      Math.max(1, Math.floor(Number(graphiteHeight) || 15)),
+      cap
+    )
 
     // Columns at every other x -> one empty lattice column between each.
     const xs: number[] = []
     for (let x = 0; x < nx; x += 2) xs.push(x)
-    // the last column must also keep a gap to column 0.
+    // Periodic x: the last column must also keep a gap to column 0.
     if (xs.length > 1 && nx - xs[xs.length - 1] <= 1) xs.pop()
 
     const next = new Set(carbonSites)
     const added: [number, number][] = []
     for (const x of xs) {
-      const h = Math.min(lo + Math.floor(rand() * (hi - lo + 1)), cap)
       for (let y = 1; y <= h; y++) {
         const key = `${x},${y}`
         if (next.has(key)) continue
@@ -1185,10 +1174,8 @@ export default function SimPageClientView() {
                 carbonUndoStack={carbonUndoStack}
                 setCarbonSites={setCarbonSites}
                 undoCarbonSite={undoCarbonSite}
-                graphiteMinH={graphiteMinH}
-                setGraphiteMinH={setGraphiteMinH}
-                graphiteMaxH={graphiteMaxH}
-                setGraphiteMaxH={setGraphiteMaxH}
+                graphiteHeight={graphiteHeight}
+                setGraphiteHeight={setGraphiteHeight}
                 addGraphiteLattice={addGraphiteLattice}
                 temp={temp}
                 setTemp={setTemp}
