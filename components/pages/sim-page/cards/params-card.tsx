@@ -41,10 +41,8 @@ export default function ParamsCard({
   carbonUndoStack,
   setCarbonSites,
   undoCarbonSite,
-  graphiteMinH,
-  setGraphiteMinH,
-  graphiteMaxH,
-  setGraphiteMaxH,
+  graphiteHeight,
+  setGraphiteHeight,
   addGraphiteLattice,
   temp,
   setTemp,
@@ -210,44 +208,26 @@ export default function ParamsCard({
                     </TooltipTrigger>
                     <TooltipContent>
                       Adds vertical, parallel carbon columns on the substrate,
-                      one empty lattice column apart. Each column gets a random
-                      height between min and max.
+                      one empty lattice column apart. Every column has the
+                      same height (typically 10&ndash;20 atoms).
                     </TooltipContent>
                   </Tooltip>
                 </Label>
-                <div className="flex gap-2">
-                  <div className="flex flex-1 flex-col gap-1">
-                    <Label
-                      htmlFor="graphite-min-input"
-                      className="text-xs text-muted-foreground"
-                    >
-                      Min height
-                    </Label>
-                    <Input
-                      id="graphite-min-input"
-                      type="number"
-                      min={1}
-                      className="rounded-xl"
-                      value={graphiteMinH}
-                      onChange={(e) => setGraphiteMinH(e.target.value)}
-                    />
-                  </div>
-                  <div className="flex flex-1 flex-col gap-1">
-                    <Label
-                      htmlFor="graphite-max-input"
-                      className="text-xs text-muted-foreground"
-                    >
-                      Max height
-                    </Label>
-                    <Input
-                      id="graphite-max-input"
-                      type="number"
-                      min={1}
-                      className="rounded-xl"
-                      value={graphiteMaxH}
-                      onChange={(e) => setGraphiteMaxH(e.target.value)}
-                    />
-                  </div>
+                <div className="flex flex-col gap-1">
+                  <Label
+                    htmlFor="graphite-height-input"
+                    className="text-xs text-muted-foreground"
+                  >
+                    Column height (atoms)
+                  </Label>
+                  <Input
+                    id="graphite-height-input"
+                    type="number"
+                    min={1}
+                    className="rounded-xl"
+                    value={graphiteHeight}
+                    onChange={(e) => setGraphiteHeight(e.target.value)}
+                  />
                 </div>
                 <Button
                   type="button"

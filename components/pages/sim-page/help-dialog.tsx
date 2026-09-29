@@ -186,7 +186,7 @@ export default function HelpDialog({
                   Add Graphite Lattice
                 </span>{" "}
                 places vertical carbon columns (one lattice spacing apart,
-                10&ndash;20 atoms tall by default) along the substrate in one
+                all the same height, 15 atoms by default) along the substrate in one
                 click. Use{" "}
                 <span className="font-medium text-foreground">Undo</span> or{" "}
                 <span className="font-medium text-foreground">
