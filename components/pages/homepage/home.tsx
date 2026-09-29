@@ -13,14 +13,18 @@ import {
   FlaskConical,
   Zap,
 } from "lucide-react"
-import { HexagonPattern } from "../../ui/hexagon-pattern"
 import { Highlighter } from "@/components/ui/highlighter"
-import { cn } from "@/lib/utils"
 
 import BatteryBasics from "./battery-basics"
 import DendriteFormation from "./dendrite-formation"
 import { ChapterNav, ReadingProgress, type Chapter } from "./chapter-nav"
-import { Eyebrow, FeatureCard, Panel, Reveal, SectionShell } from "./layout-primitives"
+import {
+  Eyebrow,
+  FeatureCard,
+  Panel,
+  Reveal,
+  SectionShell,
+} from "./layout-primitives"
 import PreventionSection from "./section-cards/prevention-section"
 import ChemistryComparison from "./section-cards/chemistry-comparison"
 import DetectionSection from "./section-cards/detection-methods"
@@ -28,6 +32,7 @@ import SolutionsSection from "./section-cards/solution-section"
 import StatsStrip from "./section-cards/stats-strip"
 import GlossarySection from "./section-cards/glossary-section"
 import QuizSection from "./section-cards/quiz-section"
+import DendriteVideos from "./dendrite-videos"
 
 const chapters: Chapter[] = [
   { id: "basics", label: "How batteries work" },
@@ -96,7 +101,9 @@ function DailyLifeCard({
           className="object-contain"
         />
       </div>
-      <p className="text-center text-sm font-semibold text-foreground">{label}</p>
+      <p className="text-center text-sm font-semibold text-foreground">
+        {label}
+      </p>
     </div>
   )
 }
@@ -104,7 +111,7 @@ function DailyLifeCard({
 const HERO_MASK =
   "linear-gradient(to bottom, white 0%, white 70%, transparent 100%), linear-gradient(to right, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.5) 40%, rgba(255,255,255,0.3) 100%)"
 
-function Hero({ isDark }: { isDark: boolean }) {
+function Hero() {
   const reduced = useReducedMotion()
   const rise = (delay: number) =>
     reduced
@@ -112,7 +119,11 @@ function Hero({ isDark }: { isDark: boolean }) {
       : {
           initial: { opacity: 0, y: 20 },
           animate: { opacity: 1, y: 0 },
-          transition: { duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] as const },
+          transition: {
+            duration: 0.8,
+            delay,
+            ease: [0.22, 1, 0.36, 1] as const,
+          },
         }
 
   return (
@@ -127,7 +138,7 @@ function Hero({ isDark }: { isDark: boolean }) {
           WebkitMaskComposite: "source-in",
         }}
       >
-        <HexagonPattern
+        {/* <HexagonPattern
           gap={10}
           radius={30}
           color={isDark ? "oklch(1 0 0 / 10%)" : "#727272"}
@@ -137,7 +148,8 @@ function Hero({ isDark }: { isDark: boolean }) {
             "transform-[rotateX(20deg)_rotateY(20deg)] perspective-[1000px]"
           )}
           colored={30}
-        />
+        /> */}
+        <DendriteVideos />
       </div>
       {/* soft wash so the text always has contrast over the hexagons */}
       <div
@@ -170,7 +182,10 @@ function Hero({ isDark }: { isDark: boolean }) {
             An interactive guide to why lithium-ion batteries fail, what grows
             inside them, and how researchers are working to stop it.
           </motion.p>
-          <motion.div {...rise(0.3)} className="flex flex-wrap items-center gap-3">
+          <motion.div
+            {...rise(0.3)}
+            className="flex flex-wrap items-center gap-3"
+          >
             <a
               href="#basics"
               className="inline-flex h-12 items-center gap-2 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30 dark:bg-cyan-600"
@@ -222,7 +237,7 @@ export default function HomepageClientView() {
   return (
     <div className="min-h-screen bg-background font-sans">
       <ReadingProgress />
-      <Hero isDark={isDark} />
+      <Hero />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:grid lg:grid-cols-[200px_minmax(0,1fr)] lg:gap-14 lg:px-8">
         <ChapterNav chapters={chapters} />
@@ -248,7 +263,12 @@ export default function HomepageClientView() {
             <div className="space-y-6">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 {risks.map((r) => (
-                  <FeatureCard key={r.title} icon={r.icon} title={r.title} tone="danger">
+                  <FeatureCard
+                    key={r.title}
+                    icon={r.icon}
+                    title={r.title}
+                    tone="danger"
+                  >
                     {r.text}
                   </FeatureCard>
                 ))}
@@ -279,7 +299,9 @@ export default function HomepageClientView() {
                     <FlaskConical className="h-6 w-6" />
                   </div>
                   <div>
-                    <p className="text-lg font-bold">Watch dendrites grow atom by atom</p>
+                    <p className="text-lg font-bold">
+                      Watch dendrites grow atom by atom
+                    </p>
                     <p className="mt-1 text-sm text-primary-foreground/80">
                       Our kinetic Monte Carlo simulator lets you change the
                       conditions and see what the lithium does.
@@ -394,7 +416,9 @@ export default function HomepageClientView() {
       <footer className="border-t border-border py-10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 text-sm text-muted-foreground sm:flex-row sm:px-8">
           <p>
-            <span className="font-heading font-bold text-foreground">Dendrite Lab</span>{" "}
+            <span className="font-heading font-bold text-foreground">
+              Dendrite Lab
+            </span>{" "}
             · Rice University Materials Science Lab
           </p>
           <nav className="flex gap-5">
@@ -404,7 +428,14 @@ export default function HomepageClientView() {
             <Link href="/library" className="hover:text-foreground">
               Library
             </Link>
-            <a href="#top" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }) }} className="hover:text-foreground">
+            <a
+              href="#top"
+              onClick={(e) => {
+                e.preventDefault()
+                window.scrollTo({ top: 0, behavior: "smooth" })
+              }}
+              className="hover:text-foreground"
+            >
               Back to top
             </a>
           </nav>
