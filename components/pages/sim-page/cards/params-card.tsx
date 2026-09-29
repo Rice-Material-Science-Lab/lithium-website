@@ -105,6 +105,7 @@ export default function ParamsCard({
                   id="live-mode"
                   checked={isLiveMode}
                   onCheckedChange={setIsLiveMode}
+                  aria-label="live mode toggle"
                 />
               </AlertAction>
               <BorderBeam
@@ -187,6 +188,8 @@ export default function ParamsCard({
                 </div>
                 <AlertAction className="mt-0 shrink-0">
                   <Switch
+                  
+                  aria-label="draw carbon toggle"
                     id="draw-carbon"
                     checked={drawingCarbon}
                     onCheckedChange={setDrawingCarbon}
@@ -262,7 +265,7 @@ export default function ParamsCard({
                     >
                       <span>Temperature (K)</span>
                       <Tooltip>
-                        <TooltipTrigger aria-label={"temerature help"} className="ml-2" type="button">
+                        <TooltipTrigger aria-label={"temperature help"} className="ml-2" type="button">
                           <CircleQuestionMarkIcon size={17} />
                         </TooltipTrigger>
                         <TooltipContent>
@@ -275,6 +278,8 @@ export default function ParamsCard({
                     </span>
                   </div>
                   <Slider
+                    
+                  aria-label="temperature input"
                     id="temp-input"
                     min={100}
                     max={600}

@@ -75,6 +75,7 @@ function NewsPanel() {
         size="icon-sm"
         className={`hover:bg-white/10 ${open ? "text-white" : "text-white/70 hover:text-white"}`}
         onClick={handleOpen}
+        aria-label="news tab toggle"
       >
         <Newspaper className="h-5 w-5" />
       </Button>
