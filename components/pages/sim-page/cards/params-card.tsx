@@ -128,7 +128,7 @@ export default function ParamsCard({
               >
                 Width
                 <Tooltip>
-                  <TooltipTrigger className="ml-2" type="button">
+                  <TooltipTrigger aria-label={"width help"} className="ml-2" type="button">
                     <CircleQuestionMarkIcon size={17}></CircleQuestionMarkIcon>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -150,7 +150,7 @@ export default function ParamsCard({
               >
                 Height
                 <Tooltip>
-                  <TooltipTrigger className="ml-2" type="button">
+                  <TooltipTrigger aria-label={"height help"} className="ml-2" type="button">
                     <CircleQuestionMarkIcon size={17}></CircleQuestionMarkIcon>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -202,7 +202,7 @@ export default function ParamsCard({
                     >
                       <span>Carbon Atom Bond Energy</span>
                       <Tooltip>
-                        <TooltipTrigger className="ml-2" type="button">
+                        <TooltipTrigger aria-label={"bond energy help"} className="ml-2" type="button">
                           <CircleQuestionMarkIcon size={17} />
                         </TooltipTrigger>
                         <TooltipContent>
@@ -262,7 +262,7 @@ export default function ParamsCard({
                     >
                       <span>Temperature (K)</span>
                       <Tooltip>
-                        <TooltipTrigger className="ml-2" type="button">
+                        <TooltipTrigger aria-label={"temerature help"} className="ml-2" type="button">
                           <CircleQuestionMarkIcon size={17} />
                         </TooltipTrigger>
                         <TooltipContent>
@@ -295,7 +295,7 @@ export default function ParamsCard({
                         Drop Rate (d<sub>0</sub>)
                       </span>
                       <Tooltip>
-                        <TooltipTrigger className="ml-2" type="button">
+                        <TooltipTrigger aria-label={"drop rate help"} className="ml-2" type="button">
                           <CircleQuestionMarkIcon size={17} />
                         </TooltipTrigger>
                         <TooltipContent>
@@ -328,7 +328,7 @@ export default function ParamsCard({
               >
                 Steps
                 <Tooltip>
-                  <TooltipTrigger className="ml-2" type="button">
+                  <TooltipTrigger aria-label={"step count help"} className="ml-2" type="button">
                     <CircleQuestionMarkIcon size={17}></CircleQuestionMarkIcon>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -352,7 +352,7 @@ export default function ParamsCard({
               >
                 Update Frequency (steps)
                 <Tooltip>
-                  <TooltipTrigger className="ml-2" type="button">
+                  <TooltipTrigger aria-label={"update interval help"} className="ml-2" type="button">
                     <CircleQuestionMarkIcon size={17}></CircleQuestionMarkIcon>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -377,7 +377,7 @@ export default function ParamsCard({
               >
                 Seed (optional)
                 <Tooltip>
-                  <TooltipTrigger className="ml-2" type="button">
+                  <TooltipTrigger aria-label={"seed help"} className="ml-2" type="button">
                     <CircleQuestionMarkIcon size={17}></CircleQuestionMarkIcon>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -418,7 +418,7 @@ export default function ParamsCard({
                             Bonded Energy e<sub>0</sub> (eV)
                           </span>
                           <Tooltip>
-                            <TooltipTrigger className="ml-2" type="button">
+                            <TooltipTrigger aria-label={"bonded energy help"} className="ml-2" type="button">
                               <CircleQuestionMarkIcon size={17} />
                             </TooltipTrigger>
                             <TooltipContent>
@@ -455,7 +455,7 @@ export default function ParamsCard({
                             Atom-substrate e<sub>1</sub> (eV)
                           </span>
                           <Tooltip>
-                            <TooltipTrigger className="ml-2" type="button">
+                            <TooltipTrigger aria-label={"atom substrate bond energy help"} className="ml-2" type="button">
                               <CircleQuestionMarkIcon size={17} />
                             </TooltipTrigger>
                             <TooltipContent>
@@ -490,7 +490,7 @@ export default function ParamsCard({
                         >
                           <span>Free Attempt Freq. (v_f)</span>
                           <Tooltip>
-                            <TooltipTrigger className="ml-2" type="button">
+                            <TooltipTrigger aria-label={"free attempt frequency help"} className="ml-2" type="button">
                               <CircleQuestionMarkIcon size={17} />
                             </TooltipTrigger>
                             <TooltipContent>
@@ -524,7 +524,7 @@ export default function ParamsCard({
                         >
                           <span>Dep. Attempt Freq. (v_d)</span>
                           <Tooltip>
-                            <TooltipTrigger className="ml-2" type="button">
+                            <TooltipTrigger aria-label={"deposition attempt frequency help"} className="ml-2" type="button">
                               <CircleQuestionMarkIcon size={17} />
                             </TooltipTrigger>
                             <TooltipContent>
@@ -556,7 +556,7 @@ export default function ParamsCard({
                         >
                           <span>Passivation Attempt Freq. (v_p)</span>
                           <Tooltip>
-                            <TooltipTrigger className="ml-2" type="button">
+                            <TooltipTrigger aria-label={"passivation attempt frequency help"} className="ml-2" type="button">
                               <CircleQuestionMarkIcon size={17} />
                             </TooltipTrigger>
                             <TooltipContent>
