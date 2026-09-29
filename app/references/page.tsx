@@ -1084,7 +1084,7 @@ export default function ReferencesClientView() {
                 <SearchX className="h-8 w-8 text-muted-foreground/60" />
                 <p className="mt-4 font-semibold text-foreground">No papers match that search</p>
                 <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-                  Try an author's surname, a journal like “Nature”, a year, or a technique such as
+                  Try an author&apos;s surname, a journal like “Nature”, a year, or a technique such as
                   “cryo” or “ultrasound”.
                 </p>
                 <button
@@ -1134,7 +1134,7 @@ export default function ReferencesClientView() {
             <p className="flex items-start gap-2 px-1 text-xs leading-relaxed text-muted-foreground">
               <BookOpen className="mt-0.5 h-3.5 w-3.5 shrink-0" />
               Links resolve through DOI to each publisher. Some papers sit behind a paywall; an
-              open-access copy can often be found through a university library or the authors'
+              open-access copy can often be found through a university library or the authors&apos;
               own pages.
             </p>
           </div>
