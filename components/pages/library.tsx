@@ -1,6 +1,12 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react"
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react"
 import {
   ArrowUpRight,
   ChevronDown,
@@ -13,7 +19,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-
+import { Reveal } from "./homepage/layout-primitives"
 
 type ClipKind = "simulation" | "experimental"
 type ClipCategory = "simulation" | "microscopy" | "failure"
@@ -43,8 +49,6 @@ interface CatastrophicEvent {
   imageAlt?: string
   learnMoreUrl: string
 }
-
-
 
 const yt = (id: string) => ({
   embedUrl: `https://www.youtube.com/embed/${id}`,
@@ -149,7 +153,8 @@ const clips: VideoClip[] = [
     ...yt("XP9w6mGo-mE"),
     source: "Chemical & Engineering News",
     year: 2019,
-    sourceUrl: "https://cen.acs.org/energy/energy-storage-/Video-Battery-scientists-tackle-dendrite/97/i48",
+    sourceUrl:
+      "https://cen.acs.org/energy/energy-storage-/Video-Battery-scientists-tackle-dendrite/97/i48",
   },
   {
     id: "exp-rice",
@@ -236,7 +241,8 @@ const clips: VideoClip[] = [
     thumbnailUrl: "https://vumbnail.com/768558655.jpg",
     source: "UL Fire Safety Research Institute",
     year: 2022,
-    sourceUrl: "https://fsri.org/resource/intentional-e-scooter-overcharge-bedroom",
+    sourceUrl:
+      "https://fsri.org/resource/intentional-e-scooter-overcharge-bedroom",
   },
   {
     id: "fail-cbs",
@@ -270,8 +276,7 @@ const clips: VideoClip[] = [
     title: "Lithium Battery Explosion Test",
     kind: "experimental",
     category: "failure",
-    takeaway:
-      "What happens when a lithium battery is pushed past its limits.",
+    takeaway: "What happens when a lithium battery is pushed past its limits.",
     explanation:
       "A controlled explosion test demonstrating the fire risk of lithium batteries when subjected to stress or failure conditions.",
     ...yt("NKsEvsB6DHI"),
@@ -311,8 +316,7 @@ const clips: VideoClip[] = [
     title: "E-Bike Shop Fire After Battery Explodes",
     kind: "experimental",
     category: "failure",
-    takeaway:
-      "News footage of a real e-bike battery fire in a Chicago shop.",
+    takeaway: "News footage of a real e-bike battery fire in a Chicago shop.",
     explanation:
       "ABC 7 Chicago covers a fire at an e-bike shop that started when a lithium battery exploded — an example of the risk from unregulated or damaged e-bike packs, especially where many are stored and charged together.",
     ...yt("9TsieJbjXaI"),
@@ -335,7 +339,6 @@ const clips: VideoClip[] = [
   },
 ]
 
-
 const events: CatastrophicEvent[] = [
   {
     id: "ups-6",
@@ -346,7 +349,7 @@ const events: CatastrophicEvent[] = [
     description:
       "A Boeing 747-400 freighter crashed near Dubai after a fire broke out in the main cargo deck, which was carrying a large shipment of lithium batteries. Smoke filled the cockpit within minutes. The crash led to tighter international rules on shipping lithium batteries by air.",
     imageUrl:
-    "https://upload.wikimedia.org/wikipedia/commons/4/49/N571UP.jpg?utm_source=en.wikipedia.org&utm_campaign=index&utm_content=original",
+      "https://upload.wikimedia.org/wikipedia/commons/4/49/N571UP.jpg?utm_source=en.wikipedia.org&utm_campaign=index&utm_content=original",
     learnMoreUrl: "https://en.wikipedia.org/wiki/UPS_Airlines_Flight_6",
   },
   {
@@ -358,7 +361,7 @@ const events: CatastrophicEvent[] = [
     description:
       "The FAA grounded all Boeing 787s after two lithium-ion battery incidents within nine days. An internal short circuit in a battery cell led to thermal runaway that spread to neighbouring cells — the first fleet-wide grounding of an airliner since 1979.",
     imageUrl:
-    "https://static0.simpleflyingimages.com/wordpress/wp-content/uploads/2022/03/GettyImages-165716532-1000x601.jpg?q=50&fit=crop&w=992&h=558&dpr=1.5",
+      "https://static0.simpleflyingimages.com/wordpress/wp-content/uploads/2022/03/GettyImages-165716532-1000x601.jpg?q=50&fit=crop&w=992&h=558&dpr=1.5",
     learnMoreUrl: "https://simpleflying.com/boeing-787-battery-issues/",
   },
   {
@@ -440,11 +443,10 @@ const events: CatastrophicEvent[] = [
     description:
       "A fire broke out at Vistra’s 300 MW battery building at Moss Landing, one of the largest grid batteries in the world. It burned for days, forced evacuations and closed Highway 1, and renewed debate over siting large indoor battery installations.",
     imageUrl:
-    "https://upload.wikimedia.org/wikipedia/commons/3/33/Moss_Landing_Battery_Fire.jpg?utm_source=en.wikipedia.org&utm_campaign=index&utm_content=original",
+      "https://upload.wikimedia.org/wikipedia/commons/3/33/Moss_Landing_Battery_Fire.jpg?utm_source=en.wikipedia.org&utm_campaign=index&utm_content=original",
     learnMoreUrl: "https://en.wikipedia.org/wiki/Moss_Landing_Power_Plant",
   },
 ]
-
 
 const categoryMeta: Record<
   ClipCategory,
@@ -478,8 +480,6 @@ const kindLabel: Record<ClipKind, string> = {
   experimental: "Experimental",
 }
 
-
-
 function withAutoplay(url: string) {
   if (url.includes("youtube.com") || url.includes("vimeo.com")) {
     return `${url}${url.includes("?") ? "&" : "?"}autoplay=1`
@@ -501,6 +501,7 @@ function ImageWithFallback({
   const [errored, setErrored] = useState(false)
   if (!src || errored) return <>{fallback}</>
   return (
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={src}
       alt={alt}
@@ -511,11 +512,17 @@ function ImageWithFallback({
   )
 }
 
-function KindBadge({ kind, className = "" }: { kind: ClipKind; className?: string }) {
+function KindBadge({
+  kind,
+  className = "",
+}: {
+  kind: ClipKind
+  className?: string
+}) {
   const Icon = kind === "simulation" ? Cpu : Microscope
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider backdrop-blur ${
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wider uppercase backdrop-blur ${
         kind === "simulation"
           ? "bg-background/90 text-primary ring-1 ring-primary/30"
           : "bg-foreground/85 text-background"
@@ -538,7 +545,7 @@ function SectionHeader({
 }) {
   return (
     <div className="space-y-2">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+      <p className="text-xs font-semibold tracking-[0.18em] text-primary uppercase">
         {eyebrow}
       </p>
       <h2 className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
@@ -557,7 +564,13 @@ function SectionHeader({
 // Video viewer (modal)
 // ─────────────────────────────────────────────────────────────────────────────
 
-function VideoViewer({ clip, onClose }: { clip: VideoClip; onClose: () => void }) {
+function VideoViewer({
+  clip,
+  onClose,
+}: {
+  clip: VideoClip
+  onClose: () => void
+}) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose()
     const prev = document.body.style.overflow
@@ -584,7 +597,7 @@ function VideoViewer({ clip, onClose }: { clip: VideoClip; onClose: () => void }
         <button
           onClick={onClose}
           aria-label="Close video"
-          className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/80"
+          className="absolute top-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/80"
         >
           <X className="h-4 w-4" />
         </button>
@@ -646,7 +659,7 @@ function VideoCard({ clip, onOpen }: { clip: VideoClip; onOpen: () => void }) {
   return (
     <button
       onClick={onOpen}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-border/70 bg-card text-left shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      className="group flex flex-col overflow-hidden rounded-2xl border border-border/70 bg-card text-left shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
       aria-label={`Watch ${clip.title}`}
     >
       <div className="relative aspect-video w-full overflow-hidden bg-muted">
@@ -655,13 +668,13 @@ function VideoCard({ clip, onOpen }: { clip: VideoClip; onOpen: () => void }) {
           alt=""
           className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           fallback={
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 via-primary/5 to-transparent">
+            <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-primary/20 via-primary/5 to-transparent">
               <Icon className="h-10 w-10 text-primary/40" />
             </div>
           }
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/0 to-black/0" />
-        <KindBadge kind={clip.kind} className="absolute left-3 top-3" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/50 via-black/0 to-black/0" />
+        <KindBadge kind={clip.kind} className="absolute top-3 left-3" />
         <div className="absolute inset-0 flex items-center justify-center">
           <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 text-primary shadow-lg transition duration-300 group-hover:scale-110 group-hover:bg-white">
             <Play className="ml-0.5 h-5 w-5 fill-current" />
@@ -670,7 +683,7 @@ function VideoCard({ clip, onOpen }: { clip: VideoClip; onOpen: () => void }) {
       </div>
 
       <div className="flex flex-1 flex-col gap-2 p-4">
-        <h3 className="font-heading text-[15px] font-semibold leading-snug text-foreground">
+        <h3 className="font-heading text-[15px] leading-snug font-semibold text-foreground">
           {clip.title}
         </h3>
         <p className="line-clamp-2 flex-1 text-[13px] leading-relaxed text-muted-foreground">
@@ -692,12 +705,19 @@ function VideoLibrary() {
   const closeViewer = useCallback(() => setOpenClip(null), [])
 
   const counts = useMemo(() => {
-    const c: Record<ClipCategory, number> = { simulation: 0, microscopy: 0, failure: 0 }
+    const c: Record<ClipCategory, number> = {
+      simulation: 0,
+      microscopy: 0,
+      failure: 0,
+    }
     clips.forEach((clip) => c[clip.category]++)
     return c
   }, [])
 
-  const filtered = useMemo(() => clips.filter((c) => c.category === active), [active])
+  const filtered = useMemo(
+    () => clips.filter((c) => c.category === active),
+    [active]
+  )
   const INITIAL = 6
   const displayed = showAll ? filtered : filtered.slice(0, INITIAL)
   const remaining = filtered.length - INITIAL
@@ -709,92 +729,101 @@ function VideoLibrary() {
   ]
 
   return (
-    <section className="space-y-6">
-      <SectionHeader
-        eyebrow="Video Library"
-        title="Watch dendrites form and its effects"
-        description="Clips are split into simulated footage (models and animations) and experimental footage (real recordings from labs and fire tests). Click through the videos to learn more about battery hazards and how it works."
-      />
+    <Reveal>
+      <section className="space-y-6">
+        <SectionHeader
+          eyebrow="Video Library"
+          title="Watch dendrites form and its effects"
+          description="Clips are split into simulated footage (models and animations) and experimental footage (real recordings from labs and fire tests). Click through the videos to learn more about battery hazards and how it works."
+        />
 
-      <div
-        role="tablist"
-        aria-label="Video categories"
-        className="flex flex-col gap-3 rounded-2xl border border-border/70 bg-card/70 p-2 shadow-sm backdrop-blur sm:flex-row sm:items-stretch"
-      >
-        {groups.map((group, gi) => (
-          <div
-            key={group.kind}
-            className={`flex flex-col gap-1.5 ${gi > 0 ? "border-t border-border/70 pt-3 sm:border-l sm:border-t-0 sm:pl-3 sm:pt-0" : ""} ${group.categories.length > 1 ? "sm:flex-[2]" : "sm:flex-1"}`}
-          >
-            <span className="px-2 pt-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              {kindLabel[group.kind]}
-            </span>
-            <div className="flex flex-col gap-1.5 sm:flex-row">
-              {group.categories.map((cat) => {
-                const m = categoryMeta[cat]
-                const Icon = m.icon
-                const selected = cat === active
-                return (
-                  <button
-                    key={cat}
-                    role="tab"
-                    aria-selected={selected}
-                    onClick={() => {
-                      setActive(cat)
-                      setShowAll(false)
-                    }}
-                    className={`flex flex-1 items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition ${
-                      selected
-                        ? "bg-primary text-primary-foreground shadow-md"
-                        : "text-foreground hover:bg-muted"
-                    }`}
-                  >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    <span className="flex-1">{m.label}</span>
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs tabular-nums ${
-                        selected ? "bg-primary-foreground/20" : "bg-muted text-muted-foreground"
+        <div
+          role="tablist"
+          aria-label="Video categories"
+          className="flex flex-col gap-3 rounded-2xl border border-border/70 bg-card/70 p-2 shadow-sm backdrop-blur sm:flex-row sm:items-stretch"
+        >
+          {groups.map((group, gi) => (
+            <div
+              key={group.kind}
+              className={`flex flex-col gap-1.5 ${gi > 0 ? "border-t border-border/70 pt-3 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-3" : ""} ${group.categories.length > 1 ? "sm:flex-2" : "sm:flex-1"}`}
+            >
+              <span className="px-2 pt-1 text-[10px] font-semibold tracking-[0.18em] text-muted-foreground uppercase">
+                {kindLabel[group.kind]}
+              </span>
+              <div className="flex flex-col gap-1.5 sm:flex-row">
+                {group.categories.map((cat) => {
+                  const m = categoryMeta[cat]
+                  const Icon = m.icon
+                  const selected = cat === active
+                  return (
+                    <button
+                      key={cat}
+                      role="tab"
+                      aria-selected={selected}
+                      onClick={() => {
+                        setActive(cat)
+                        setShowAll(false)
+                      }}
+                      className={`flex flex-1 items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition ${
+                        selected
+                          ? "bg-primary text-primary-foreground shadow-md"
+                          : "text-foreground hover:bg-muted"
                       }`}
                     >
-                      {counts[cat]}
-                    </span>
-                  </button>
-                )
-              })}
+                      <Icon className="h-4 w-4 shrink-0" />
+                      <span className="flex-1">{m.label}</span>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs tabular-nums ${
+                          selected
+                            ? "bg-primary-foreground/20"
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        {counts[cat]}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
-
-      <p className="max-w-3xl border-l-2 border-primary/50 pl-3 text-sm leading-relaxed text-muted-foreground">
-        {meta.blurb}
-      </p>
-
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {displayed.map((clip) => (
-          <VideoCard key={clip.id} clip={clip} onOpen={() => setOpenClip(clip)} />
-        ))}
-      </div>
-
-      {remaining > 0 && (
-        <div className="flex justify-center">
-          <Button
-            variant="outline"
-            onClick={() => setShowAll((v) => !v)}
-            aria-expanded={showAll}
-            className="gap-1.5 rounded-full px-5"
-          >
-            {showAll ? "Show fewer" : `Show ${remaining} more`}
-            <ChevronDown className={`h-4 w-4 transition ${showAll ? "rotate-180" : ""}`} />
-          </Button>
+          ))}
         </div>
-      )}
 
-      {openClip && <VideoViewer clip={openClip} onClose={closeViewer} />}
-    </section>
+        <p className="max-w-3xl border-l-2 border-primary/50 pl-3 text-sm leading-relaxed text-muted-foreground">
+          {meta.blurb}
+        </p>
+
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {displayed.map((clip) => (
+            <VideoCard
+              key={clip.id}
+              clip={clip}
+              onOpen={() => setOpenClip(clip)}
+            />
+          ))}
+        </div>
+
+        {remaining > 0 && (
+          <div className="flex justify-center">
+            <Button
+              variant="outline"
+              onClick={() => setShowAll((v) => !v)}
+              aria-expanded={showAll}
+              className="gap-1.5 rounded-full px-5"
+            >
+              {showAll ? "Show fewer" : `Show ${remaining} more`}
+              <ChevronDown
+                className={`h-4 w-4 transition ${showAll ? "rotate-180" : ""}`}
+              />
+            </Button>
+          </div>
+        )}
+
+        {openClip && <VideoViewer clip={openClip} onClose={closeViewer} />}
+      </section>
+    </Reveal>
   )
 }
-
 
 function EventCard({ event }: { event: CatastrophicEvent }) {
   return (
@@ -805,7 +834,7 @@ function EventCard({ event }: { event: CatastrophicEvent }) {
           alt={event.imageAlt ?? event.title}
           className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           fallback={
-            <div className="flex h-full w-full flex-col items-center justify-center gap-1 bg-gradient-to-br from-primary/25 via-primary/10 to-transparent">
+            <div className="flex h-full w-full flex-col items-center justify-center gap-1 bg-linear-to-br from-primary/25 via-primary/10 to-transparent">
               <Flame className="h-7 w-7 text-primary/50" />
               <span className="font-heading text-3xl font-bold tracking-tight text-primary/60">
                 {event.year}
@@ -824,10 +853,12 @@ function EventCard({ event }: { event: CatastrophicEvent }) {
             {event.impact}
           </span>
         </div>
-        <h3 className="font-heading text-lg font-semibold leading-snug text-foreground">
+        <h3 className="font-heading text-lg leading-snug font-semibold text-foreground">
           {event.title}
         </h3>
-        <p className="text-sm leading-relaxed text-muted-foreground">{event.description}</p>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          {event.description}
+        </p>
         <div className="mt-auto pt-1">
           <a
             href={event.learnMoreUrl}
@@ -863,80 +894,74 @@ function IncidentTimeline() {
   const remaining = filtered.length - INITIAL
 
   return (
-    <section className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <SectionHeader
-          eyebrow="Case Studies"
-          title="Notable incidents"
-          description="Real-world failures, from phones to aircraft to grid-scale storage, and what investigators found."
-        />
-        <div className="relative w-full sm:max-w-xs">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by name, place or year"
-            className="rounded-full bg-card pl-9"
-            aria-label="Search incidents"
+    <Reveal>
+      <section className="space-y-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <SectionHeader
+            eyebrow="Case Studies"
+            title="Notable incidents"
+            description="Real-world failures, from phones to aircraft to grid-scale storage, and what investigators found."
           />
+          <div className="relative w-full sm:max-w-xs">
+            <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search by name, place or year"
+              className="rounded-full bg-card pl-9"
+              aria-label="Search incidents"
+            />
+          </div>
         </div>
-      </div>
 
-      {filtered.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-border py-10 text-center text-sm text-muted-foreground">
-          No incidents match &ldquo;{query}&rdquo;.
-        </p>
-      ) : (
-        <ol className="relative space-y-5 sm:pl-8">
-          <span
-            aria-hidden
-            className="absolute bottom-2 left-[11px] top-2 hidden w-px bg-gradient-to-b from-primary/60 via-primary/25 to-transparent sm:block"
-          />
-          {displayed.map((event) => (
-            <li key={event.id} className="relative">
-              <span
-                aria-hidden
-                className="absolute -left-8 top-6 hidden h-[23px] w-[23px] items-center justify-center rounded-full border-2 border-primary bg-background sm:flex"
-              >
-                <span className="h-2 w-2 rounded-full bg-primary" />
-              </span>
-              <EventCard event={event} />
-            </li>
-          ))}
-        </ol>
-      )}
+        {filtered.length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-border py-10 text-center text-sm text-muted-foreground">
+            No incidents match &ldquo;{query}&rdquo;.
+          </p>
+        ) : (
+          <ol className="relative space-y-5 sm:pl-8">
+            <span
+              aria-hidden
+              className="absolute top-2 bottom-2 left-2.75 hidden w-px bg-linear-to-b from-primary/60 via-primary/25 to-transparent sm:block"
+            />
+            {displayed.map((event) => (
+              <li key={event.id} className="relative">
+                <span
+                  aria-hidden
+                  className="absolute top-6 -left-8 hidden h-5.75 w-5.75 items-center justify-center rounded-full border-2 border-primary bg-background sm:flex"
+                >
+                  <span className="h-2 w-2 rounded-full bg-primary" />
+                </span>
+                <EventCard event={event} />
+              </li>
+            ))}
+          </ol>
+        )}
 
-      {!query && remaining > 0 && (
-        <div className="flex justify-center">
-          <Button
-            variant="outline"
-            onClick={() => setShowAll((v) => !v)}
-            aria-expanded={showAll}
-            className="gap-1.5 rounded-full px-5"
-          >
-            {showAll ? "Show fewer" : `Show ${remaining} more`}
-            <ChevronDown className={`h-4 w-4 transition ${showAll ? "rotate-180" : ""}`} />
-          </Button>
-        </div>
-      )}
-    </section>
+        {!query && remaining > 0 && (
+          <div className="flex justify-center">
+            <Button
+              variant="outline"
+              onClick={() => setShowAll((v) => !v)}
+              aria-expanded={showAll}
+              className="gap-1.5 rounded-full px-5"
+            >
+              {showAll ? "Show fewer" : `Show ${remaining} more`}
+              <ChevronDown
+                className={`h-4 w-4 transition ${showAll ? "rotate-180" : ""}`}
+              />
+            </Button>
+          </div>
+        )}
+      </section>
+    </Reveal>
   )
 }
 
 export default function LibraryClientView() {
-  const simCount = clips.filter((c) => c.kind === "simulation").length
-  const expCount = clips.length - simCount
-  const stats = [
-    { value: simCount, label: "Simulations" },
-    { value: expCount, label: "Experimental clips" },
-    { value: events.length, label: "Case studies" },
-    { value: `${Math.min(...events.map((e) => e.year))}–${Math.max(...events.map((e) => e.year))}`, label: "Years covered" },
-  ]
-
   return (
     <div className="min-h-screen bg-[#dde9f5] font-sans dark:bg-background">
-      <main className="mx-auto max-w-6xl space-y-16 px-4 pb-24 pt-20 sm:space-y-20 sm:px-6 sm:pt-28">
-
+      <main className="mx-auto max-w-6xl space-y-16 px-4 pt-20 pb-24 sm:space-y-20 sm:px-6 sm:pt-28">
         <VideoLibrary />
         <IncidentTimeline />
 
