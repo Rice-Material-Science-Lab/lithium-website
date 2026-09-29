@@ -757,6 +757,63 @@ export default function SimPageClientView() {
     }
   }
 
+  const [graphiteMinH, setGraphiteMinH] = useState("10")
+  const [graphiteMaxH, setGraphiteMaxH] = useState("20")
+
+  const addGraphiteLattice = () => {
+    const [nx, ny] = gridDimensions
+    const lo = Math.max(1, Math.floor(Number(graphiteMinH) || 1))
+    const hi = Math.max(lo, Math.floor(Number(graphiteMaxH) || lo))
+    const cap = Math.max(0, ny - 3) // keep the top two rows free for drops
+
+    // Seeded RNG (mulberry32) so a fixed Seed reproduces the same lattice.
+    const trimmedSeed = seed.trim()
+    let a =
+      (trimmedSeed !== "" && !Number.isNaN(Number(trimmedSeed))
+        ? Math.floor(Number(trimmedSeed))
+        : Math.floor(Math.random() * 2 ** 31)) >>> 0
+    const rand = () => {
+      a = (a + 0x6d2b79f5) >>> 0
+      let t = a
+      t = Math.imul(t ^ (t >>> 15), t | 1)
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+    }
+
+    // Columns at every other x -> one empty lattice column between each.
+    const xs: number[] = []
+    for (let x = 0; x < nx; x += 2) xs.push(x)
+    // the last column must also keep a gap to column 0.
+    if (xs.length > 1 && nx - xs[xs.length - 1] <= 1) xs.pop()
+
+    const next = new Set(carbonSites)
+    const added: [number, number][] = []
+    for (const x of xs) {
+      const h = Math.min(lo + Math.floor(rand() * (hi - lo + 1)), cap)
+      for (let y = 1; y <= h; y++) {
+        const key = `${x},${y}`
+        if (next.has(key)) continue
+        // during mid run - don't claim a cell that already holds an atom.
+        if (hasRunOnce && simState[y * nx + x] !== 0) continue
+        next.add(key)
+        added.push([x, y])
+      }
+    }
+    if (added.length === 0) return
+
+    setCarbonUndoStack((stack) => [...stack, new Set(carbonSites)].slice(-100))
+    setCarbonSites(next)
+
+    // Running sim without Live Mode: push directly so the button always
+    // affects the current run. (With Live Mode on, the carbon-sync effect
+    // below already pushes new sites.)
+    if (wasmModule && hasRunOnce && !isLiveMode) {
+      for (const [x, y] of added) wasmModule._mark_carbon(x, y)
+      wasmModule._finalize_carbon_placement()
+      wasmModule._force_update_frontend()
+    }
+  }
+
   const inspectCell = (x: number, y: number) => {
     if (!wasmModule || !hasRunOnce) return
     const idx = y * gridDimensions[0] + x
@@ -1128,6 +1185,11 @@ export default function SimPageClientView() {
                 carbonUndoStack={carbonUndoStack}
                 setCarbonSites={setCarbonSites}
                 undoCarbonSite={undoCarbonSite}
+                graphiteMinH={graphiteMinH}
+                setGraphiteMinH={setGraphiteMinH}
+                graphiteMaxH={graphiteMaxH}
+                setGraphiteMaxH={setGraphiteMaxH}
+                addGraphiteLattice={addGraphiteLattice}
                 temp={temp}
                 setTemp={setTemp}
                 dropRate={dropRate}

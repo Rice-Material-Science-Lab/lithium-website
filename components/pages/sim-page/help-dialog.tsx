@@ -182,6 +182,12 @@ export default function HelpDialog({
                 , pick a species swatch, then click lattice cells to mark them
                 as anode sites before pressing Run. Each species has its own
                 independently tunable bond energy slider. Use{" "}
+                <span className="font-medium text-foreground">
+                  Add Graphite Lattice
+                </span>{" "}
+                places vertical carbon columns (one lattice spacing apart,
+                10&ndash;20 atoms tall by default) along the substrate in one
+                click. Use{" "}
                 <span className="font-medium text-foreground">Undo</span> or{" "}
                 <span className="font-medium text-foreground">
                   Clear Carbon
