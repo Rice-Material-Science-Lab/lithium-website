@@ -1,5 +1,5 @@
 import { Layers, ShieldCheck, Timer, BrainCircuit } from "lucide-react"
-import { PreventionCard } from "../prevention-card"
+import { PreventionCard } from "./prevention-card"
 
 const solutions = [
   {

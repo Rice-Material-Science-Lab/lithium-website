@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { ArrowRight, Scan, Microscope, Snowflake, Eye } from "lucide-react"
-import { PreventionCard } from "../prevention-card"
+import { PreventionCard } from "./prevention-card"
 
 const detectionMethods = [
   {

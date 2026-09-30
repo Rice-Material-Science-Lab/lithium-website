@@ -1,5 +1,5 @@
-import { PreventionCard, preventionTips } from "../prevention-card"
-import ChargeRiskChecker from "../charge-risk-checker"
+import { PreventionCard, preventionTips } from "./prevention-card"
+import ChargeRiskChecker from "./charge-risk-checker"
 import { Panel } from "../layout-primitives"
 
 export default function PreventionSection() {

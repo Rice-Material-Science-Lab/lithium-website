@@ -6,7 +6,7 @@ import {
   Thermometer,
   Smartphone,
 } from "lucide-react"
-import { FeatureCard } from "./layout-primitives"
+import { FeatureCard } from "../layout-primitives"
 
 export function PreventionCard({
   icon,
