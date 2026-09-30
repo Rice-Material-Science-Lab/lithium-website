@@ -19,6 +19,7 @@ import {
   SearchX,
   X,
 } from "lucide-react"
+import { Reveal } from "@/components/pages/homepage/layout-primitives"
 
 interface Reference {
   authors: string
@@ -941,239 +942,243 @@ export default function ReferencesClientView() {
       />
 
       <main className="relative mx-auto max-w-6xl px-4 pt-28 pb-24 sm:px-6">
-        <header className="max-w-3xl space-y-5">
-          <Eyebrow>Primary sources</Eyebrow>
-          <h1 className="font-heading text-4xl font-bold tracking-tight text-balance text-foreground sm:text-5xl">
-            References
-          </h1>
-          <p className="text-base leading-relaxed text-pretty text-muted-foreground sm:text-lg">
-            A collection of literature to show how researchers and scientists
-            actually see, measure, and detech lithium dendrites, organized by
-            technique.
-          </p>
-          <dl className="flex flex-wrap gap-x-10 gap-y-4 pt-3">
-            {[
-              { label: "Papers", value: stats.papers },
-              { label: "Techniques", value: stats.techniques },
-              { label: "Years covered", value: `${stats.from}–${stats.to}` },
-            ].map((s) => (
-              <div key={s.label}>
-                <dt className="text-[11px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
-                  {s.label}
-                </dt>
-                <dd className="mt-1 font-mono text-2xl font-semibold text-foreground tabular-nums">
-                  {s.value}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </header>
+        <Reveal>
+          <header className="max-w-3xl space-y-5">
+            <Eyebrow>Primary sources</Eyebrow>
+            <h1 className="font-heading text-4xl font-bold tracking-tight text-balance text-foreground sm:text-5xl">
+              References
+            </h1>
+            <p className="text-base leading-relaxed text-pretty text-muted-foreground sm:text-lg">
+              A collection of literature to show how researchers and scientists
+              actually see, measure, and detech lithium dendrites, organized by
+              technique.
+            </p>
+            <dl className="flex flex-wrap gap-x-10 gap-y-4 pt-3">
+              {[
+                { label: "Papers", value: stats.papers },
+                { label: "Techniques", value: stats.techniques },
+                { label: "Years covered", value: `${stats.from}–${stats.to}` },
+              ].map((s) => (
+                <div key={s.label}>
+                  <dt className="text-[11px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
+                    {s.label}
+                  </dt>
+                  <dd className="mt-1 font-mono text-2xl font-semibold text-foreground tabular-nums">
+                    {s.value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </header>
+        </Reveal>
 
         {/* ── Sticky search ── */}
-        <div className="sticky top-16 z-20 -mx-4 mt-12 px-4 py-3 sm:-mx-6 sm:px-6">
-          <div className="rounded-2xl border border-border/80 bg-card/80 p-2 shadow-[0_1px_2px_rgb(0_0_0/0.04),0_16px_40px_-20px_rgb(0_0_0/0.25)] backdrop-blur-xl dark:bg-card/70 dark:shadow-none">
-            <div className="flex flex-col gap-2 md:flex-row md:items-center">
-              <label className="relative flex flex-1 items-center">
-                <span className="sr-only">Search references</span>
-                <Search className="pointer-events-none absolute left-3.5 h-4 w-4 text-muted-foreground" />
-                <input
-                  ref={inputRef}
-                  type="search"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === "Escape" && setQuery("")}
-                  placeholder="Search titles, authors, journals, years…"
-                  className="h-11 w-full rounded-xl bg-transparent pr-20 pl-10 text-sm text-foreground outline-none placeholder:text-muted-foreground/70 focus-visible:ring-2 focus-visible:ring-primary/30 dark:focus-visible:ring-cyan-500/30 [&::-webkit-search-cancel-button]:hidden"
-                />
-                <span className="absolute right-3 flex items-center gap-1.5">
-                  {query ? (
-                    <button
-                      type="button"
-                      onClick={() => setQuery("")}
-                      aria-label="Clear search"
-                      className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  ) : (
-                    <kbd className="hidden rounded-md border border-border bg-muted/60 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground sm:inline">
-                      /
-                    </kbd>
-                  )}
-                </span>
-              </label>
-              <div
-                role="tablist"
-                aria-label="Filter by category"
-                className="flex gap-1 overflow-x-auto rounded-xl bg-muted/60 p-1"
-              >
-                {filters.map((f) => (
-                  <button
-                    key={f.id}
-                    role="tab"
-                    aria-selected={filter === f.id}
-                    onClick={() => setFilter(f.id)}
-                    className={cn(
-                      "h-9 shrink-0 rounded-lg px-3.5 text-xs font-medium transition-all",
-                      filter === f.id
-                        ? "bg-background text-foreground shadow-sm dark:bg-white/10"
-                        : "text-muted-foreground hover:text-foreground"
+        <Reveal delay={0.3}>
+          <div className="sticky top-16 z-20 -mx-4 mt-12 px-4 py-3 sm:-mx-6 sm:px-6">
+            <div className="rounded-2xl border border-border/80 bg-card/80 p-2 shadow-[0_1px_2px_rgb(0_0_0/0.04),0_16px_40px_-20px_rgb(0_0_0/0.25)] backdrop-blur-xl dark:bg-card/70 dark:shadow-none">
+              <div className="flex flex-col gap-2 md:flex-row md:items-center">
+                <label className="relative flex flex-1 items-center">
+                  <span className="sr-only">Search references</span>
+                  <Search className="pointer-events-none absolute left-3.5 h-4 w-4 text-muted-foreground" />
+                  <input
+                    ref={inputRef}
+                    type="search"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === "Escape" && setQuery("")}
+                    placeholder="Search titles, authors, journals, years…"
+                    className="h-11 w-full rounded-xl bg-transparent pr-20 pl-10 text-sm text-foreground outline-none placeholder:text-muted-foreground/70 focus-visible:ring-2 focus-visible:ring-primary/30 dark:focus-visible:ring-cyan-500/30 [&::-webkit-search-cancel-button]:hidden"
+                  />
+                  <span className="absolute right-3 flex items-center gap-1.5">
+                    {query ? (
+                      <button
+                        type="button"
+                        onClick={() => setQuery("")}
+                        aria-label="Clear search"
+                        className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    ) : (
+                      <kbd className="hidden rounded-md border border-border bg-muted/60 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground sm:inline">
+                        /
+                      </kbd>
                     )}
-                  >
-                    {f.label}
-                  </button>
-                ))}
+                  </span>
+                </label>
+                <div
+                  role="tablist"
+                  aria-label="Filter by category"
+                  className="flex gap-1 overflow-x-auto rounded-xl bg-muted/60 p-1"
+                >
+                  {filters.map((f) => (
+                    <button
+                      key={f.id}
+                      role="tab"
+                      aria-selected={filter === f.id}
+                      onClick={() => setFilter(f.id)}
+                      className={cn(
+                        "h-9 shrink-0 rounded-lg px-3.5 text-xs font-medium transition-all",
+                        filter === f.id
+                          ? "bg-background text-foreground shadow-sm dark:bg-white/10"
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
               </div>
+              <p
+                aria-live="polite"
+                className="px-3 pt-2 pb-1 text-xs text-muted-foreground"
+              >
+                {isFiltering ? (
+                  <>
+                    <span className="font-medium text-foreground">
+                      {resultCount}
+                    </span>{" "}
+                    of {stats.papers} papers
+                    {tokens.length > 0 && (
+                      <>
+                        {" "}
+                        matching “
+                        <span className="text-foreground">
+                          {deferredQuery.trim()}
+                        </span>
+                        ”
+                      </>
+                    )}
+                    <button
+                      onClick={clear}
+                      className="ml-2 font-medium text-primary hover:underline dark:text-cyan-400"
+                    >
+                      Reset
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    Showing all {stats.papers} papers across {stats.techniques}{" "}
+                    techniques
+                  </>
+                )}
+              </p>
             </div>
-            <p
-              aria-live="polite"
-              className="px-3 pt-2 pb-1 text-xs text-muted-foreground"
-            >
-              {isFiltering ? (
-                <>
-                  <span className="font-medium text-foreground">
-                    {resultCount}
-                  </span>{" "}
-                  of {stats.papers} papers
-                  {tokens.length > 0 && (
-                    <>
-                      {" "}
-                      matching “
-                      <span className="text-foreground">
-                        {deferredQuery.trim()}
-                      </span>
-                      ”
-                    </>
-                  )}
+          </div>
+
+          {/* ── Body ── */}
+          <div className="mt-8 grid gap-10 lg:grid-cols-[220px_minmax(0,1fr)]">
+            {/* Sidebar */}
+            <nav aria-label="Techniques" className="hidden lg:block">
+              <div className="sticky top-52 max-h-[calc(100vh-15rem)] space-y-6 overflow-y-auto pr-2">
+                {categories.map((cat) => {
+                  const items = visible.filter(
+                    (v) => v.technique.category === cat.id
+                  )
+                  if (items.length === 0) return null
+                  return (
+                    <div key={cat.id}>
+                      <p className="mb-2 text-[11px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+                        {cat.title.split(" & ")[0]}
+                      </p>
+                      <ul className="space-y-0.5 border-l border-border">
+                        {items.map(({ technique, refs }) => {
+                          const active = activeId === technique.id
+                          return (
+                            <li key={technique.id}>
+                              <a
+                                href={`#${technique.id}`}
+                                className={cn(
+                                  "-ml-px flex items-center justify-between gap-2 border-l py-1.5 pr-1 pl-3 text-[13px] leading-snug transition-colors",
+                                  active
+                                    ? "border-primary font-medium text-foreground dark:border-cyan-400"
+                                    : "border-transparent text-muted-foreground hover:border-foreground/30 hover:text-foreground"
+                                )}
+                              >
+                                <span className="truncate">
+                                  {technique.title.replace(/\s*\(.*\)/, "")}
+                                </span>
+                                <span className="font-mono text-[10px] tabular-nums opacity-60">
+                                  {refs.length}
+                                </span>
+                              </a>
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    </div>
+                  )
+                })}
+              </div>
+            </nav>
+
+            {/* Content */}
+            <div className="min-w-0 space-y-10">
+              {visible.length === 0 && (
+                <div className="flex flex-col items-center rounded-2xl border border-dashed border-border bg-card/50 px-6 py-16 text-center">
+                  <SearchX className="h-8 w-8 text-muted-foreground/60" />
+                  <p className="mt-4 font-semibold text-foreground">
+                    No papers match that search
+                  </p>
+                  <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+                    Try an author&apos;s surname, a journal like “Nature”, a
+                    year, or a technique such as “cryo” or “ultrasound”.
+                  </p>
                   <button
                     onClick={clear}
-                    className="ml-2 font-medium text-primary hover:underline dark:text-cyan-400"
+                    className="mt-5 inline-flex h-9 items-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90 dark:bg-cyan-600"
                   >
-                    Reset
+                    Clear search
                   </button>
-                </>
-              ) : (
-                <>
-                  Showing all {stats.papers} papers across {stats.techniques}{" "}
-                  techniques
-                </>
+                </div>
               )}
-            </p>
-          </div>
-        </div>
 
-        {/* ── Body ── */}
-        <div className="mt-8 grid gap-10 lg:grid-cols-[220px_minmax(0,1fr)]">
-          {/* Sidebar */}
-          <nav aria-label="Techniques" className="hidden lg:block">
-            <div className="sticky top-52 max-h-[calc(100vh-15rem)] space-y-6 overflow-y-auto pr-2">
               {categories.map((cat) => {
                 const items = visible.filter(
                   (v) => v.technique.category === cat.id
                 )
                 if (items.length === 0) return null
                 return (
-                  <div key={cat.id}>
-                    <p className="mb-2 text-[11px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
-                      {cat.title.split(" & ")[0]}
-                    </p>
-                    <ul className="space-y-0.5 border-l border-border">
-                      {items.map(({ technique, refs }) => {
-                        const active = activeId === technique.id
-                        return (
-                          <li key={technique.id}>
-                            <a
-                              href={`#${technique.id}`}
-                              className={cn(
-                                "-ml-px flex items-center justify-between gap-2 border-l py-1.5 pr-1 pl-3 text-[13px] leading-snug transition-colors",
-                                active
-                                  ? "border-primary font-medium text-foreground dark:border-cyan-400"
-                                  : "border-transparent text-muted-foreground hover:border-foreground/30 hover:text-foreground"
-                              )}
-                            >
-                              <span className="truncate">
-                                {technique.title.replace(/\s*\(.*\)/, "")}
-                              </span>
-                              <span className="font-mono text-[10px] tabular-nums opacity-60">
-                                {refs.length}
-                              </span>
-                            </a>
-                          </li>
-                        )
-                      })}
-                    </ul>
-                  </div>
+                  <section
+                    key={cat.id}
+                    aria-labelledby={`${cat.id}-title`}
+                    className="rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-[0_1px_2px_rgb(0_0_0/0.04),0_24px_48px_-28px_rgb(0_0_0/0.25)] sm:p-10 dark:shadow-none"
+                  >
+                    <div className="mb-10 max-w-2xl space-y-3">
+                      <Eyebrow>{cat.eyebrow}</Eyebrow>
+                      <h2
+                        id={`${cat.id}-title`}
+                        className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl"
+                      >
+                        {cat.title}
+                      </h2>
+                      <p className="text-sm leading-relaxed text-pretty text-muted-foreground">
+                        {cat.description}
+                      </p>
+                    </div>
+                    <div className="space-y-10">
+                      {items.map(({ technique, refs }) => (
+                        <TechniqueBlock
+                          key={technique.id}
+                          technique={technique}
+                          refs={refs}
+                          tokens={tokens}
+                        />
+                      ))}
+                    </div>
+                  </section>
                 )
               })}
+
+              <p className="flex items-start gap-2 px-1 text-xs leading-relaxed text-muted-foreground">
+                <BookOpen className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                Links resolve through DOI to each publisher. Some papers sit
+                behind a paywall; an open-access copy can often be found through
+                a university library or the authors&apos; own pages.
+              </p>
             </div>
-          </nav>
-
-          {/* Content */}
-          <div className="min-w-0 space-y-10">
-            {visible.length === 0 && (
-              <div className="flex flex-col items-center rounded-2xl border border-dashed border-border bg-card/50 px-6 py-16 text-center">
-                <SearchX className="h-8 w-8 text-muted-foreground/60" />
-                <p className="mt-4 font-semibold text-foreground">
-                  No papers match that search
-                </p>
-                <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-                  Try an author&apos;s surname, a journal like “Nature”, a year,
-                  or a technique such as “cryo” or “ultrasound”.
-                </p>
-                <button
-                  onClick={clear}
-                  className="mt-5 inline-flex h-9 items-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90 dark:bg-cyan-600"
-                >
-                  Clear search
-                </button>
-              </div>
-            )}
-
-            {categories.map((cat) => {
-              const items = visible.filter(
-                (v) => v.technique.category === cat.id
-              )
-              if (items.length === 0) return null
-              return (
-                <section
-                  key={cat.id}
-                  aria-labelledby={`${cat.id}-title`}
-                  className="rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-[0_1px_2px_rgb(0_0_0/0.04),0_24px_48px_-28px_rgb(0_0_0/0.25)] sm:p-10 dark:shadow-none"
-                >
-                  <div className="mb-10 max-w-2xl space-y-3">
-                    <Eyebrow>{cat.eyebrow}</Eyebrow>
-                    <h2
-                      id={`${cat.id}-title`}
-                      className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl"
-                    >
-                      {cat.title}
-                    </h2>
-                    <p className="text-sm leading-relaxed text-pretty text-muted-foreground">
-                      {cat.description}
-                    </p>
-                  </div>
-                  <div className="space-y-10">
-                    {items.map(({ technique, refs }) => (
-                      <TechniqueBlock
-                        key={technique.id}
-                        technique={technique}
-                        refs={refs}
-                        tokens={tokens}
-                      />
-                    ))}
-                  </div>
-                </section>
-              )
-            })}
-
-            <p className="flex items-start gap-2 px-1 text-xs leading-relaxed text-muted-foreground">
-              <BookOpen className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-              Links resolve through DOI to each publisher. Some papers sit
-              behind a paywall; an open-access copy can often be found through a
-              university library or the authors&apos; own pages.
-            </p>
           </div>
-        </div>
+        </Reveal>
       </main>
     </div>
   )
