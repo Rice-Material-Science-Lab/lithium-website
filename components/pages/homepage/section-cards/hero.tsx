@@ -1,11 +1,12 @@
-import { ArrowDown, Link, ArrowRight } from "lucide-react"
+import { ArrowDown, ArrowRight } from "lucide-react"
 import { useReducedMotion, motion } from "motion/react"
 import DendriteVideos from "./dendrite-videos"
 import { Eyebrow } from "../layout-primitives"
 import { Highlighter } from "@/components/ui/highlighter"
+import Link from "next/link"
 
 const HERO_MASK =
-  "linear-gradient(to bottom, white 0%, white 70%, transparent 100%), linear-gradient(to right, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.5) 40%, rgba(255,255,255,0.3) 100%)"
+  "linear-gradient(to bottom, white 0%, white 70%, transparent 100%), linear-gradient(to left, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.7) 40%, rgba(255,255,255,0.3) 100%)"
 
 export default function Hero() {
   const reduced = useReducedMotion()
