@@ -20,7 +20,6 @@ import {
   X,
 } from "lucide-react"
 
-
 interface Reference {
   authors: string
   year: number
@@ -39,7 +38,6 @@ interface Technique {
   description: string
   references: Reference[]
 }
-
 
 const techniques: Technique[] = [
   {
@@ -194,7 +192,7 @@ const techniques: Technique[] = [
         journal: "Nano Energy, 32, 271–279",
         url: "https://doi.org/10.1016/j.nanoen.2016.12.001",
         summary:
-          "Liquid-cell TEM captures root-style growth and how detached fragments become electrochemically \"dead\" lithium.",
+          'Liquid-cell TEM captures root-style growth and how detached fragments become electrochemically "dead" lithium.',
       },
       {
         authors: "Sun, H., Liu, Q., Chen, J., et al.",
@@ -293,7 +291,7 @@ const techniques: Technique[] = [
         journal: "ACS Energy Letters, 9, 3516",
         url: "https://doi.org/10.1021/acsenergylett.4c01011",
         summary:
-          "Extends operando X-ray imaging to zinc \"moss\" growth, the zinc-air battery analog of lithium dendrites.",
+          'Extends operando X-ray imaging to zinc "moss" growth, the zinc-air battery analog of lithium dendrites.',
       },
     ],
   },
@@ -402,7 +400,8 @@ const techniques: Technique[] = [
       "EIS probes a battery with small electrical signals across a range of frequencies. As lithium deposits build up, they change surface area, interfacial resistance, and ion transport — shifts that EIS can detect without ever opening the cell, making it a practical early-warning signal.",
     references: [
       {
-        authors: "Talian, S. D., Kapun, G., Moškon, J., Dominko, R., & Gaberšček, M.",
+        authors:
+          "Talian, S. D., Kapun, G., Moškon, J., Dominko, R., & Gaberšček, M.",
         year: 2025,
         title:
           "Operando impedance spectroscopy with combined dynamic measurements and overvoltage analysis in lithium metal batteries",
@@ -656,7 +655,6 @@ const stats = {
   to: Math.max(...allRefs.map((r) => r.year)),
 }
 
-
 const normalize = (s: string) =>
   s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()
 
@@ -665,7 +663,14 @@ const tokenize = (q: string) => normalize(q).split(/\s+/).filter(Boolean)
 function matches(ref: Reference, technique: Technique, tokens: string[]) {
   if (tokens.length === 0) return true
   const hay = normalize(
-    [ref.title, ref.authors, ref.journal, ref.summary, ref.year, technique.title].join(" ")
+    [
+      ref.title,
+      ref.authors,
+      ref.journal,
+      ref.summary,
+      ref.year,
+      technique.title,
+    ].join(" ")
   )
   return tokens.every((t) => hay.includes(t))
 }
@@ -707,7 +712,6 @@ function Highlight({ text, tokens }: { text: string; tokens: string[] }) {
   return <>{out}</>
 }
 
-
 function Eyebrow({ children }: { children: ReactNode }) {
   return (
     <p className="flex items-center gap-3 text-[11px] font-semibold tracking-[0.2em] text-primary uppercase dark:text-cyan-400">
@@ -721,7 +725,9 @@ function CopyCitation({ reference }: { reference: Reference }) {
   const [copied, setCopied] = useState(false)
   const onCopy = async () => {
     const citation = [
-      reference.authors ? `${reference.authors} (${reference.year}).` : `(${reference.year}).`,
+      reference.authors
+        ? `${reference.authors} (${reference.year}).`
+        : `(${reference.year}).`,
       `${reference.title}.`,
       `${reference.journal}.`,
       reference.url,
@@ -730,8 +736,7 @@ function CopyCitation({ reference }: { reference: Reference }) {
       await navigator.clipboard.writeText(citation)
       setCopied(true)
       setTimeout(() => setCopied(false), 1600)
-    } catch {
-    }
+    } catch {}
   }
   return (
     <button
@@ -758,9 +763,9 @@ function ReferenceCard({
   tokens: string[]
 }) {
   return (
-    <li className="group relative rounded-xl border border-border/70 bg-background/60 p-5 transition-all duration-300 hover:-translate-y-px hover:border-primary/30 hover:bg-background hover:shadow-[0_12px_32px_-18px_rgb(0_0_0/0.35)] dark:bg-white/[0.02] dark:hover:border-cyan-500/30 dark:hover:bg-white/[0.04]">
+    <li className="group relative rounded-xl border border-border/70 bg-background/60 p-5 transition-all duration-300 hover:-translate-y-px hover:border-primary/30 hover:bg-background hover:shadow-[0_12px_32px_-18px_rgb(0_0_0/0.35)] dark:bg-white/2 dark:hover:border-cyan-500/30 dark:hover:bg-white/4">
       <div className="flex gap-4">
-        <span className="mt-0.5 shrink-0 font-mono text-xs font-medium tabular-nums text-primary/80 dark:text-cyan-400/80">
+        <span className="mt-0.5 shrink-0 font-mono text-xs font-medium text-primary/80 tabular-nums dark:text-cyan-400/80">
           {reference.year}
         </span>
         <div className="min-w-0 flex-1 space-y-2">
@@ -837,7 +842,7 @@ function TechniqueBlock({
           </p>
         </div>
       </header>
-      <ul className="space-y-3 sm:pl-[3.25rem]">
+      <ul className="space-y-3 sm:pl-13">
         {refs.map((ref) => (
           <ReferenceCard key={ref.url} reference={ref} tokens={tokens} />
         ))}
@@ -885,8 +890,13 @@ export default function ReferencesClientView() {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement
       const typing =
-        target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable
-      if ((e.key === "/" && !typing) || (e.key.toLowerCase() === "k" && (e.metaKey || e.ctrlKey))) {
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable
+      if (
+        (e.key === "/" && !typing) ||
+        (e.key.toLowerCase() === "k" && (e.metaKey || e.ctrlKey))
+      ) {
         e.preventDefault()
         inputRef.current?.focus()
         inputRef.current?.select()
@@ -897,13 +907,17 @@ export default function ReferencesClientView() {
   }, [])
 
   useEffect(() => {
-    const els = Array.from(document.querySelectorAll<HTMLElement>("[data-technique]"))
+    const els = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-technique]")
+    )
     if (els.length === 0) return
     const observer = new IntersectionObserver(
       (entries) => {
         const top = entries
           .filter((e) => e.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0]
+          .sort(
+            (a, b) => a.boundingClientRect.top - b.boundingClientRect.top
+          )[0]
         if (top) setActiveId(top.target.id)
       },
       { rootMargin: "-160px 0px -60% 0px" }
@@ -923,7 +937,7 @@ export default function ReferencesClientView() {
     <div className="relative min-h-screen overflow-x-clip bg-[#dde9f5] font-sans dark:bg-background">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-[520px] bg-[radial-gradient(60%_60%_at_50%_0%,rgb(255_255_255/0.7),transparent_70%)] dark:bg-[radial-gradient(60%_60%_at_50%_0%,rgb(34_211_238/0.08),transparent_70%)]"
+        className="pointer-events-none absolute inset-x-0 top-0 h-130 bg-[radial-gradient(60%_60%_at_50%_0%,rgb(255_255_255/0.7),transparent_70%)] dark:bg-[radial-gradient(60%_60%_at_50%_0%,rgb(34_211_238/0.08),transparent_70%)]"
       />
 
       <main className="relative mx-auto max-w-6xl px-4 pt-28 pb-24 sm:px-6">
@@ -933,7 +947,9 @@ export default function ReferencesClientView() {
             References
           </h1>
           <p className="text-base leading-relaxed text-pretty text-muted-foreground sm:text-lg">
-            A collection of literature to show how researchers and scientists actually see, measure, and detech lithium dendrites, organized by technique.
+            A collection of literature to show how researchers and scientists
+            actually see, measure, and detech lithium dendrites, organized by
+            technique.
           </p>
           <dl className="flex flex-wrap gap-x-10 gap-y-4 pt-3">
             {[
@@ -945,7 +961,7 @@ export default function ReferencesClientView() {
                 <dt className="text-[11px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
                   {s.label}
                 </dt>
-                <dd className="mt-1 font-mono text-2xl font-semibold tabular-nums text-foreground">
+                <dd className="mt-1 font-mono text-2xl font-semibold text-foreground tabular-nums">
                   {s.value}
                 </dd>
               </div>
@@ -954,7 +970,7 @@ export default function ReferencesClientView() {
         </header>
 
         {/* ── Sticky search ── */}
-        <div className="sticky top-16 z-20 mt-12 -mx-4 px-4 py-3 sm:-mx-6 sm:px-6">
+        <div className="sticky top-16 z-20 -mx-4 mt-12 px-4 py-3 sm:-mx-6 sm:px-6">
           <div className="rounded-2xl border border-border/80 bg-card/80 p-2 shadow-[0_1px_2px_rgb(0_0_0/0.04),0_16px_40px_-20px_rgb(0_0_0/0.25)] backdrop-blur-xl dark:bg-card/70 dark:shadow-none">
             <div className="flex flex-col gap-2 md:flex-row md:items-center">
               <label className="relative flex flex-1 items-center">
@@ -1009,14 +1025,24 @@ export default function ReferencesClientView() {
                 ))}
               </div>
             </div>
-            <p aria-live="polite" className="px-3 pt-2 pb-1 text-xs text-muted-foreground">
+            <p
+              aria-live="polite"
+              className="px-3 pt-2 pb-1 text-xs text-muted-foreground"
+            >
               {isFiltering ? (
                 <>
-                  <span className="font-medium text-foreground">{resultCount}</span> of{" "}
-                  {stats.papers} papers
+                  <span className="font-medium text-foreground">
+                    {resultCount}
+                  </span>{" "}
+                  of {stats.papers} papers
                   {tokens.length > 0 && (
                     <>
-                      {" "}matching “<span className="text-foreground">{deferredQuery.trim()}</span>”
+                      {" "}
+                      matching “
+                      <span className="text-foreground">
+                        {deferredQuery.trim()}
+                      </span>
+                      ”
                     </>
                   )}
                   <button
@@ -1027,7 +1053,10 @@ export default function ReferencesClientView() {
                   </button>
                 </>
               ) : (
-                <>Showing all {stats.papers} papers across {stats.techniques} techniques</>
+                <>
+                  Showing all {stats.papers} papers across {stats.techniques}{" "}
+                  techniques
+                </>
               )}
             </p>
           </div>
@@ -1039,7 +1068,9 @@ export default function ReferencesClientView() {
           <nav aria-label="Techniques" className="hidden lg:block">
             <div className="sticky top-52 max-h-[calc(100vh-15rem)] space-y-6 overflow-y-auto pr-2">
               {categories.map((cat) => {
-                const items = visible.filter((v) => v.technique.category === cat.id)
+                const items = visible.filter(
+                  (v) => v.technique.category === cat.id
+                )
                 if (items.length === 0) return null
                 return (
                   <div key={cat.id}>
@@ -1082,10 +1113,12 @@ export default function ReferencesClientView() {
             {visible.length === 0 && (
               <div className="flex flex-col items-center rounded-2xl border border-dashed border-border bg-card/50 px-6 py-16 text-center">
                 <SearchX className="h-8 w-8 text-muted-foreground/60" />
-                <p className="mt-4 font-semibold text-foreground">No papers match that search</p>
+                <p className="mt-4 font-semibold text-foreground">
+                  No papers match that search
+                </p>
                 <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-                  Try an author&apos;s surname, a journal like “Nature”, a year, or a technique such as
-                  “cryo” or “ultrasound”.
+                  Try an author&apos;s surname, a journal like “Nature”, a year,
+                  or a technique such as “cryo” or “ultrasound”.
                 </p>
                 <button
                   onClick={clear}
@@ -1097,7 +1130,9 @@ export default function ReferencesClientView() {
             )}
 
             {categories.map((cat) => {
-              const items = visible.filter((v) => v.technique.category === cat.id)
+              const items = visible.filter(
+                (v) => v.technique.category === cat.id
+              )
               if (items.length === 0) return null
               return (
                 <section
@@ -1133,9 +1168,9 @@ export default function ReferencesClientView() {
 
             <p className="flex items-start gap-2 px-1 text-xs leading-relaxed text-muted-foreground">
               <BookOpen className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-              Links resolve through DOI to each publisher. Some papers sit behind a paywall; an
-              open-access copy can often be found through a university library or the authors&apos;
-              own pages.
+              Links resolve through DOI to each publisher. Some papers sit
+              behind a paywall; an open-access copy can often be found through a
+              university library or the authors&apos; own pages.
             </p>
           </div>
         </div>
