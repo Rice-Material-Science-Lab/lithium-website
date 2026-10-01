@@ -1444,7 +1444,7 @@ export default function SimPageClientView() {
                               type="button"
                               variant="outline"
                               size="icon-sm"
-                              className="absolute right-0 bottom-0 z-10 rounded-none rounded-tl-2xl bg-card/80 backdrop-blur"
+                              className="absolute right-0 bottom-0 z-10 rounded-2xl bg-card/80 backdrop-blur"
                               onClick={(e) => {
                                 toggleFullscreen()
                                 e.currentTarget.blur()
