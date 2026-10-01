@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card"
 import { useState, useEffect, useRef, useMemo } from "react"
 import DisplayHexGrid from "@/components/pages/sim-page/hex-grid"
 import { Input } from "@/components/ui/input"
-import { Atom, HelpCircle } from "lucide-react"
+import { Atom, HelpCircle, Maximize2, Minimize2 } from "lucide-react"
 import AtomColorKey from "@/components/pages/sim-page/atom-color-key"
 import AtomCountsChart from "@/components/pages/sim-page/atom-counts-chart"
 import { Label } from "@/components/ui/label"
@@ -22,6 +22,7 @@ import ParamsCard from "./cards/params-card"
 import { Slider } from "@/components/ui/slider"
 import { CellInfo } from "@/lib/types"
 import { Reveal } from "../homepage/layout-primitives"
+import { cn } from "@/lib/utils"
 
 interface CustomWasmModule {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -202,6 +203,35 @@ export default function SimPageClientView() {
   const CARBON_SPECIES_COLORS = ["#DC2626"]
   const [carbonEnergy, setCarbonEnergy] = useState(-0.6)
   const [selectedCell, setSelectedCell] = useState<CellInfo | null>(null)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+
+  const fullscreenRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(
+        fullscreenRef.current !== null &&
+          document.fullscreenElement === fullscreenRef.current
+      )
+    }
+    document.addEventListener("fullscreenchange", handleFullscreenChange)
+    return () =>
+      document.removeEventListener("fullscreenchange", handleFullscreenChange)
+  }, [])
+
+  const toggleFullscreen = () => {
+    const el = fullscreenRef.current
+    if (!el) return
+    if (document.fullscreenElement) {
+      document
+        .exitFullscreen()
+        .catch((e) => console.error("Failed to exit fullscreen:", e))
+    } else {
+      el.requestFullscreen().catch((e) =>
+        console.error("Failed to enter fullscreen:", e)
+      )
+    }
+  }
 
   const CELL_STATE_LABELS: Record<number, string> = {
     0: "Empty",
@@ -226,7 +256,13 @@ export default function SimPageClientView() {
             gridDimensions[0],
             gridDimensions[1]
           ),
-    [hasRunOnce, carbonSites, graphiteSites, graphiteHeightApplied, gridDimensions]
+    [
+      hasRunOnce,
+      carbonSites,
+      graphiteSites,
+      graphiteHeightApplied,
+      gridDimensions,
+    ]
   )
 
   // Live preview: before the first run, reflect drawn carbon sites
@@ -1316,7 +1352,13 @@ export default function SimPageClientView() {
 
             <div className="flex min-h-0 flex-1 flex-col gap-4">
               <Reveal className="flex h-1/2 flex-1" delay={0.1}>
-                <Card className="flex min-h-0 flex-1 flex-col items-center justify-between gap-0 rounded-2xl border p-4 backdrop-blur-xl">
+                <Card
+                  ref={fullscreenRef}
+                  className={cn(
+                    "flex min-h-0 flex-1 flex-col items-center justify-between gap-0 rounded-2xl border p-4 backdrop-blur-xl",
+                    isFullscreen && "rounded-none border-0 bg-background p-6"
+                  )}
+                >
                   <div className="flex min-h-0 w-full grow flex-row justify-between gap-2">
                     <div className="flex grow flex-col">
                       <div className="flex h-full w-full flex-1 gap-4">
@@ -1398,11 +1440,33 @@ export default function SimPageClientView() {
                                 }
                               />
                             </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon-sm"
+                              className="absolute right-0 bottom-0 z-10 rounded-none rounded-tl-2xl bg-card/80 backdrop-blur"
+                              onClick={(e) => {
+                                toggleFullscreen()
+                                e.currentTarget.blur()
+                              }}
+                              aria-label={
+                                isFullscreen
+                                  ? "Exit fullscreen"
+                                  : "Enter fullscreen"
+                              }
+                              title={
+                                isFullscreen
+                                  ? "Exit fullscreen (Esc)"
+                                  : "Fullscreen"
+                              }
+                            >
+                              {isFullscreen ? <Minimize2 /> : <Maximize2 />}
+                            </Button>
                           </div>
                         </div>
                       </div>
                     </div>
-                    <AtomColorKey carbonSpeciesColors={CARBON_SPECIES_COLORS} />
+                    <AtomColorKey isFullscreen={isFullscreen} carbonSpeciesColors={CARBON_SPECIES_COLORS} />
                   </div>
                   <div
                     className={
