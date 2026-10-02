@@ -149,6 +149,7 @@ export default function Navbar() {
     { label: "Sim", href: "/sim" },
     { label: "Library", href: "/library" },
     { label: "References", href: "/references" },
+    { label: "About", href: "/about" },
   ]
 
   const { resolvedTheme, setTheme } = useTheme()
