@@ -960,7 +960,7 @@ function IncidentTimeline() {
 
 export default function LibraryClientView() {
   return (
-    <div className="min-h-screen bg-[#dde9f5] font-sans dark:bg-background">
+    <div className="min-h-screen bg-background font-sans">
       <main className="mx-auto max-w-6xl space-y-16 px-4 pt-20 pb-24 sm:space-y-20 sm:px-6 sm:pt-28">
         <VideoLibrary />
         <IncidentTimeline />

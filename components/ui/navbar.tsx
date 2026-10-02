@@ -175,9 +175,14 @@ export default function Navbar() {
         )}
       >
         <nav className="z-10 flex w-full items-center justify-between bg-primary px-8 py-4 text-white shadow-lg dark:shadow-[0_6px_24px_rgba(255,255,255,0.12)]">
-          <h1 className="font-heading text-2xl font-bold tracking-tight">
-            Dendrite Lab
-          </h1>
+          <Link href="/" className="flex flex-col leading-tight">
+            <span className="font-heading text-xl font-bold tracking-tight sm:text-2xl">
+              Battery Dendrites
+            </span>
+            <span className="text-xs font-medium text-white/70">
+              An educational resource
+            </span>
+          </Link>
           <div className="flex items-center gap-6 text-sm font-medium">
             {mounted && (
               <AnimatedThemeToggler

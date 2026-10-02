@@ -10,7 +10,7 @@ import { z } from "zod"
 
 export const maxDuration = 30
 
-const SYSTEM_PROMPT = `You are the assistant embedded in the Dendrite Lab website,
+const SYSTEM_PROMPT = `You are the assistant embedded in the Battery Dendrites website,
 a Rice University * Mesoscale Materials Science Group  website about lithium metal battery
 simulator. Answer questions about the simulation, its parameters, and general
 lithium battery / dendrite science concisely and helpfully. If asked something

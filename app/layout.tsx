@@ -9,8 +9,8 @@ import Navbar from "@/components/ui/navbar"
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | Rice University Dendrite Lab",
-    default: "The Risks of Dendrite", 
+    template: "%s | Battery Dendrites",
+    default: "Battery Dendrites — An Educational Resource",
   },
 };
 

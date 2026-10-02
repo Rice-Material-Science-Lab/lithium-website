@@ -935,7 +935,7 @@ export default function ReferencesClientView() {
   ]
 
   return (
-    <div className="relative min-h-screen overflow-x-clip bg-[#dde9f5] font-sans dark:bg-background">
+    <div className="relative min-h-screen overflow-x-clip bg-background font-sans">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 h-130 bg-[radial-gradient(60%_60%_at_50%_0%,rgb(255_255_255/0.7),transparent_70%)] dark:bg-[radial-gradient(60%_60%_at_50%_0%,rgb(34_211_238/0.08),transparent_70%)]"

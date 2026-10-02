@@ -300,7 +300,7 @@ export default function HomepageClientView() {
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 text-sm text-muted-foreground sm:flex-row sm:px-8">
           <p>
             <span className="font-heading font-bold text-foreground">
-              Dendrite Lab
+              Battery Dendrites
             </span>{" "}
             · Rice University Mesoscale Materials Science Group
           </p>

@@ -427,7 +427,7 @@ function FormationDiagram({
         textAnchor="middle"
       >
         <text x="40" y="298">
-          ANODE{reduced ? "t" : "f"}
+          ANODE
         </text>
         <text x="336" y="298">
           SEPARATOR

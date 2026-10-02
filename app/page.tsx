@@ -3,7 +3,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Home | Rice University Dendrite Lab",
+    absolute: "Battery Dendrites — An Educational Resource",
   },
 };
 
