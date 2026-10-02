@@ -465,7 +465,7 @@ export default function AboutClientView() {
               <span aria-hidden className="opacity-40">
                 /
               </span>
-              <span>Materials Science &amp; NanoEngineering</span>
+              <span>Rice University * Mesoscale Materials Science Group</span>
               <span aria-hidden className="opacity-40">
                 /
               </span>

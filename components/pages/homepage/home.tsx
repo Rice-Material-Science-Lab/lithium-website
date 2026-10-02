@@ -302,7 +302,7 @@ export default function HomepageClientView() {
             <span className="font-heading font-bold text-foreground">
               Dendrite Lab
             </span>{" "}
-            · Rice University Materials Science Lab
+            · Rice University Mesoscale Materials Science Group
           </p>
           <nav className="flex gap-5">
             <Link href="/sim" className="hover:text-foreground">
