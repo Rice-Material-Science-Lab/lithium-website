@@ -24,9 +24,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 
-/* ------------------------------------------------------------------ */
-/* Small pieces                                                        */
-/* ------------------------------------------------------------------ */
 
 const LINK_META: Record<
   TeamLink["kind"],
@@ -150,7 +147,6 @@ function LinkRow({
   )
 }
 
-/** Tracks the cursor so a soft glow follows it across the card. */
 function useSpotlight<T extends HTMLElement>() {
   const ref = useRef<T>(null)
   const onMouseMove = (e: MouseEvent<T>) => {
@@ -166,9 +162,7 @@ function useSpotlight<T extends HTMLElement>() {
 const SPOTLIGHT =
   "pointer-events-none absolute inset-0 z-20 opacity-0 transition-opacity duration-500 group-hover:opacity-100 bg-[radial-gradient(420px_circle_at_var(--mx)_var(--my),rgb(255_255_255/0.10),transparent_45%)]"
 
-/* ------------------------------------------------------------------ */
-/* Principal investigator                                              */
-/* ------------------------------------------------------------------ */
+
 
 function PrincipalInvestigator() {
   return (
@@ -231,9 +225,6 @@ function PrincipalInvestigator() {
   )
 }
 
-/* ------------------------------------------------------------------ */
-/* Team grid                                                           */
-/* ------------------------------------------------------------------ */
 
 function MemberCard({ member, index }: { member: TeamMember; index: number }) {
   const { ref, onMouseMove } = useSpotlight<HTMLButtonElement>()
@@ -347,9 +338,6 @@ function TeamGrid() {
   )
 }
 
-/* ------------------------------------------------------------------ */
-/* Mission + closing                                                   */
-/* ------------------------------------------------------------------ */
 
 const PILLARS = [
   {
@@ -446,9 +434,6 @@ function Closing() {
   )
 }
 
-/* ------------------------------------------------------------------ */
-/* Page                                                                */
-/* ------------------------------------------------------------------ */
 
 export default function AboutClientView() {
   return (
@@ -464,8 +449,10 @@ export default function AboutClientView() {
             <Eyebrow>About the lab</Eyebrow>
             <h1 className="font-heading text-5xl leading-[1.04] font-bold tracking-tight text-balance text-foreground sm:text-6xl">
               The people behind{" "}
+
+              {/* writing just "Battery Dendrites" here might sound a bit odd */}
               <span className="text-primary dark:text-cyan-400">
-                Dendrite Lab
+                Battery Dendrites 
               </span>
             </h1>
             <p className="max-w-2xl text-lg leading-relaxed text-pretty text-muted-foreground">
