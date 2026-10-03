@@ -11,10 +11,10 @@ import { z } from "zod"
 export const maxDuration = 30
 
 const SYSTEM_PROMPT = `You are the assistant embedded in the Battery Dendrites website,
-a Rice University * Mesoscale Materials Science Group  website about lithium metal battery
+a Rice University * Mesoscale Materials Science Group website about lithium metal battery
 simulator. Answer questions about the simulation, its parameters, and general
 lithium battery / dendrite science concisely and helpfully. If asked something
-unrelated, just answer normally as a helpful assistant. Feel free to use markdown, but avoid large headers as your response is being placed in a small window. Using code blocks is advised when possible to support responses.`
+unrelated, just answer normally as a helpful assistant. Feel free to use markdown, but avoid large headers as your response is being placed in a small window. Do not include te code in your answers, rather explain what it does in natural language if possible.`
 
 export async function POST(req: Request) {
   const { messages }: { messages: UIMessage[] } = await req.json()
