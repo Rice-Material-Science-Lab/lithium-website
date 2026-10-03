@@ -43,6 +43,12 @@ export default function ParamsCard({
   clearCarbon,
   graphiteHeight,
   setGraphiteHeight,
+  graphiteAngle,
+  setGraphiteAngle,
+  continueSteps,
+  setContinueSteps,
+  continueSim,
+  canContinue,
   addGraphiteLattice,
   temp,
   setTemp,
@@ -207,9 +213,10 @@ export default function ParamsCard({
                       <CircleQuestionMarkIcon size={17} />
                     </TooltipTrigger>
                     <TooltipContent>
-                      Adds vertical, parallel carbon columns on the substrate,
-                      one empty lattice column apart. Every column has the
-                      same height (typically 10&ndash;20 atoms).
+                      Adds straight, parallel carbon columns on the substrate,
+                      one empty lattice line apart, all the same height
+                      (typically 10&ndash;20 atoms). Drawing or clearing the
+                      lattice resets the simulation.
                     </TooltipContent>
                   </Tooltip>
                 </Label>
@@ -228,6 +235,43 @@ export default function ParamsCard({
                     value={graphiteHeight}
                     onChange={(e) => setGraphiteHeight(e.target.value)}
                   />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span
+                    id="graphite-angle-label"
+                    className="text-xs text-muted-foreground"
+                  >
+                    Column angle
+                  </span>
+                  <div
+                    role="radiogroup"
+                    aria-labelledby="graphite-angle-label"
+                    className="grid grid-cols-2 gap-1 rounded-full border border-border p-1"
+                  >
+                    {(
+                      [
+                        ["60", "60\u00b0", "Touching atoms along a lattice line"],
+                        ["30", "30\u00b0", "Atoms one lattice step apart"],
+                      ] as const
+                    ).map(([value, label, hint]) => (
+                      <button
+                        key={value}
+                        type="button"
+                        role="radio"
+                        aria-checked={graphiteAngle === value}
+                        title={hint}
+                        onClick={() => setGraphiteAngle(value)}
+                        className={
+                          "rounded-full px-3 py-1 text-sm font-medium transition-colors " +
+                          (graphiteAngle === value
+                            ? "bg-brand text-brand-foreground"
+                            : "text-muted-foreground hover:bg-accent hover:text-accent-foreground")
+                        }
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 <Button
                   type="button"
@@ -634,7 +678,7 @@ export default function ParamsCard({
             <Button
               type="submit"
               variant="default"
-              className="dark:hover:bg-primary-400 h-10 flex-5 rounded-3xl hover:bg-primary/90"
+              className="h-10 flex-5 rounded-3xl hover:bg-primary/90"
               disabled={!wasmModule}
             >
               {wasmModule
@@ -672,6 +716,29 @@ export default function ParamsCard({
               Stop
             </Button>
           </CardFooter>
+          <div className="flex items-center gap-2">
+            <Label htmlFor="continue-steps-input" className="sr-only">
+              Steps to continue
+            </Label>
+            <Input
+              id="continue-steps-input"
+              type="number"
+              min={1}
+              className="h-10 flex-1 rounded-xl"
+              value={continueSteps}
+              onChange={(e) => setContinueSteps(e.target.value)}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              className="h-10 flex-1 rounded-3xl"
+              onClick={continueSim}
+              disabled={!canContinue}
+              title="Run more steps on the current simulation without restarting"
+            >
+              Continue {(Number(continueSteps) || 0).toLocaleString()} steps
+            </Button>
+          </div>
         </Card>
       </form>
     </>

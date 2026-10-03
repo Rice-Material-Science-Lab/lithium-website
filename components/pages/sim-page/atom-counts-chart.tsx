@@ -11,6 +11,15 @@ import {
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts"
 import { useEffect, useState } from "react"
 
+// Simulated KMC time is tiny (often 1e-6..1e-2 s): show compact, readable
+// ticks that stay sensible as the axis stretches.
+function formatSimTime(t: number) {
+  if (!Number.isFinite(t) || t === 0) return "0"
+  const a = Math.abs(t)
+  if (a >= 1e-2 && a < 1e3) return t.toPrecision(3).replace(/\.?0+$/, "")
+  return t.toExponential(1).replace("e-", "e\u2212")
+}
+
 export default function AtomCountsChart({
   data,
 }: {
@@ -56,7 +65,7 @@ export default function AtomCountsChart({
           >
             <LineChart
               data={data}
-              margin={{ top: 8, right: 12, left: -16, bottom: 0 }}
+              margin={{ top: 8, right: 12, left: -16, bottom: 14 }}
             >
               <CartesianGrid
                 strokeDasharray="3 3"
@@ -65,12 +74,19 @@ export default function AtomCountsChart({
               />
 
               <XAxis
-                dataKey="step"
+                dataKey="time"
                 type="number"
-                domain={["dataMin", "dataMax"]}
+                domain={[0, "dataMax"]}
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
+                tickFormatter={formatSimTime}
+                label={{
+                  value: "Simulated time (s)",
+                  position: "insideBottomRight",
+                  offset: -2,
+                  className: "fill-muted-foreground text-[10px]",
+                }}
               />
 
               <YAxis
@@ -79,7 +95,20 @@ export default function AtomCountsChart({
                 axisLine={false}
                 tickMargin={8}
               />
-              <ChartTooltip content={<ChartTooltipContent />} />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    labelFormatter={(_, payload) => {
+                      const row = payload?.[0]?.payload as
+                        | { time: number; step: number }
+                        | undefined
+                      return row
+                        ? `t = ${formatSimTime(row.time)} s · step ${row.step.toLocaleString()}`
+                        : ""
+                    }}
+                  />
+                }
+              />
               <ChartLegend content={<ChartLegendContent />} />
               <Line
                 type="monotone"

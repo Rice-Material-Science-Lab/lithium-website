@@ -185,9 +185,11 @@ export default function HelpDialog({
                 <span className="font-medium text-foreground">
                   Add Graphite Lattice
                 </span>{" "}
-                places vertical carbon columns (one lattice spacing apart,
-                all the same height, 15 atoms by default) along the substrate in one
-                click. Use{" "}
+                places straight carbon columns along the substrate (one lattice
+                line apart, all the same height, 15 atoms by default) at 60&deg;
+                (touching atoms) or 30&deg; (atoms one lattice step apart).
+                Drawing or clearing the lattice resets the simulation, so the
+                carbon is always the starting condition. Use{" "}
                 <span className="font-medium text-foreground">Undo</span> or{" "}
                 <span className="font-medium text-foreground">
                   Clear Carbon
@@ -257,6 +259,12 @@ export default function HelpDialog({
                   </kbd>{" "}
                   to pause/resume a running simulation.
                 </li>
+                <li>
+                  Use{" "}
+                  <span className="font-medium text-foreground">Continue</span>{" "}
+                  to run more steps on the current simulation once it
+                  finishes or while paused (not after Stop).
+                </li>
               </ul>
             </section>
 
@@ -267,7 +275,7 @@ export default function HelpDialog({
                 <span className="font-medium text-foreground">
                   Export Stats CSV
                 </span>{" "}
-                for the step-by-step counts chart, and{" "}
+                for the atom counts over simulated time, and{" "}
                 <span className="font-medium text-foreground">
                   Export Lattice CSV
                 </span>{" "}

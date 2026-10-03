@@ -131,24 +131,40 @@ function applyCarbonOverlay(
   return out
 }
 
-// Fixed graphite lattice for an nx*ny grid: vertical columns at every other
-// x (one empty lattice column between each), `height` atoms tall starting
-// on the substrate, capped so the top two rows stay free for drops.
-function graphiteKeys(nx: number, ny: number, height: number): string[] {
-  const h = Math.min(Math.max(1, Math.floor(height)), Math.max(1, ny - 3))
-  const xs: number[] = []
-  for (let x = 0; x < nx; x += 2) xs.push(x)
-  // Periodic x: the last column must also keep a gap to column 0.
-  if (xs.length > 1 && nx - xs[xs.length - 1] <= 1) xs.pop()
-  const keys: string[] = []
-  for (const x of xs) for (let y = 1; y <= h; y++) keys.push(`${x},${y}`)
-  return keys
+// Fixed graphite lattice for an nx*ny grid. Columns are straight lines of
+// the hex lattice that start on the substrate every other x (one empty
+// lattice line between neighbours), `height` atoms long, capped so the top
+// two rows stay free for drops.
+//   60 deg: nearest-neighbour direction -> a continuous, perfectly straight
+//           chain of touching atoms leaning right.
+//   30 deg: second-neighbour direction -> a straight line whose atoms sit
+//           one lattice step apart (they share neighbours but not an edge).
+// Odd rows are shifted half a cell right (odd-r layout, same as the C++).
+export type GraphiteAngle = "60" | "30"
+export type GraphiteSpec = { height: number; angle: GraphiteAngle }
+
+function graphiteKeys(nx: number, ny: number, spec: GraphiteSpec): string[] {
+  const h = Math.min(Math.max(1, Math.floor(spec.height)), Math.max(1, ny - 3))
+  const extra = spec.angle === "30" ? 1 : 0
+  const starts: number[] = []
+  for (let x = 0; x < nx; x += 2) starts.push(x)
+  // Periodic x: keep the one-line gap across the wrap seam too.
+  if (starts.length > 1 && nx - starts[starts.length - 1] <= 1) starts.pop()
+  const keys = new Set<string>()
+  for (const x0 of starts) {
+    let x = x0
+    for (let y = 1; y <= h; y++) {
+      keys.add(`${((x % nx) + nx) % nx},${y}`)
+      x += (y & 1 ? 1 : 0) + extra // up-right neighbour (+1 cell for 30 deg)
+    }
+  }
+  return [...keys]
 }
 
 type CarbonSnapshot = {
   sites: Set<string>
   graphite: Set<string>
-  height: number | null
+  spec: GraphiteSpec | null
 }
 
 // Re-fit stored carbon to a (possibly different) grid size: hand-drawn
@@ -157,7 +173,7 @@ type CarbonSnapshot = {
 function fitCarbonToGrid(
   sites: Set<string>,
   graphite: Set<string>,
-  height: number | null,
+  spec: GraphiteSpec | null,
   nx: number,
   ny: number
 ): { sites: Set<string>; graphite: Set<string> } {
@@ -167,7 +183,7 @@ function fitCarbonToGrid(
     const [x, y] = key.split(",").map(Number)
     if (x >= 0 && x < nx && y >= 1 && y < ny) out.add(key)
   }
-  const g = new Set<string>(height === null ? [] : graphiteKeys(nx, ny, height))
+  const g = new Set<string>(spec === null ? [] : graphiteKeys(nx, ny, spec))
   for (const key of g) out.add(key)
   return { sites: out, graphite: g }
 }
@@ -197,9 +213,7 @@ export default function SimPageClientView() {
   // built with (null = no lattice). Lets the lattice be rebuilt for a new
   // grid size instead of keeping stale coordinates.
   const [graphiteSites, setGraphiteSites] = useState<Set<string>>(new Set())
-  const [graphiteHeightApplied, setGraphiteHeightApplied] = useState<
-    number | null
-  >(null)
+  const [graphiteSpec, setGraphiteSpec] = useState<GraphiteSpec | null>(null)
   const CARBON_SPECIES_COLORS = ["var(--lattice-carbon)"]
   const [carbonEnergy, setCarbonEnergy] = useState(-0.6)
   const [selectedCell, setSelectedCell] = useState<CellInfo | null>(null)
@@ -252,7 +266,7 @@ export default function SimPageClientView() {
         : fitCarbonToGrid(
             carbonSites,
             graphiteSites,
-            graphiteHeightApplied,
+            graphiteSpec,
             gridDimensions[0],
             gridDimensions[1]
           ),
@@ -260,7 +274,7 @@ export default function SimPageClientView() {
       hasRunOnce,
       carbonSites,
       graphiteSites,
-      graphiteHeightApplied,
+      graphiteSpec,
       gridDimensions,
     ]
   )
@@ -414,6 +428,7 @@ export default function SimPageClientView() {
   const isPausedRef = useRef(false)
   const tickFnRef = useRef<(() => void) | null>(null)
   const [isRunning, setIsRunning] = useState(false)
+  const [wasStopped, setWasStopped] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
   const [historyMode, setHistoryMode] = useState(false)
   const [snapshotCount, setSnapshotCount] = useState(0)
@@ -675,6 +690,7 @@ export default function SimPageClientView() {
     )
 
     setHasRunOnce(true)
+    setWasStopped(false)
     setSimTerminated(false)
     setIsRunning(true)
     setIsPaused(false)
@@ -695,7 +711,7 @@ export default function SimPageClientView() {
     const fitted = fitCarbonToGrid(
       carbonSites,
       graphiteSites,
-      graphiteHeightApplied,
+      graphiteSpec,
       nx,
       ny
     )
@@ -763,6 +779,7 @@ export default function SimPageClientView() {
       return
     }
     wasmModule._stop()
+    setWasStopped(true)
     isPausedRef.current = false
     setIsPaused(false)
     setIsRunning(false)
@@ -845,7 +862,7 @@ export default function SimPageClientView() {
         {
           sites: new Set(carbonSites),
           graphite: new Set(graphiteSites),
-          height: graphiteHeightApplied,
+          spec: graphiteSpec,
         },
       ].slice(-100)
     )
@@ -900,50 +917,106 @@ export default function SimPageClientView() {
     const prev = carbonUndoStack[carbonUndoStack.length - 1]
     setCarbonSites(prev.sites)
     setGraphiteSites(prev.graphite)
-    setGraphiteHeightApplied(prev.height)
+    setGraphiteSpec(prev.spec)
     setCarbonUndoStack((stack) => stack.slice(0, -1))
+  }
+
+  // Placing or clearing the graphite lattice defines the starting
+  // condition of a run, so it resets the simulation: all atoms, steps and
+  // stats are wiped and the lattice shows the new carbon layout. Press Run
+  // to start a fresh simulation on it.
+  const resetSimulation = () => {
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current)
+      animFrameRef.current = null
+    }
+    remainingStepsRef.current = 0
+    isPausedRef.current = false
+    wasmModule?._stop()
+    setIsRunning(false)
+    setIsPaused(false)
+    setWasStopped(false)
+    setSimTerminated(false)
+    setHistoryMode(false)
+    setSnapshotCount(0)
+    setSnapshotIndex(0)
+    setSnapshotStep(0)
+    setStatsData([])
+    setStepsRan(0)
+    setRunTime(0)
+    setSelectedCell(null)
+    setHasRunOnce(false)
+  }
+
+  // Returns false if the user cancels the reset.
+  const confirmReset = (action: string) => {
+    if (!hasRunOnce) return true
+    if (
+      stepsRan > 0 &&
+      !window.confirm(
+        `${action} resets the simulation: current atoms and progress are cleared. Continue?`
+      )
+    ) {
+      return false
+    }
+    resetSimulation()
+    return true
   }
 
   const clearCarbon = () => {
     const before = currentCarbon().sites
     if (before.size === 0) return
+    if (!confirmReset("Clearing the carbon")) return
     pushCarbonUndo()
     setCarbonSites(new Set<string>())
     setGraphiteSites(new Set<string>())
-    setGraphiteHeightApplied(null)
-    pushCarbonDiffToSim(before, new Set<string>())
+    setGraphiteSpec(null)
   }
 
   const [graphiteHeight, setGraphiteHeight] = useState("15")
+  const [graphiteAngle, setGraphiteAngle] = useState<GraphiteAngle>("60")
 
-  // Fixed (not random) graphite lattice: identical vertical columns of
-  // `graphiteHeight` carbon atoms standing on the substrate, one empty
-  // lattice column between each. Replaces any previous lattice, and is
-  // rebuilt automatically if the grid size changes.
+  // Fixed graphite lattice of straight columns (see graphiteKeys). Replaces
+  // any previous lattice (hand-drawn cells are kept) and resets the sim, so
+  // the lattice always takes priority over whatever atoms were there.
   const addGraphiteLattice = () => {
+    if (!confirmReset("Drawing the graphite lattice")) return
     const [nx, ny] = gridDimensions
-    const h = Math.max(1, Math.floor(Number(graphiteHeight) || 15))
+    const spec: GraphiteSpec = {
+      height: Math.max(1, Math.floor(Number(graphiteHeight) || 15)),
+      angle: graphiteAngle,
+    }
     const base = currentCarbon()
-
-    // Drop the previous lattice (hand-drawn cells are kept).
     const next = new Set<string>(base.sites)
     for (const key of base.graphite) next.delete(key)
-
-    const nextGraphite = new Set<string>()
-    for (const key of graphiteKeys(nx, ny, h)) {
-      const [x, y] = key.split(",").map(Number)
-      const v = simState[y * nx + x]
-      // Mid-run, never claim a cell that already holds an atom.
-      if (hasRunOnce && v !== 0 && v !== CARBON_VALUE) continue
-      nextGraphite.add(key)
-      next.add(key)
-    }
+    const nextGraphite = new Set<string>(graphiteKeys(nx, ny, spec))
+    for (const key of nextGraphite) next.add(key)
 
     pushCarbonUndo()
     setCarbonSites(next)
     setGraphiteSites(nextGraphite)
-    setGraphiteHeightApplied(h)
-    pushCarbonDiffToSim(base.sites, next)
+    setGraphiteSpec(spec)
+  }
+
+  // Continue the current run for N more steps (after it finished or while
+  // paused). Not available after Stop, a reset, or a jam.
+  const [continueSteps, setContinueSteps] = useState("100000")
+  const canContinue =
+    !!wasmModule &&
+    hasRunOnce &&
+    !simTerminated &&
+    !wasStopped &&
+    stepsRan > 0 &&
+    (!isRunning || isPaused)
+  const continueSim = () => {
+    if (!wasmModule || !tickFnRef.current || !canContinue) return
+    const n = Math.max(1, Math.floor(Number(continueSteps) || 0))
+    remainingStepsRef.current += n
+    isPausedRef.current = false
+    setIsPaused(false)
+    setIsRunning(true)
+    wasmModule._play()
+    tickFnRef.current()
   }
 
   const inspectCell = (x: number, y: number) => {
@@ -1320,6 +1393,12 @@ export default function SimPageClientView() {
                 undoCarbonSite={undoCarbonSite}
                 graphiteHeight={graphiteHeight}
                 setGraphiteHeight={setGraphiteHeight}
+                graphiteAngle={graphiteAngle}
+                setGraphiteAngle={setGraphiteAngle}
+                continueSteps={continueSteps}
+                setContinueSteps={setContinueSteps}
+                continueSim={continueSim}
+                canContinue={canContinue}
                 addGraphiteLattice={addGraphiteLattice}
                 temp={temp}
                 setTemp={setTemp}

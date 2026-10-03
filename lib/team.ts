@@ -22,6 +22,8 @@ export interface TeamMember {
   links?: TeamLink[]
 }
 
+// Not shown on the About page for now (removed at the PI's request). Kept
+// here so the profile can be restored by rendering it again in about.tsx.
 export const principalInvestigator: TeamMember & {
   title: string
   statement: string
@@ -52,12 +54,12 @@ export const team: TeamMember[] = [
     links: [{ kind: "email", href: "mailto:faye.tang.r@gmail.com" }],
   },
   {
-    name: "Team Member",
-    role: "Student Research Assistant",
-    contribution: "Built ...",
-    bio: "......",
-    focus: ["Simulation", "WebAssembly"], //I just put some examples, you guys can change anything
-    links: [{ kind: "github", href: "https://github.com" }],
+    name: "Andrew Xu",
+    role: "Simulation & Software Development",
+    contribution:
+      "Ported the LKMC simulation to C++/WebAssembly and connected it to the website.",
+    bio: "I worked mainly on the simulation engine behind this site and how it connects to the web platform. My largest task was porting the lab's Python lattice kinetic Monte Carlo (LKMC) model to C++ compiled to WebAssembly, so the simulation could run quickly in the browser, and then wiring it up to the site's controls and charts.\n\nMuch of my time went into debugging. Some problems never showed up as errors: the simulation would run but behave in ways that didn't match the model. I traced these back through the code and documentation, found places where the documentation was out of date or the port didn't match the original, and fixed them as the model moved through versions 3, 4, and 5, keeping its behavior consistent with the underlying physics.\n\nI also helped keep the team in sync by tracking progress, coordinating urgent fixes, and making sure the simulation and the website stayed aligned as both changed.",
+    focus: ["C++ / WebAssembly", "Simulation engine", "Debugging", "Team coordination"],
   },
   {
     name: "Team Member",

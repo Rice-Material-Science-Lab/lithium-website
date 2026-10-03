@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react"
 import Link from "next/link"
+import RiceLogo from "@/components/ui/rice-logo"
 import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
 import { Newspaper, ChevronDown } from "lucide-react"
@@ -175,14 +176,28 @@ export default function Navbar() {
         )}
       >
         <nav className="z-10 flex w-full items-center justify-between bg-primary px-8 py-4 text-primary-foreground shadow-lg dark:shadow-[0_6px_24px_--theme(--color-foreground/12%)]">
-          <Link href="/" className="flex flex-col leading-tight">
-            <span className="font-heading text-xl font-bold tracking-tight sm:text-2xl">
-              Battery Dendrites
-            </span>
-            <span className="text-xs font-medium text-primary-foreground/70">
-              An educational resource
-            </span>
-          </Link>
+          <div className="flex items-center gap-4">
+            <a
+              href="https://www.rice.edu"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shrink-0 text-primary-foreground transition-opacity hover:opacity-80"
+            >
+              <RiceLogo />
+            </a>
+            <span
+              aria-hidden
+              className="hidden h-9 w-px bg-primary-foreground/25 sm:block"
+            />
+            <Link href="/" className="flex flex-col leading-tight">
+              <span className="font-heading text-xl font-bold tracking-tight sm:text-2xl">
+                Battery Dendrites
+              </span>
+              <span className="text-xs font-medium text-primary-foreground/70">
+                An educational resource
+              </span>
+            </Link>
+          </div>
           <div className="flex items-center gap-6 text-sm font-medium">
             {mounted && (
               <AnimatedThemeToggler
