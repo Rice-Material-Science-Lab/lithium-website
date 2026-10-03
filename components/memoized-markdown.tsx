@@ -11,53 +11,53 @@ import { remarkExtendedTable } from "remark-extended-table";
 
 const markdownComponents: Components = {
   table: ({ children }) => (
-    <table className="w-full my-4 border border-collapse border-border dark:border-white">
+    <table className="w-full my-4 border border-collapse border-border">
       {children}
     </table>
   ),
   thead: ({ children }) => (
-    <thead className="bg-muted text-foreground dark:bg-[#2c3b5a] dark:text-white">
+    <thead className="bg-muted text-foreground">
       {children}
     </thead>
   ),
   tbody: ({ children }) => <tbody>{children}</tbody>,
   tr: ({ children }) => (
-    <tr className="border border-border even:bg-muted/50 dark:border-white dark:even:bg-[#2c3b5a]">
+    <tr className="border border-border even:bg-muted/50">
       {children}
     </tr>
   ),
   th: ({ children }) => (
-    <th className="px-4! py-2! font-semibold text-left border border-border dark:border-white">
+    <th className="px-4! py-2! font-semibold text-left border border-border">
       {children}
     </th>
   ),
   td: ({ children }) => (
-    <td className="px-4! py-2! border border-border dark:border-white">
+    <td className="px-4! py-2! border border-border">
       {children}
     </td>
   ),
   h1: ({ children }) => (
     <>
       <h1 className="mt-6! mb-2! text-4xl font-bold">{children}</h1>
-      <hr className="mb-4! border-border dark:border-white" />
+      <hr className="mb-4! border-border" />
     </>
   ),
   h2: ({ children }) => (
     <>
       <h2 className="mt-5! mb-2! text-3xl font-bold">{children}</h2>
-      <hr className="mb-4! border-border dark:border-white" />
+      <hr className="mb-4! border-border" />
     </>
   ),
   h3: ({ children }) => (
     <>
       <h3 className="mt-4! mb-2! text-2xl font-bold">{children}</h3>
-      <hr className="mb-4! border-border dark:border-white" />
+      <hr className="mb-4! border-border" />
     </>
   ),
   h4: ({ children }) => (
     <>
       <h4 className="mt-3! mb-2! text-xl font-bold">{children}</h4>
-      <hr className="mb-3! border-border dark:border-white" />
+      <hr className="mb-3! border-border" />
     </>
   ),
   h5: ({ children }) => (
@@ -83,7 +83,7 @@ const markdownComponents: Components = {
       </pre>
     ) : (
       <code
-        className="px-2! py-0! rounded-lg bg-muted text-foreground dark:bg-[#474747] dark:text-white"
+        className="px-2! py-0! rounded-lg bg-muted text-foreground"
         {...props}
       >
         {children}
@@ -91,7 +91,7 @@ const markdownComponents: Components = {
     );
   },
   a: ({ children, href }) => (
-    <a href={href} className="inline text-primary dark:text-blue-400 underline text-md">
+    <a href={href} className="inline text-brand underline text-md">
       {children}
     </a>
   ),

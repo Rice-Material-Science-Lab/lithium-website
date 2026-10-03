@@ -73,7 +73,7 @@ function NewsPanel() {
       <Button
         variant="ghost"
         size="icon-sm"
-        className={`hover:bg-white/10 ${open ? "text-white" : "text-white/70 hover:text-white"}`}
+        className={`hover:bg-primary-foreground/10 ${open ? "text-primary-foreground" : "text-primary-foreground/70 hover:text-primary-foreground"}`}
         onClick={handleOpen}
         aria-label="news tab toggle"
       >
@@ -174,12 +174,12 @@ export default function Navbar() {
           isSimPage && "items-end"
         )}
       >
-        <nav className="z-10 flex w-full items-center justify-between bg-primary px-8 py-4 text-white shadow-lg dark:shadow-[0_6px_24px_rgba(255,255,255,0.12)]">
+        <nav className="z-10 flex w-full items-center justify-between bg-primary px-8 py-4 text-primary-foreground shadow-lg dark:shadow-[0_6px_24px_--theme(--color-foreground/12%)]">
           <Link href="/" className="flex flex-col leading-tight">
             <span className="font-heading text-xl font-bold tracking-tight sm:text-2xl">
               Battery Dendrites
             </span>
-            <span className="text-xs font-medium text-white/70">
+            <span className="text-xs font-medium text-primary-foreground/70">
               An educational resource
             </span>
           </Link>
@@ -203,8 +203,8 @@ export default function Navbar() {
                   variant="link"
                   className={
                     isActive
-                      ? "font-bold text-white underline underline-offset-4"
-                      : "text-white/70 hover:text-white hover:underline"
+                      ? "font-bold text-primary-foreground underline underline-offset-4"
+                      : "text-primary-foreground/70 hover:text-primary-foreground hover:underline"
                   }
                 >
                   <Link href={link.href}>{link.label}</Link>
@@ -227,7 +227,7 @@ export default function Navbar() {
             className="mr-10 flex h-10 w-fit cursor-pointer items-center justify-center rounded-b-2xl bg-primary p-2 focus:outline-none"
           >
             <ChevronDown
-              className={`relative z-130 h-6 w-6 text-white transition-transform duration-300 ${
+              className={`relative z-130 h-6 w-6 text-primary-foreground transition-transform duration-300 ${
                 navBarOpen ? "rotate-180" : "rotate-0"
               }`}
             />

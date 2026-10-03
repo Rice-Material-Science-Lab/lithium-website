@@ -8,13 +8,13 @@ type Risk = "Very high" | "Intermediate" | "Moderate" | "Very low"
 
 const riskStyles: Record<Risk, string> = {
   "Very high":
-    "border-red-500/40 bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300",
+    "border-destructive/40 bg-destructive/15 text-destructive dark:bg-destructive/20",
   Intermediate:
-    "border-orange-500/40 bg-orange-100 text-orange-700 dark:bg-orange-950/60 dark:text-orange-300",
+    "border-caution/40 bg-caution/15 text-caution dark:bg-caution/20",
   Moderate:
-    "border-amber-500/40 bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300",
+    "border-warning/40 bg-warning/15 text-warning dark:bg-warning/20",
   "Very low":
-    "border-emerald-500/40 bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300",
+    "border-success/40 bg-success/15 text-success dark:bg-success/20",
 }
 
 type Anode = {
@@ -133,7 +133,7 @@ export default function ChemistryComparison() {
               className={cn(
                 "rounded-full border px-3 py-1 text-sm font-medium transition-all",
                 selected
-                  ? "border-primary bg-primary text-primary-foreground dark:border-cyan-600 dark:bg-cyan-600"
+                  ? "border-brand bg-brand text-brand-foreground"
                   : "border-border bg-background text-foreground/80 hover:border-primary/40 hover:text-foreground"
               )}
             >
@@ -155,7 +155,7 @@ export default function ChemistryComparison() {
                   scope="col"
                   className={cn(
                     "rounded-t-xl px-3 py-3 font-semibold text-foreground transition-all duration-300",
-                    focus === a.material && "bg-primary/8 dark:bg-cyan-500/10",
+                    focus === a.material && "bg-primary/8 dark:bg-brand/10",
                     focus && focus !== a.material && "opacity-40"
                   )}
                 >
@@ -181,7 +181,7 @@ export default function ChemistryComparison() {
                     key={a.material}
                     className={cn(
                       "px-3 py-3 transition-all duration-300",
-                      focus === a.material && "bg-primary/8 dark:bg-cyan-500/10",
+                      focus === a.material && "bg-primary/8 dark:bg-brand/10",
                       focus === a.material && ri === rows.length - 1 && "rounded-b-xl",
                       focus && focus !== a.material && "opacity-40"
                     )}

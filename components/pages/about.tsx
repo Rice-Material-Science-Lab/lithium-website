@@ -75,14 +75,14 @@ function Portrait({
       ) : (
         <div
           aria-hidden
-          className="absolute inset-0 flex items-center justify-center bg-linear-to-br from-[oklch(0.52_0.105_223)] via-[oklch(0.42_0.09_226)] to-[oklch(0.25_0.05_230)] transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]"
+          className="absolute inset-0 flex items-center justify-center bg-linear-to-br from-chart-3 via-primary to-chart-5 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]"
         >
           <div
             className="absolute inset-0 mask-[radial-gradient(80%_70%_at_70%_20%,black,transparent)] opacity-70"
             style={{ backgroundImage: HEX_TILE, backgroundSize: "28px 48.5px" }}
           />
-          <div className="absolute -top-1/4 -right-1/4 h-3/4 w-3/4 rounded-full bg-cyan-300/25 blur-3xl" />
-          <span className="relative font-heading text-[clamp(3rem,9vw,6rem)] font-bold tracking-tight text-white/90 drop-shadow-[0_2px_24px_rgb(0_0_0/0.25)]">
+          <div className="absolute -top-1/4 -right-1/4 h-3/4 w-3/4 rounded-full bg-chart-1/25 blur-3xl" />
+          <span className="relative font-heading text-[clamp(3rem,9vw,6rem)] font-bold tracking-tight text-primary-foreground/90 drop-shadow-[0_2px_24px_rgb(0_0_0/0.25)]">
             {initials(member.name)}
           </span>
         </div>
@@ -104,7 +104,7 @@ function FocusChips({
       {items.map((f) => (
         <li
           key={f}
-          className="rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary dark:border-cyan-400/20 dark:bg-cyan-400/5 dark:text-cyan-300"
+          className="rounded-full border border-brand/20 bg-brand/5 px-2.5 py-1 text-xs font-medium text-brand"
         >
           {f}
         </li>
@@ -133,7 +133,7 @@ function LinkRow({
             {...(external
               ? { target: "_blank", rel: "noopener noreferrer" }
               : {})}
-            className="group/link inline-flex h-9 items-center gap-2 rounded-full border border-border bg-background/60 px-3.5 text-sm font-medium text-foreground/80 transition-all hover:border-primary/40 hover:bg-background hover:text-foreground dark:bg-white/3 dark:hover:border-cyan-400/40"
+            className="group/link inline-flex h-9 items-center gap-2 rounded-full border border-border bg-background/60 px-3.5 text-sm font-medium text-foreground/80 transition-all hover:border-brand/40 hover:bg-background hover:text-foreground dark:bg-foreground/3"
           >
             {meta.icon({ className: "h-3.5 w-3.5" })}
             {meta.label}
@@ -160,7 +160,7 @@ function useSpotlight<T extends HTMLElement>() {
 }
 
 const SPOTLIGHT =
-  "pointer-events-none absolute inset-0 z-20 opacity-0 transition-opacity duration-500 group-hover:opacity-100 bg-[radial-gradient(420px_circle_at_var(--mx)_var(--my),rgb(255_255_255/0.10),transparent_45%)]"
+  "pointer-events-none absolute inset-0 z-20 opacity-0 transition-opacity duration-500 group-hover:opacity-100 bg-[radial-gradient(420px_circle_at_var(--mx)_var(--my),color-mix(in_srgb,var(--overlay-foreground)_10%,transparent),transparent_45%)]"
 
 
 
@@ -172,8 +172,8 @@ function PrincipalInvestigator() {
           <BorderBeam
             size={180}
             duration={12}
-            colorFrom="#22d3ee"
-            colorTo="#0e7490"
+            colorFrom="var(--color-chart-1)"
+            colorTo="var(--color-chart-3)"
             borderWidth={1.5}
           />
           <div className="grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
@@ -184,7 +184,7 @@ function PrincipalInvestigator() {
                 sizes="(min-width: 1024px) 420px, 100vw"
                 className="aspect-4/5 h-full max-h-140 w-full rounded-2xl lg:max-h-none"
               />
-              <span className="absolute top-7 left-7 rounded-full border border-white/20 bg-black/25 px-3 py-1 text-[11px] font-semibold tracking-[0.18em] text-white uppercase backdrop-blur-md sm:top-8 sm:left-8">
+              <span className="absolute top-7 left-7 rounded-full border border-overlay-foreground/20 bg-overlay/25 px-3 py-1 text-[11px] font-semibold tracking-[0.18em] text-overlay-foreground uppercase backdrop-blur-md sm:top-8 sm:left-8">
                 Principal Investigator
               </span>
             </div>
@@ -203,7 +203,7 @@ function PrincipalInvestigator() {
                 </p>
               </div>
 
-              <figure className="relative border-l-2 border-primary/60 pl-5 dark:border-cyan-400/60">
+              <figure className="relative border-l-2 border-brand/60 pl-5">
                 <blockquote className="font-heading text-xl leading-snug text-pretty text-foreground/90 italic sm:text-2xl">
                   &ldquo;{pi.statement}&rdquo;
                 </blockquote>
@@ -238,7 +238,7 @@ function MemberCard({ member, index }: { member: TeamMember; index: number }) {
           onMouseMove={onMouseMove}
           type="button"
           aria-label={`Read more about ${member.name}`}
-          className="group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border border-border bg-card text-left shadow-[0_1px_2px_rgb(0_0_0/0.04)] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] outline-none hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_28px_56px_-28px_rgb(0_0_0/0.45)] focus-visible:ring-2 focus-visible:ring-ring dark:hover:border-cyan-400/40"
+          className="group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border border-border bg-card text-left shadow-[0_1px_2px_rgb(0_0_0/0.04)] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] outline-none hover:-translate-y-1 hover:border-brand/40 hover:shadow-[0_28px_56px_-28px_rgb(0_0_0/0.45)] focus-visible:ring-2 focus-visible:ring-ring"
         >
           <div aria-hidden className={SPOTLIGHT} />
           <div className="relative">
@@ -247,14 +247,14 @@ function MemberCard({ member, index }: { member: TeamMember; index: number }) {
               sizes="(min-width: 1024px) 280px, (min-width: 640px) 50vw, 100vw"
               className="aspect-4/3 w-full sm:aspect-4/5"
             />
-            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-black/55 to-transparent" />
-            <span className="absolute top-4 left-4 font-mono text-xs font-medium text-white/80">
+            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-overlay/55 to-transparent" />
+            <span className="absolute top-4 left-4 font-mono text-xs font-medium text-overlay-foreground/80">
               {number}
             </span>
-            <span className="absolute top-3 right-3 flex h-9 w-9 translate-y-1 items-center justify-center rounded-full border border-white/25 bg-white/15 text-white opacity-0 backdrop-blur-md transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">
+            <span className="absolute top-3 right-3 flex h-9 w-9 translate-y-1 items-center justify-center rounded-full border border-overlay-foreground/25 bg-overlay-foreground/15 text-overlay-foreground opacity-0 backdrop-blur-md transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">
               <Plus className="h-4 w-4" />
             </span>
-            <p className="absolute right-4 bottom-4 left-4 text-[11px] font-semibold tracking-[0.18em] text-white/85 uppercase">
+            <p className="absolute right-4 bottom-4 left-4 text-[11px] font-semibold tracking-[0.18em] text-overlay-foreground/85 uppercase">
               {member.role}
             </p>
           </div>
@@ -266,7 +266,7 @@ function MemberCard({ member, index }: { member: TeamMember; index: number }) {
             <p className="text-sm leading-relaxed text-pretty text-muted-foreground">
               {member.contribution}
             </p>
-            <span className="mt-auto inline-flex items-center gap-1 pt-3 text-sm font-semibold text-primary dark:text-cyan-400">
+            <span className="mt-auto inline-flex items-center gap-1 pt-3 text-sm font-semibold text-brand">
               View profile
               <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
             </span>
@@ -377,7 +377,7 @@ function Mission() {
                 <span className="pt-1.5 font-mono text-xs text-muted-foreground tabular-nums">
                   {String(i + 1).padStart(2, "0")}
                 </span>
-                <span className="font-heading text-lg font-bold text-foreground transition-colors group-hover:text-primary dark:group-hover:text-cyan-400">
+                <span className="font-heading text-lg font-bold text-foreground transition-colors group-hover:text-brand">
                   {p.k}
                 </span>
                 <p className="col-start-2 text-[15px] leading-relaxed text-muted-foreground sm:col-start-3">
@@ -403,27 +403,27 @@ function Closing() {
         />
         <div
           aria-hidden
-          className="absolute -top-24 left-1/2 h-64 w-160 -translate-x-1/2 rounded-full bg-cyan-300/30 blur-3xl"
+          className="absolute -top-24 left-1/2 h-64 w-160 -translate-x-1/2 rounded-full bg-chart-1/30 blur-3xl"
         />
         <div className="relative mx-auto max-w-2xl space-y-6">
           <h2 className="font-heading text-3xl font-bold tracking-tight text-balance sm:text-4xl">
             See a dendrite grow for yourself
           </h2>
-          <p className="text-pretty text-white/75">
+          <p className="text-pretty text-primary-foreground/75">
             The simulation is the heart of this project. Change the charging
             conditions and watch the lithium respond.
           </p>
           <div className="flex flex-wrap justify-center gap-3 pt-2">
             <Link
               href="/sim"
-              className="group inline-flex h-11 items-center gap-2 rounded-full bg-white px-6 text-sm font-semibold text-primary shadow-lg transition-transform hover:-translate-y-0.5"
+              className="group inline-flex h-11 items-center gap-2 rounded-full bg-primary-foreground px-6 text-sm font-semibold text-primary shadow-lg transition-transform hover:-translate-y-0.5"
             >
               Open the simulation
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
             <Link
               href="/references"
-              className="inline-flex h-11 items-center gap-2 rounded-full border border-white/30 px-6 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+              className="inline-flex h-11 items-center gap-2 rounded-full border border-primary-foreground/30 px-6 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-foreground/10"
             >
               Browse our sources
             </Link>
@@ -440,7 +440,7 @@ export default function AboutClientView() {
     <div className="relative min-h-screen overflow-x-clip bg-background font-sans">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-160 bg-[radial-gradient(60%_60%_at_50%_0%,rgb(255_255_255/0.75),transparent_70%)] dark:bg-[radial-gradient(60%_60%_at_50%_0%,rgb(34_211_238/0.09),transparent_70%)]"
+        className="pointer-events-none absolute inset-x-0 top-0 h-160 bg-[radial-gradient(60%_60%_at_50%_0%,color-mix(in_srgb,var(--card)_75%,transparent),transparent_70%)] dark:bg-[radial-gradient(60%_60%_at_50%_0%,color-mix(in_srgb,var(--brand)_9%,transparent),transparent_70%)]"
       />
 
       <main className="relative mx-auto max-w-6xl space-y-24 px-4 pt-32 pb-24 sm:space-y-32 sm:px-6 sm:pt-36">
@@ -451,7 +451,7 @@ export default function AboutClientView() {
               The people behind{" "}
 
               {/* writing just "Battery Dendrites" here might sound a bit odd */}
-              <span className="text-primary dark:text-cyan-400">
+              <span className="text-brand">
                 Battery Dendrites 
               </span>
             </h1>

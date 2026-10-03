@@ -10,13 +10,6 @@ import {
 } from "@/components/ui/chart"
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts"
 import { useEffect, useState } from "react"
-import { useTheme } from "next-themes"
-
-const STATE_COLORS = {
-  free: { light: "#2563EB", dark: "#38BDF8" },
-  deposited: { light: "#F97316", dark: "#FB923C" },
-  passivated: { light: "#16A34A", dark: "#4ADE80" },
-} as const
 
 export default function AtomCountsChart({
   data,
@@ -33,29 +26,14 @@ export default function AtomCountsChart({
     total_rate: number
   }[]
 }) {
-  const { resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
-  const isDark = mounted && resolvedTheme === "dark"
-  const gridStrokeColor = isDark ? "#334155" : "#94a3b8"
-
+  // Series colours are theme tokens (app/globals.css): they follow
+  // light/dark mode on their own and match the lattice.
   const chartConfig = {
-    free: {
-      label: "Free",
-      color: isDark ? STATE_COLORS.free.dark : STATE_COLORS.free.light,
-    },
-    deposited: {
-      label: "Deposited",
-      color: isDark
-        ? STATE_COLORS.deposited.dark
-        : STATE_COLORS.deposited.light,
-    },
-    passivated: {
-      label: "Passivated",
-      color: isDark
-        ? STATE_COLORS.passivated.dark
-        : STATE_COLORS.passivated.light,
-    },
+    free: { label: "Free", color: "var(--lattice-free)" },
+    deposited: { label: "Deposited", color: "var(--lattice-deposited)" },
+    passivated: { label: "Passivated", color: "var(--lattice-passivated)" },
   } satisfies ChartConfig
 
   useEffect(() => {
@@ -83,7 +61,7 @@ export default function AtomCountsChart({
               <CartesianGrid
                 strokeDasharray="3 3"
                 vertical={false}
-                stroke={mounted ? gridStrokeColor : "#7b8ea3"}
+                stroke="var(--border)"
               />
 
               <XAxis

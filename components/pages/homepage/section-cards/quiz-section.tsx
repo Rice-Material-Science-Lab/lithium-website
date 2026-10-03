@@ -116,7 +116,7 @@ function ScoreRing({ score, total }: { score: number; total: number }) {
           fill="none"
           strokeWidth="8"
           strokeLinecap="round"
-          className="stroke-primary dark:stroke-cyan-400"
+          className="stroke-brand"
           strokeDasharray={c}
           initial={{ strokeDashoffset: c }}
           animate={{ strokeDashoffset: c * (1 - pct) }}
@@ -179,9 +179,9 @@ export default function QuizSection() {
               key={q.id}
               className={cn(
                 "h-1.5 flex-1 rounded-full transition-colors duration-500",
-                a && a === q.correctId && "bg-emerald-500",
-                a && a !== q.correctId && "bg-red-400",
-                !a && i === index && !finished && "bg-primary/50 dark:bg-cyan-500/50",
+                a && a === q.correctId && "bg-success",
+                a && a !== q.correctId && "bg-destructive",
+                !a && i === index && !finished && "bg-brand/50",
                 !a && (i !== index || finished) && "bg-foreground/10"
               )}
             />
@@ -207,7 +207,7 @@ export default function QuizSection() {
                 {missed.map((q) => (
                   <li key={q.id} className="rounded-xl border border-border bg-muted/40 p-4">
                     <p className="text-sm font-semibold text-foreground">{q.prompt}</p>
-                    <p className="mt-1 flex items-start gap-1.5 text-sm text-emerald-700 dark:text-emerald-400">
+                    <p className="mt-1 flex items-start gap-1.5 text-sm text-success">
                       <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
                       {q.options.find((o) => o.id === q.correctId)?.text}
                     </p>
@@ -255,25 +255,25 @@ export default function QuizSection() {
                     transition={{ duration: 0.4 }}
                     className={cn(
                       "group flex items-center gap-3 rounded-2xl border px-4 py-3.5 text-left text-sm transition-colors",
-                      !revealed && "border-border bg-background hover:border-primary/50 hover:bg-primary/5 dark:hover:border-cyan-500/50",
-                      revealed && isCorrect && "border-emerald-500 bg-emerald-500/10",
-                      revealed && isChosen && !isCorrect && "border-destructive bg-red-500/10",
+                      !revealed && "border-border bg-background hover:border-brand/50 hover:bg-primary/5",
+                      revealed && isCorrect && "border-success bg-success/10",
+                      revealed && isChosen && !isCorrect && "border-destructive bg-destructive/10",
                       revealed && !isCorrect && !isChosen && "border-border opacity-50"
                     )}
                   >
                     <span
                       className={cn(
                         "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border font-mono text-xs font-bold transition-colors",
-                        !revealed && "border-border text-muted-foreground group-hover:border-primary/50 group-hover:text-primary dark:group-hover:text-cyan-400",
-                        revealed && isCorrect && "border-emerald-500 bg-emerald-500 text-white",
-                        revealed && isChosen && !isCorrect && "border-destructive bg-destructive text-white",
+                        !revealed && "border-border text-muted-foreground group-hover:border-primary/50 group-hover:text-brand",
+                        revealed && isCorrect && "border-success bg-success text-background",
+                        revealed && isChosen && !isCorrect && "border-destructive bg-destructive text-destructive-foreground",
                         revealed && !isCorrect && !isChosen && "border-border text-muted-foreground"
                       )}
                     >
                       {String.fromCharCode(65 + oi)}
                     </span>
                     <span className="flex-1 text-foreground">{opt.text}</span>
-                    {revealed && isCorrect && <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />}
+                    {revealed && isCorrect && <CheckCircle2 className="h-5 w-5 shrink-0 text-success" />}
                     {revealed && isChosen && !isCorrect && <XCircle className="h-5 w-5 shrink-0 text-destructive" />}
                   </motion.button>
                 )
@@ -293,7 +293,7 @@ export default function QuizSection() {
                       className={cn(
                         "font-semibold",
                         selected === question.correctId
-                          ? "text-emerald-700 dark:text-emerald-400"
+                          ? "text-success"
                           : "text-destructive"
                       )}
                     >
@@ -305,7 +305,7 @@ export default function QuizSection() {
                     type="button"
                     onClick={handleNext}
                     autoFocus
-                    className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 dark:bg-cyan-600"
+                    className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-brand px-5 text-sm font-semibold text-brand-foreground transition-opacity hover:opacity-90"
                   >
                     {isLast ? "See my score" : "Next question"}
                     <ArrowRight className="h-4 w-4" />

@@ -10,7 +10,7 @@ export default function AtomColorKey({
   const carbonSwatches =
     carbonSpeciesColors && carbonSpeciesColors.length > 0
       ? carbonSpeciesColors
-      : ["#DC2626"] // matches species-1 red in sim.tsx's CARBON_SPECIES_COLORS
+      : ["var(--lattice-carbon)"] // matches species-1 red in sim.tsx's CARBON_SPECIES_COLORS
   const carbonLabels =
     carbonSwatches.length > 1
       ? carbonSwatches.map((_, i) => `Carbon ${i + 1}`)
@@ -20,7 +20,7 @@ export default function AtomColorKey({
     <div className="flex h-full items-center">
       <div
         className={cn(
-          "flex h-full shrink-0 items-stretch rounded-2xl border border-black/5 bg-white/70 p-1 backdrop-blur-xl dark:border-white/10 dark:bg-white/5",
+          "flex h-full shrink-0 items-stretch rounded-2xl border border-border bg-card/70 p-1 backdrop-blur-xl",
           isFullscreen && "max-h-1/2"
         )}
       >
@@ -32,11 +32,11 @@ export default function AtomColorKey({
               style={{ backgroundColor: color }}
             />
           ))}
-          <div className="flex-1 bg-[#16A34A] dark:bg-[#4ADE80]"></div>
-          <div className="flex-1 bg-[#6B7280] dark:bg-[#52525B]"></div>
-          <div className="flex-1 bg-[#F97316] dark:bg-[#FB923C]"></div>
-          <div className="flex-1 bg-[#2563EB] dark:bg-[#38BDF8]"></div>
-          <div className="flex-1 bg-[#E5E7EB] dark:bg-[#18181B]"></div>
+          <div className="flex-1 bg-lattice-passivated"></div>
+          <div className="flex-1 bg-lattice-substrate"></div>
+          <div className="flex-1 bg-lattice-deposited"></div>
+          <div className="flex-1 bg-lattice-free"></div>
+          <div className="flex-1 bg-lattice-empty"></div>
         </div>
         <div className="mx-1 my-2 flex h-[calc(100%-8px)] flex-col text-xs whitespace-nowrap">
           {carbonLabels.map((label) => (

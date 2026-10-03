@@ -200,7 +200,7 @@ export default function SimPageClientView() {
   const [graphiteHeightApplied, setGraphiteHeightApplied] = useState<
     number | null
   >(null)
-  const CARBON_SPECIES_COLORS = ["#DC2626"]
+  const CARBON_SPECIES_COLORS = ["var(--lattice-carbon)"]
   const [carbonEnergy, setCarbonEnergy] = useState(-0.6)
   const [selectedCell, setSelectedCell] = useState<CellInfo | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -1277,11 +1277,11 @@ export default function SimPageClientView() {
       <div className="relative flex h-full w-full flex-col overflow-hidden">
         <div className="relative z-10 flex h-full w-full flex-col overflow-hidden p-5">
           <div className="flex shrink-0 items-center gap-3 px-4 pb-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary dark:bg-cyan-500">
-              <Atom className="h-5 w-5 text-white" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand">
+              <Atom className="h-5 w-5 text-brand-foreground" />
             </div>
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-primary dark:text-cyan-500">
+              <h1 className="text-2xl font-bold text-brand">
                 LKMC Electrodeposition Simulator
               </h1>
               <h2 className="text-xs text-muted-foreground">
@@ -1364,16 +1364,16 @@ export default function SimPageClientView() {
                       <div className="flex h-full w-full flex-1 gap-4">
                         <div className="flex h-full flex-1 grow flex-col items-center">
                           <div className="flex items-center gap-2">
-                            <div className="flex items-center gap-1.5 rounded-full border border-black/5 px-3 py-1 dark:border-white/10">
+                            <div className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1">
                               <span
                                 className={
                                   "h-2 w-2 rounded-full " +
                                   (simTerminated
                                     ? "bg-destructive"
                                     : isPaused
-                                      ? "bg-yellow-500"
+                                      ? "bg-warning"
                                       : isRunning
-                                        ? "animate-pulse bg-green-500"
+                                        ? "animate-pulse bg-success"
                                         : "bg-muted-foreground")
                                 }
                               />

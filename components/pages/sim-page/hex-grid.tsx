@@ -1,7 +1,6 @@
 "use client"
 
 import { HexGrid, Layout, Hexagon } from "react-hexgrid"
-import { useTheme } from "next-themes"
 import { useEffect, useState, useCallback, useRef } from "react"
 
 export default function DisplayHexGrid({
@@ -15,7 +14,6 @@ export default function DisplayHexGrid({
   height: number
   onCellClick?: (x: number, y: number) => void
 }) {
-  const { resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const lastInteractedCellRef = useRef<string | null>(null)
 
@@ -79,31 +77,18 @@ export default function DisplayHexGrid({
     }
   }
 
-  const getColor = (value: number) => {
-    if (value === 5) {
-      return resolvedTheme === "dark" ? "#F87171" : "#DC2626"
-    }
-
-    if (resolvedTheme === "dark") {
-      switch (value) {
-        case 0: return "#18181B"
-        case 1: return "#38BDF8"
-        case 2: return "#FB923C"
-        case 3: return "#52525B"
-        case 4: return "#4ADE80"
-        default: return "#18181B"
-      }
-    } else {
-      switch (value) {
-        case 0: return "#E5E7EB"
-        case 1: return "#2563EB"
-        case 2: return "#F97316"
-        case 3: return "#6B7280"
-        case 4: return "#16A34A"
-        default: return "#000000"
-      }
-    }
+  // Lattice colours come from theme tokens (app/globals.css), so they
+  // follow light/dark mode automatically, with no flash on hydration.
+  const LATTICE_VAR: Record<number, string> = {
+    0: "var(--lattice-empty)",
+    1: "var(--lattice-free)",
+    2: "var(--lattice-deposited)",
+    3: "var(--lattice-substrate)",
+    4: "var(--lattice-passivated)",
+    5: "var(--lattice-carbon)",
   }
+  const getColor = (value: number) => LATTICE_VAR[value] ?? "var(--lattice-empty)"
+
 
   const hexSize = 10
   const hexWidth = Math.sqrt(3) * hexSize
@@ -151,7 +136,7 @@ export default function DisplayHexGrid({
                 }
                 style={{
                   fill: getColor(hex.value),
-                  stroke: "#ffffff",
+                  stroke: "var(--lattice-grid)",
                   strokeWidth: 0.3,
                   strokeLinejoin: "round",
                   cursor: onCellClick ? "crosshair" : "default",

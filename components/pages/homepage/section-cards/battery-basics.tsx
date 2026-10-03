@@ -15,11 +15,11 @@ const CATHODE_X = [500, 696]
 const WIRE_DISCHARGE = "M 94 118 V 48 H 706 V 118" // anode -> device -> cathode
 const WIRE_CHARGE = "M 706 118 V 48 H 94 V 118" // cathode -> charger -> anode
 
-const COPPER = "#c2703d"
-const ALUMINUM = "#9ca3af"
-const ION = "#f59e0b"
-const ION_STROKE = "#b45309"
-const ELECTRON = "#22d3ee"
+const COPPER = "var(--diagram-copper)"
+const ALUMINUM = "var(--diagram-aluminum)"
+const ION = "var(--diagram-ion)"
+const ION_STROKE = "var(--diagram-ion-stroke)"
+const ELECTRON = "var(--diagram-electron)"
 
 function zigzag(y: number, x0: number, x1: number, step = 12, amp = 4) {
   let d = `M ${x0} ${y}`
@@ -142,7 +142,7 @@ function BatterySchematic({ mode, reduced }: { mode: Mode; reduced: boolean }) {
       </g>
 
       {/* ---------- cell casing & electrolyte ---------- */}
-      <rect x="70" y="100" width="660" height="280" rx="18" className="fill-sky-500/10 stroke-border" strokeWidth={2} />
+      <rect x="70" y="100" width="660" height="280" rx="18" className="fill-brand/10 stroke-border" strokeWidth={2} />
 
       <g clipPath={`url(#${clipId})`}>
         {/* current collectors */}
@@ -166,12 +166,12 @@ function BatterySchematic({ mode, reduced }: { mode: Mode; reduced: boolean }) {
       ))}
 
       {/* cathode: layered metal oxide */}
-      <rect x={CATHODE_X[0]} y="118" width={CATHODE_X[1] - CATHODE_X[0]} height="244" rx="6" className="fill-indigo-500/10" />
+      <rect x={CATHODE_X[0]} y="118" width={CATHODE_X[1] - CATHODE_X[0]} height="244" rx="6" className="fill-diagram-cathode/10" />
       {LAYER_YS.map((y) => (
         <g key={`c-${y}`}>
-          <rect x={CATHODE_X[0] + 6} y={y - 3} width={CATHODE_X[1] - CATHODE_X[0] - 12} height={6} rx={3} className="fill-indigo-400/40" />
+          <rect x={CATHODE_X[0] + 6} y={y - 3} width={CATHODE_X[1] - CATHODE_X[0] - 12} height={6} rx={3} className="fill-diagram-cathode/40" />
           {Array.from({ length: 13 }).map((_, k) => (
-            <circle key={k} cx={CATHODE_X[0] + 14 + k * 14} cy={y} r={3.6} className="fill-indigo-500 dark:fill-indigo-300" />
+            <circle key={k} cx={CATHODE_X[0] + 14 + k * 14} cy={y} r={3.6} className="fill-diagram-cathode" />
           ))}
         </g>
       ))}
@@ -223,10 +223,10 @@ function BatterySchematic({ mode, reduced }: { mode: Mode; reduced: boolean }) {
         })
       )}
 
-      <text x={450} y={370} textAnchor="middle" fontSize="12" fontStyle="italic" className="fill-sky-600 dark:fill-sky-300">
+      <text x={450} y={370} textAnchor="middle" fontSize="12" fontStyle="italic" className="fill-brand">
         electrolyte
       </text>
-      <text x={350} y={370} textAnchor="middle" fontSize="12" fontStyle="italic" className="fill-sky-600 dark:fill-sky-300">
+      <text x={350} y={370} textAnchor="middle" fontSize="12" fontStyle="italic" className="fill-brand">
         electrolyte
       </text>
 
@@ -259,12 +259,12 @@ const parts = [
   },
   {
     name: "Cathode (+)",
-    swatch: "bg-indigo-500 dark:bg-indigo-300",
+    swatch: "bg-diagram-cathode",
     text: "A lithium metal oxide such as NMC or LFP. It takes lithium back in as the battery powers your device.",
   },
   {
     name: "Electrolyte",
-    swatch: "bg-sky-400",
+    swatch: "bg-brand",
     text: "A lithium salt dissolved in liquid solvent. Ions can travel through it but electrons can't, and in most cells it's flammable.",
   },
   {
@@ -312,7 +312,7 @@ export default function BatteryBasics() {
                 className={cn(
                   "flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-semibold transition-colors sm:flex-none",
                   mode === id
-                    ? "bg-primary text-primary-foreground shadow-sm dark:bg-cyan-600"
+                    ? "bg-brand text-brand-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
@@ -323,10 +323,10 @@ export default function BatteryBasics() {
           </div>
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
             <span className="flex items-center gap-1.5">
-              <span className="h-3 w-3 rounded-full border border-amber-700 bg-amber-500" /> Lithium ion (Li⁺)
+              <span className="h-3 w-3 rounded-full border border-warning bg-warning" /> Lithium ion (Li⁺)
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-full bg-cyan-400" /> Electron (e⁻)
+              <span className="h-2.5 w-2.5 rounded-full bg-brand" /> Electron (e⁻)
             </span>
           </div>
         </div>
@@ -353,9 +353,9 @@ export default function BatteryBasics() {
         ))}
       </div>
 
-      <div className="flex items-start gap-3 rounded-xl border border-destructive/40 bg-red-50 p-4 dark:bg-red-950/40">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-400/50 dark:bg-red-500/50">
-          <ArrowDown className="h-4 w-4 text-red-700 dark:text-red-100" />
+      <div className="flex items-start gap-3 rounded-xl border border-destructive/40 bg-destructive/15 p-4">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-destructive/50">
+          <ArrowDown className="h-4 w-4 text-destructive" />
         </div>
         <p className="text-sm leading-relaxed text-foreground/90">
           <span className="font-semibold">Where things go wrong:</span> in a healthy cell, lithium slips neatly between

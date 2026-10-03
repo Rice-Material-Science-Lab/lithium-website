@@ -60,7 +60,7 @@ export function Eyebrow({
   return (
     <p
       className={cn(
-        "flex items-center gap-3 text-xs font-semibold tracking-[0.18em] text-primary uppercase dark:text-cyan-400",
+        "flex items-center gap-3 text-xs font-semibold tracking-[0.18em] text-brand uppercase",
         className
       )}
     >
@@ -136,7 +136,7 @@ export function FeatureCard({
   linkLabel?: string
 }) {
   const cardClass = cn(
-    "group relative flex gap-4 rounded-2xl border border-border bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[0_16px_40px_-20px_rgb(0_0_0/0.35)] dark:hover:border-cyan-500/40",
+    "group relative flex gap-4 rounded-2xl border border-border bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-[0_16px_40px_-20px_rgb(0_0_0/0.35)]",
     tone === "danger" &&
       "hover:border-destructive/40 dark:hover:border-destructive/40",
     className
@@ -147,9 +147,9 @@ export function FeatureCard({
         className={cn(
           "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-colors",
           tone === "primary" &&
-            "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground dark:bg-cyan-500/10 dark:text-cyan-400 dark:group-hover:bg-cyan-600 dark:group-hover:text-white",
+            "bg-brand/10 text-brand group-hover:bg-brand group-hover:text-brand-foreground",
           tone === "danger" &&
-            "bg-destructive/10 text-destructive group-hover:bg-destructive group-hover:text-white"
+            "bg-destructive/10 text-destructive group-hover:bg-destructive group-hover:text-destructive-foreground"
         )}
       >
         <Icon className="h-5 w-5" />
@@ -160,7 +160,7 @@ export function FeatureCard({
           {children}
         </div>
         {href && (
-          <span className="mt-auto inline-flex items-center gap-1 pt-3 text-sm font-semibold text-primary dark:text-cyan-400">
+          <span className="mt-auto inline-flex items-center gap-1 pt-3 text-sm font-semibold text-brand">
             {linkLabel}
             <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
           </span>

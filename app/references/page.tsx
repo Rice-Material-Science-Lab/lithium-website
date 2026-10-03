@@ -702,7 +702,7 @@ function Highlight({ text, tokens }: { text: string; tokens: string[] }) {
     out.push(
       <mark
         key={i}
-        className="rounded-[3px] bg-amber-200/70 px-0.5 text-inherit dark:bg-cyan-400/25"
+        className="rounded-[3px] bg-warning/30 px-0.5 text-inherit dark:bg-brand/25"
       >
         {text.slice(s, e)}
       </mark>
@@ -715,7 +715,7 @@ function Highlight({ text, tokens }: { text: string; tokens: string[] }) {
 
 function Eyebrow({ children }: { children: ReactNode }) {
   return (
-    <p className="flex items-center gap-3 text-[11px] font-semibold tracking-[0.2em] text-primary uppercase dark:text-cyan-400">
+    <p className="flex items-center gap-3 text-[11px] font-semibold tracking-[0.2em] text-brand uppercase">
       <span aria-hidden className="h-px w-6 bg-current opacity-50" />
       {children}
     </p>
@@ -747,7 +747,7 @@ function CopyCitation({ reference }: { reference: Reference }) {
       className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground"
     >
       {copied ? (
-        <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+        <Check className="h-3.5 w-3.5 text-success" />
       ) : (
         <Copy className="h-3.5 w-3.5" />
       )}
@@ -764,9 +764,9 @@ function ReferenceCard({
   tokens: string[]
 }) {
   return (
-    <li className="group relative rounded-xl border border-border/70 bg-background/60 p-5 transition-all duration-300 hover:-translate-y-px hover:border-primary/30 hover:bg-background hover:shadow-[0_12px_32px_-18px_rgb(0_0_0/0.35)] dark:bg-white/2 dark:hover:border-cyan-500/30 dark:hover:bg-white/4">
+    <li className="group relative rounded-xl border border-border/70 bg-background/60 p-5 transition-all duration-300 hover:-translate-y-px hover:border-brand/30 hover:bg-background hover:shadow-[0_12px_32px_-18px_rgb(0_0_0/0.35)] dark:bg-foreground/2 dark:hover:bg-foreground/4">
       <div className="flex gap-4">
-        <span className="mt-0.5 shrink-0 font-mono text-xs font-medium text-primary/80 tabular-nums dark:text-cyan-400/80">
+        <span className="mt-0.5 shrink-0 font-mono text-xs font-medium text-brand/80 tabular-nums">
           {reference.year}
         </span>
         <div className="min-w-0 flex-1 space-y-2">
@@ -774,7 +774,7 @@ function ReferenceCard({
             href={reference.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="block text-[15px] leading-snug font-semibold text-pretty text-foreground decoration-primary/40 underline-offset-4 hover:underline dark:decoration-cyan-400/40"
+            className="block text-[15px] leading-snug font-semibold text-pretty text-foreground decoration-brand/40 underline-offset-4 hover:underline"
           >
             <Highlight text={reference.title} tokens={tokens} />
           </a>
@@ -799,7 +799,7 @@ function ReferenceCard({
               href={reference.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex h-8 items-center gap-1 rounded-full bg-primary/10 px-3 text-xs font-medium text-primary transition-colors hover:bg-primary hover:text-primary-foreground dark:bg-cyan-500/10 dark:text-cyan-300 dark:hover:bg-cyan-600 dark:hover:text-white"
+              className="inline-flex h-8 items-center gap-1 rounded-full bg-brand/10 px-3 text-xs font-medium text-brand transition-colors hover:bg-brand hover:text-brand-foreground"
             >
               Read paper <ArrowUpRight className="h-3.5 w-3.5" />
             </a>
@@ -831,7 +831,7 @@ function TechniqueBlock({
       className="scroll-mt-40 border-t border-border/60 pt-8 first:border-t-0 first:pt-0"
     >
       <header className="mb-5 flex items-start gap-4">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/5 font-mono text-sm font-semibold text-primary dark:border-cyan-500/25 dark:bg-cyan-500/10 dark:text-cyan-300">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/5 font-mono text-sm font-semibold text-brand dark:border-brand/25 dark:bg-brand/10">
           {String(n).padStart(2, "0")}
         </span>
         <div className="min-w-0 space-y-2">
@@ -938,7 +938,7 @@ export default function ReferencesClientView() {
     <div className="relative min-h-screen overflow-x-clip bg-background font-sans">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-130 bg-[radial-gradient(60%_60%_at_50%_0%,rgb(255_255_255/0.7),transparent_70%)] dark:bg-[radial-gradient(60%_60%_at_50%_0%,rgb(34_211_238/0.08),transparent_70%)]"
+        className="pointer-events-none absolute inset-x-0 top-0 h-130 bg-[radial-gradient(60%_60%_at_50%_0%,color-mix(in_srgb,var(--card)_70%,transparent),transparent_70%)] dark:bg-[radial-gradient(60%_60%_at_50%_0%,color-mix(in_srgb,var(--brand)_8%,transparent),transparent_70%)]"
       />
 
       <main className="relative mx-auto max-w-6xl px-4 pt-28 pb-24 sm:px-6">
@@ -987,7 +987,7 @@ export default function ReferencesClientView() {
                     onChange={(e) => setQuery(e.target.value)}
                     onKeyDown={(e) => e.key === "Escape" && setQuery("")}
                     placeholder="Search titles, authors, journals, years…"
-                    className="h-11 w-full rounded-xl bg-transparent pr-20 pl-10 text-sm text-foreground outline-none placeholder:text-muted-foreground/70 focus-visible:ring-2 focus-visible:ring-primary/30 dark:focus-visible:ring-cyan-500/30 [&::-webkit-search-cancel-button]:hidden"
+                    className="h-11 w-full rounded-xl bg-transparent pr-20 pl-10 text-sm text-foreground outline-none placeholder:text-muted-foreground/70 focus-visible:ring-2 focus-visible:ring-brand/30 [&::-webkit-search-cancel-button]:hidden"
                   />
                   <span className="absolute right-3 flex items-center gap-1.5">
                     {query ? (
@@ -1020,7 +1020,7 @@ export default function ReferencesClientView() {
                       className={cn(
                         "h-9 shrink-0 rounded-lg px-3.5 text-xs font-medium transition-all",
                         filter === f.id
-                          ? "bg-background text-foreground shadow-sm dark:bg-white/10"
+                          ? "bg-background text-foreground shadow-sm dark:bg-accent"
                           : "text-muted-foreground hover:text-foreground"
                       )}
                     >
@@ -1051,7 +1051,7 @@ export default function ReferencesClientView() {
                     )}
                     <button
                       onClick={clear}
-                      className="ml-2 font-medium text-primary hover:underline dark:text-cyan-400"
+                      className="ml-2 font-medium text-brand hover:underline"
                     >
                       Reset
                     </button>
@@ -1091,7 +1091,7 @@ export default function ReferencesClientView() {
                                 className={cn(
                                   "-ml-px flex items-center justify-between gap-2 border-l py-1.5 pr-1 pl-3 text-[13px] leading-snug transition-colors",
                                   active
-                                    ? "border-primary font-medium text-foreground dark:border-cyan-400"
+                                    ? "border-brand font-medium text-foreground"
                                     : "border-transparent text-muted-foreground hover:border-foreground/30 hover:text-foreground"
                                 )}
                               >
@@ -1126,7 +1126,7 @@ export default function ReferencesClientView() {
                   </p>
                   <button
                     onClick={clear}
-                    className="mt-5 inline-flex h-9 items-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90 dark:bg-cyan-600"
+                    className="mt-5 inline-flex h-9 items-center rounded-full bg-brand px-4 text-sm font-medium text-brand-foreground hover:opacity-90"
                   >
                     Clear search
                   </button>

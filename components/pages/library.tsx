@@ -587,7 +587,7 @@ function VideoViewer({
       role="dialog"
       aria-modal="true"
       aria-labelledby="viewer-title"
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-0 backdrop-blur-sm sm:items-center sm:p-6"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-overlay/70 p-0 backdrop-blur-sm sm:items-center sm:p-6"
       onClick={onClose}
     >
       <div
@@ -597,12 +597,12 @@ function VideoViewer({
         <button
           onClick={onClose}
           aria-label="Close video"
-          className="absolute top-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/80"
+          className="absolute top-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-overlay/60 text-overlay-foreground transition hover:bg-overlay/80"
         >
           <X className="h-4 w-4" />
         </button>
 
-        <div className="aspect-video w-full bg-black">
+        <div className="aspect-video w-full bg-overlay">
           <iframe
             src={withAutoplay(clip.embedUrl)}
             className="h-full w-full"
@@ -673,10 +673,10 @@ function VideoCard({ clip, onOpen }: { clip: VideoClip; onOpen: () => void }) {
             </div>
           }
         />
-        <div className="absolute inset-0 bg-linear-to-t from-black/50 via-black/0 to-black/0" />
+        <div className="absolute inset-0 bg-linear-to-t from-overlay/50 via-overlay/0 to-overlay/0" />
         <KindBadge kind={clip.kind} className="absolute top-3 left-3" />
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 text-primary shadow-lg transition duration-300 group-hover:scale-110 group-hover:bg-white">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-overlay-foreground/90 text-primary shadow-lg transition duration-300 group-hover:scale-110 group-hover:bg-overlay-foreground">
             <Play className="ml-0.5 h-5 w-5 fill-current" />
           </span>
         </div>

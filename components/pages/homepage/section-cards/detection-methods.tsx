@@ -43,7 +43,7 @@ export default function DetectionSection() {
       </div>
       <Link
         href="/references"
-        className="group flex flex-col gap-3 rounded-2xl border border-dashed border-primary/30 bg-primary/5 p-5 transition-colors hover:border-primary/60 hover:bg-primary/10 sm:flex-row sm:items-center sm:justify-between dark:border-cyan-500/30 dark:bg-cyan-500/5 dark:hover:border-cyan-500/60"
+        className="group flex flex-col gap-3 rounded-2xl border border-dashed border-brand/30 bg-brand/5 p-5 transition-colors hover:border-brand/60 hover:bg-primary/10 sm:flex-row sm:items-center sm:justify-between"
       >
         <div>
           <p className="text-sm font-semibold text-foreground">
@@ -55,7 +55,7 @@ export default function DetectionSection() {
             original studies.
           </p>
         </div>
-        <span className="inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold text-primary dark:text-cyan-400">
+        <span className="inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold text-brand">
           Browse all references
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
         </span>

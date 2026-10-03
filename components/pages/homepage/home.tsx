@@ -171,14 +171,14 @@ export default function HomepageClientView() {
 
               <Link
                 href="/sim"
-                className="group relative flex flex-col gap-4 overflow-hidden rounded-2xl bg-primary p-6 text-primary-foreground sm:flex-row sm:items-center sm:justify-between sm:p-8 dark:bg-cyan-900"
+                className="group relative flex flex-col gap-4 overflow-hidden rounded-2xl bg-brand-strong p-6 text-primary-foreground sm:flex-row sm:items-center sm:justify-between sm:p-8"
               >
                 <div
                   aria-hidden
-                  className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-white/10 blur-3xl transition-transform duration-700 group-hover:scale-125"
+                  className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-primary-foreground/10 blur-3xl transition-transform duration-700 group-hover:scale-125"
                 />
                 <div className="relative flex items-start gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/15">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary-foreground/15">
                     <FlaskConical className="h-6 w-6" />
                   </div>
                   <div>
@@ -191,7 +191,7 @@ export default function HomepageClientView() {
                     </p>
                   </div>
                 </div>
-                <span className="relative inline-flex h-11 shrink-0 items-center gap-2 self-start rounded-full bg-white px-5 text-sm font-semibold text-primary transition-transform group-hover:translate-x-1 sm:self-auto dark:text-cyan-900">
+                <span className="relative inline-flex h-11 shrink-0 items-center gap-2 self-start rounded-full bg-primary-foreground px-5 text-sm font-semibold text-brand-strong transition-transform group-hover:translate-x-1 sm:self-auto">
                   Open the simulator
                   <ArrowRight className="h-4 w-4" />
                 </span>
@@ -271,11 +271,11 @@ export default function HomepageClientView() {
       <section
         id="quiz"
         aria-labelledby="quiz-title"
-        className="relative mt-8 overflow-hidden border-t border-border bg-linear-to-b from-primary/10 via-background to-background py-20 sm:py-28 dark:from-cyan-950/40"
+        className="relative mt-8 overflow-hidden border-t border-border bg-linear-to-b from-brand/10 via-background to-background py-20 sm:py-28"
       >
         <div
           aria-hidden
-          className="pointer-events-none absolute top-0 left-1/2 h-80 w-3xl -translate-x-1/2 rounded-full bg-primary/20 blur-3xl dark:bg-cyan-500/10"
+          className="pointer-events-none absolute top-0 left-1/2 h-80 w-3xl -translate-x-1/2 rounded-full bg-primary/20 blur-3xl dark:bg-brand/10"
         />
         <div className="relative mx-auto max-w-3xl px-4 sm:px-6">
           <Reveal className="mb-10 text-center">

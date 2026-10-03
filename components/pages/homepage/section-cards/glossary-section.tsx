@@ -59,7 +59,7 @@ function highlight(text: string, query: string) {
   return (
     <>
       {text.slice(0, i)}
-      <mark className="rounded-sm bg-amber-200/80 text-foreground dark:bg-amber-500/30">
+      <mark className="rounded-sm bg-warning/30 text-foreground">
         {text.slice(i, i + query.length)}
       </mark>
       {text.slice(i + query.length)}
@@ -119,7 +119,7 @@ export default function GlossarySection() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.97 }}
               transition={{ duration: 0.2 }}
-              className="rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/40 dark:hover:border-cyan-500/40"
+              className="rounded-xl border border-border bg-card p-4 transition-colors hover:border-brand/40"
             >
               <dt className="text-sm font-bold text-foreground">
                 {highlight(g.term, q)}

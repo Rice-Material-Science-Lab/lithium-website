@@ -20,7 +20,7 @@ export default function HelpDialog({
       <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <HelpCircle size={18} className="text-primary dark:text-cyan-500" />
+            <HelpCircle size={18} className="text-brand" />
             How the simulator works
           </DialogTitle>
           <DialogDescription>
@@ -46,42 +46,42 @@ export default function HelpDialog({
               <h4 className="mb-2 font-semibold">Lattice cell states</h4>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <div className="flex items-start gap-2">
-                  <span className="mt-1 h-3 w-3 shrink-0 rounded-full bg-[#E5E7EB] dark:bg-[#18181B]" />
+                  <span className="mt-1 h-3 w-3 shrink-0 rounded-full bg-lattice-empty" />
                   <span>
                     <span className="font-medium">Empty</span> &mdash;
                     unoccupied site.
                   </span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <span className="mt-1 h-3 w-3 shrink-0 rounded-full bg-[#2563EB] dark:bg-[#38BDF8]" />
+                  <span className="mt-1 h-3 w-3 shrink-0 rounded-full bg-lattice-free" />
                   <span>
                     <span className="font-medium">Free</span> &mdash; mobile
                     atom, not yet bonded to a neighbor.
                   </span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <span className="mt-1 h-3 w-3 shrink-0 rounded-full bg-[#F97316] dark:bg-[#FB923C]" />
+                  <span className="mt-1 h-3 w-3 shrink-0 rounded-full bg-lattice-deposited" />
                   <span>
                     <span className="font-medium">Deposited</span> &mdash;
                     bonded to at least one neighbor.
                   </span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <span className="mt-1 h-3 w-3 shrink-0 rounded-full bg-[#6B7280] dark:bg-[#52525B]" />
+                  <span className="mt-1 h-3 w-3 shrink-0 rounded-full bg-lattice-substrate" />
                   <span>
                     <span className="font-medium">Substrate</span> &mdash; the
                     fixed bottom row atoms grow from.
                   </span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <span className="mt-1 h-3 w-3 shrink-0 rounded-full bg-[#16A34A] dark:bg-[#4ADE80]" />
+                  <span className="mt-1 h-3 w-3 shrink-0 rounded-full bg-lattice-passivated" />
                   <span>
                     <span className="font-medium">Passivated</span> &mdash; a
                     deposited atom coated by SEI; can revert via de-passivation.
                   </span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <span className="mt-1 h-3 w-3 shrink-0 rounded-full bg-[#DC2626]" />
+                  <span className="mt-1 h-3 w-3 shrink-0 rounded-full bg-lattice-carbon" />
                   <span>
                     <span className="font-medium">Carbon</span> &mdash; a
                     user-drawn graphite anode site.
@@ -252,7 +252,7 @@ export default function HelpDialog({
                 </li>
                 <li>
                   Press{" "}
-                  <kbd className="rounded border border-border bg-black/5 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">
+                  <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-xs ">
                     Space
                   </kbd>{" "}
                   to pause/resume a running simulation.

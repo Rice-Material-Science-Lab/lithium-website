@@ -53,7 +53,7 @@ export default function ChatPanel() {
         <Button
           variant="ghost"
           size="icon-sm"
-          className={`hover:bg-white/10 ${open ? "text-white" : "text-white/70 hover:text-white"}`}
+          className={`hover:bg-primary-foreground/10 ${open ? "text-primary-foreground" : "text-primary-foreground/70 hover:text-primary-foreground"}`}
           onClick={() => setOpen((prev) => !prev)}
           aria-label="Open chat assistant"
         >

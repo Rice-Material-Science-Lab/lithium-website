@@ -30,15 +30,14 @@
   --muted-foreground: #636566;
   --accent: #e9eaea;
   --accent-foreground: var(--rice-blue);
-  --destructive: oklch(0.577 0.245 27.325);
   --border: color-mix(in srgb, var(--rice-gray) 25%, transparent);
   --input: color-mix(in srgb, var(--rice-gray) 35%, transparent);
   --ring: var(--rice-gray);
-  --chart-1: oklch(0.865 0.127 207.078);
-  --chart-2: oklch(0.715 0.143 215.221);
-  --chart-3: oklch(0.609 0.126 221.723);
-  --chart-4: oklch(0.52 0.105 223.128);
-  --chart-5: oklch(0.45 0.085 224.283);
+  --chart-1: #9fddf9; /* Rice Bright Blue */
+  --chart-2: #4d9ad4; /* Rice Medium Blue */
+  --chart-3: #0a509e; /* Rice Rich Blue */
+  --chart-4: #303b61; /* Rice Dark Blue Gray */
+  --chart-5: #13133e; /* Rice Midnight Blue */
   --radius: 0.625rem;
   --sidebar: #ffffff;
   --sidebar-foreground: var(--rice-blue);
@@ -48,6 +47,33 @@
   --sidebar-accent-foreground: var(--rice-blue);
   --sidebar-border: color-mix(in srgb, var(--rice-gray) 25%, transparent);
   --sidebar-ring: var(--rice-gray);
+  /* --- semantic tokens, Rice palette (brand.rice.edu/colors) ---------- */
+  --brand: var(--rice-blue);                 /* accent text/icons */
+  --brand-foreground: #ffffff;
+  --brand-strong: var(--rice-blue);          /* solid feature panels */
+  /* status: Rice accents, darkened toward Rice greens/Midnight for AA text */
+  --success: color-mix(in srgb, #359245 75%, #00432c);   /* Grass -> Tree Green */
+  --warning: color-mix(in srgb, #e9a139 60%, var(--midnight-blue)); /* Warm Yellow */
+  --caution: #c04829;                        /* Brick Red */
+  --destructive: #68132e;                    /* Burgundy */
+  --destructive-foreground: #ffffff;
+  /* content over photos / video / scrims (same in both themes) */
+  --overlay: #000000;
+  --overlay-foreground: #ffffff;
+  /* simulator lattice + diagrams (match the sim, videos and icons) */
+  --lattice-empty: #e5e7eb;
+  --lattice-free: #2563eb;
+  --lattice-deposited: #f97316;
+  --lattice-substrate: #6b7280;
+  --lattice-passivated: #16a34a;
+  --lattice-carbon: #dc2626;
+  --lattice-grid: #ffffff;
+  --diagram-copper: #c2703d;
+  --diagram-aluminum: #9ca3af;
+  --diagram-ion: #e9a139;                    /* Rice Warm Yellow */
+  --diagram-ion-stroke: #c04829;             /* Rice Brick Red */
+  --diagram-electron: #4d9ad4;               /* Rice Medium Blue */
+  --diagram-cathode: #0a509e;                /* Rice Rich Blue */
 }
 
 .dark {
@@ -65,26 +91,58 @@
   --muted-foreground: #b9bbbc; /* light Rice Gray, 9.8:1 on background */
   --accent: #0b2a63;
   --accent-foreground: #f4f5f5;
-  --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: var(--rice-gray);
-  --chart-1: oklch(0.865 0.127 207.078);
-  --chart-2: oklch(0.715 0.143 215.221);
-  --chart-3: oklch(0.609 0.126 221.723);
-  --chart-4: oklch(0.52 0.105 223.128);
-  --chart-5: oklch(0.45 0.085 224.283);
+  --chart-1: #9fddf9; /* Rice Bright Blue */
+  --chart-2: #4d9ad4; /* Rice Medium Blue */
+  --chart-3: #0a509e; /* Rice Rich Blue */
+  --chart-4: #303b61; /* Rice Dark Blue Gray */
+  --chart-5: #13133e; /* Rice Midnight Blue */
   --sidebar: #001a4a;
   --sidebar-foreground: #f4f5f5;
-  --sidebar-primary: oklch(0.715 0.143 215.221);
-  --sidebar-primary-foreground: #000f2e;
+  --sidebar-primary: #4d9ad4;
+  --sidebar-primary-foreground: var(--midnight-blue);
   --sidebar-accent: #0b2a63;
   --sidebar-accent-foreground: #f4f5f5;
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: var(--rice-gray);
+  --brand: #9fddf9;                          /* Rice Bright Blue */
+  --brand-foreground: var(--midnight-blue);
+  --brand-strong: #0a509e;                   /* Rice Rich Blue */
+  --success: #a5c151;                        /* Rice Bright Green */
+  --warning: #e9a139;                        /* Rice Warm Yellow */
+  --caution: color-mix(in srgb, #e9a139 55%, #c04829);  /* Yellow -> Brick */
+  --destructive: color-mix(in srgb, #c04829 75%, #ffffff); /* Brick Red tint */
+  --destructive-foreground: var(--midnight-blue);
+  --lattice-empty: #18181b;
+  --lattice-free: #38bdf8;
+  --lattice-deposited: #fb923c;
+  --lattice-substrate: #52525b;
+  --lattice-passivated: #4ade80;
+  --lattice-carbon: #f87171;
+  --diagram-electron: #9fddf9;
+  --diagram-cathode: #4d9ad4;
 }
 
 @theme inline {
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-strong: var(--brand-strong);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-caution: var(--caution);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-overlay: var(--overlay);
+  --color-overlay-foreground: var(--overlay-foreground);
+  --color-lattice-empty: var(--lattice-empty);
+  --color-lattice-free: var(--lattice-free);
+  --color-lattice-deposited: var(--lattice-deposited);
+  --color-lattice-substrate: var(--lattice-substrate);
+  --color-lattice-passivated: var(--lattice-passivated);
+  --color-lattice-carbon: var(--lattice-carbon);
+  --color-lattice-grid: var(--lattice-grid);
+  --color-diagram-cathode: var(--diagram-cathode);
   --font-sans: var(--font-sans);
   --font-heading: var(--font-heading);
   --color-sidebar-ring: var(--sidebar-ring);

@@ -34,8 +34,8 @@ const steps = [
 
 const SURFACE_X = 70
 const TIP_Y = 150
-const ION = "#f59e0b"
-const ION_STROKE = "#b45309"
+const ION = "var(--diagram-ion)"
+const ION_STROKE = "var(--diagram-ion-stroke)"
 
 // Uneven lithium layer on the anode surface; the big bump at y≈150 becomes the dendrite root.
 const DEPOSIT =
@@ -184,8 +184,8 @@ function FormationDiagram({
           <circle cx="3" cy="3" r="1.2" className="fill-foreground/35" />
         </pattern>
         <radialGradient id={heatId}>
-          <stop offset="0%" stopColor="#ef4444" stopOpacity="0.55" />
-          <stop offset="100%" stopColor="#ef4444" stopOpacity="0" />
+          <stop offset="0%" stopColor="var(--color-destructive)" stopOpacity="0.55" />
+          <stop offset="100%" stopColor="var(--color-destructive)" stopOpacity="0" />
         </radialGradient>
       </defs>
 
@@ -196,7 +196,7 @@ function FormationDiagram({
         width="520"
         height="280"
         rx="14"
-        className="fill-sky-500/10"
+        className="fill-brand/10"
       />
 
       {/* anode + cathode */}
@@ -225,7 +225,7 @@ function FormationDiagram({
         width="60"
         height="260"
         rx="6"
-        className="fill-indigo-500/25"
+        className="fill-diagram-cathode/25"
       />
       {[45, 85, 125, 165, 205, 245].map((y) => (
         <line
@@ -234,7 +234,7 @@ function FormationDiagram({
           x2="504"
           y1={y}
           y2={y}
-          className="stroke-indigo-500/60 dark:stroke-indigo-300/60"
+          className="stroke-diagram-cathode/60"
           strokeWidth={3}
           strokeDasharray="2 5"
           strokeLinecap="round"
@@ -261,7 +261,7 @@ function FormationDiagram({
               key={d}
               d={d}
               fill="none"
-              className="stroke-cyan-500 dark:stroke-cyan-300"
+              className="stroke-brand"
               strokeWidth={1.5}
               strokeDasharray="5 6"
               initial={{ pathLength: 0, opacity: 0 }}
@@ -277,7 +277,7 @@ function FormationDiagram({
         {showDeposit && (
           <motion.path
             d={DEPOSIT}
-            className="fill-slate-300 stroke-slate-400 dark:fill-slate-400 dark:stroke-slate-300"
+            className="fill-muted-foreground stroke-muted-foreground"
             strokeWidth={1}
             initial={reduced ? false : { opacity: 0, scaleX: 0.2 }}
             animate={{ opacity: 1, scaleX: 1 }}
@@ -291,7 +291,7 @@ function FormationDiagram({
       {/* dendrite */}
       {showDendriteA && (
         <g
-          className="stroke-slate-400 dark:stroke-slate-200"
+          className="stroke-muted-foreground"
           fill="none"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -481,7 +481,7 @@ export default function DendriteFormation() {
                 className={cn(
                   "relative w-full overflow-hidden rounded-xl border px-4 py-3 text-left transition-colors",
                   isActive
-                    ? "border-primary/40 bg-primary/5 dark:border-cyan-500/40 dark:bg-cyan-500/5"
+                    ? "border-brand/40 bg-brand/5"
                     : "border-transparent hover:bg-muted/60"
                 )}
               >
@@ -490,7 +490,7 @@ export default function DendriteFormation() {
                     className={cn(
                       "flex h-7 w-7 shrink-0 items-center justify-center rounded-full font-mono text-xs font-bold transition-colors",
                       isActive || i < step
-                        ? "bg-primary text-primary-foreground dark:bg-cyan-600"
+                        ? "bg-brand text-brand-foreground"
                         : "bg-muted text-muted-foreground"
                     )}
                   >
@@ -522,7 +522,7 @@ export default function DendriteFormation() {
                   <motion.span
                     key={`bar-${step}`}
                     aria-hidden
-                    className="absolute bottom-0 left-0 h-0.5 bg-primary dark:bg-cyan-400"
+                    className="absolute bottom-0 left-0 h-0.5 bg-brand"
                     initial={{ width: "0%" }}
                     animate={{ width: "100%" }}
                     transition={{ duration: STEP_MS / 1000, ease: "linear" }}
@@ -562,7 +562,7 @@ export default function DendriteFormation() {
               type="button"
               onClick={() => setPlaying((p) => !p)}
               aria-label={playing ? "Pause" : "Play"}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground transition-opacity hover:opacity-90 dark:bg-cyan-600"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-brand-foreground transition-opacity hover:opacity-90"
             >
               {playing ? (
                 <Pause className="h-3.5 w-3.5" />

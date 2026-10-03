@@ -42,7 +42,7 @@ export function ReadingProgress() {
     <motion.div
       aria-hidden
       style={{ scaleX }}
-      className="fixed inset-x-0 top-0 z-60 h-0.5 origin-left bg-linear-to-r from-primary via-cyan-500 to-amber-400"
+      className="fixed inset-x-0 top-0 z-60 h-0.5 origin-left bg-linear-to-r from-primary via-chart-2 to-warning"
     />
   )
 }
@@ -73,7 +73,7 @@ export function ChapterNav({ chapters }: { chapters: Chapter[] }) {
                 className={cn(
                   "relative -ml-px flex items-baseline gap-2 border-l-2 py-1.5 pl-4 text-sm transition-colors",
                   isActive
-                    ? "border-primary font-semibold text-foreground dark:border-cyan-400"
+                    ? "border-brand font-semibold text-foreground"
                     : "border-transparent text-muted-foreground hover:text-foreground",
                   isPast && "text-foreground/70"
                 )}

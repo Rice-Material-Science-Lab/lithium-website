@@ -35,8 +35,8 @@ export function PreventionCard({
     >
       <p>{text2}</p>
       {tip && (
-        <p className="mt-3 flex items-start gap-2 rounded-lg border border-primary/15 bg-primary/5 px-3 py-2 text-xs leading-relaxed text-foreground/80 dark:border-cyan-500/20 dark:bg-cyan-500/5">
-          <Smartphone className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary dark:text-cyan-400" />
+        <p className="mt-3 flex items-start gap-2 rounded-lg border border-primary/15 bg-brand/5 px-3 py-2 text-xs leading-relaxed text-foreground/80 dark:border-brand/20">
+          <Smartphone className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" />
           <span>{tip}</span>
         </p>
       )}

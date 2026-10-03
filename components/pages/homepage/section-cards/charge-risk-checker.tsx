@@ -44,10 +44,10 @@ const levels: Option<Level>[] = [
 ]
 
 function band(score: number) {
-  if (score < 20) return { label: "Low", color: "bg-emerald-500", text: "text-emerald-600 dark:text-emerald-400" }
-  if (score < 45) return { label: "Moderate", color: "bg-amber-500", text: "text-amber-600 dark:text-amber-400" }
-  if (score < 70) return { label: "Elevated", color: "bg-orange-500", text: "text-orange-600 dark:text-orange-400" }
-  return { label: "High", color: "bg-red-500", text: "text-red-600 dark:text-red-400" }
+  if (score < 20) return { label: "Low", color: "bg-success", text: "text-success" }
+  if (score < 45) return { label: "Moderate", color: "bg-warning", text: "text-warning" }
+  if (score < 70) return { label: "Elevated", color: "bg-caution", text: "text-caution" }
+  return { label: "High", color: "bg-destructive", text: "text-destructive" }
 }
 
 function Segmented<T extends string>({
@@ -78,7 +78,7 @@ function Segmented<T extends string>({
               className={cn(
                 "rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all",
                 selected
-                  ? "border-primary bg-primary text-primary-foreground shadow-sm dark:border-cyan-600 dark:bg-cyan-600"
+                  ? "border-brand bg-brand text-brand-foreground shadow-sm"
                   : "border-border bg-background text-foreground/80 hover:border-primary/40 hover:text-foreground"
               )}
             >

@@ -206,8 +206,8 @@ export function HexagonPattern({
   useEffect(() => {
     ;(() => setMounted(true))()
 
-    const ORANGE = "#f97316"
-    const GREEN = "#22c55e"
+    const ORANGE = "var(--lattice-deposited)"
+    const GREEN = "var(--lattice-passivated)"
     const { colStep, rowStep } = getHexSpacing(radius, direction, gap)
 
     const getNeighbors = (c: number, r: number, dir: string) => {
@@ -389,7 +389,7 @@ export function HexagonPattern({
     ? null
     : collectUniqueHexEdges(centers, radius, direction)
 
-  const strokeAndFillColor = color ?? "rgba(156, 163, 175, 0.3)"
+  const strokeAndFillColor = color ?? "color-mix(in srgb, var(--muted-foreground) 30%, transparent)"
 
   if (!mounted) return null
 
