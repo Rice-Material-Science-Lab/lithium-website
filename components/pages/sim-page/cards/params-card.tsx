@@ -354,7 +354,7 @@ export default function ParamsCard({
                   <Slider
                     id="drop-rate-input"
                     min={1}
-                    max={200000}
+                    max={100000}
                     step={100}
                     value={[dropRate]}
                     onValueChange={(val: number[]) => setDropRate(val[0])}
@@ -584,7 +584,7 @@ export default function ParamsCard({
                       <Slider
                         id="dep-att-freq-input"
                         min={1e8}
-                        max={1e10}
+                        max={5e9}
                         step={1e8}
                         value={[depAttFreq]}
                         onValueChange={(val: number[]) => setDepAttFreq(val[0])}
