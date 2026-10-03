@@ -302,7 +302,8 @@ export default function HomepageClientView() {
             <span className="font-heading font-bold text-foreground">
               Battery Dendrites
             </span>{" "}
-            · Rice University Mesoscale Materials Science Group
+            · In collaboration with Prof. Ming Tang&rsquo;s Mesoscale Materials
+            Science Group, Rice University
           </p>
           <nav className="flex gap-5">
             <Link href="/sim" className="hover:text-foreground">

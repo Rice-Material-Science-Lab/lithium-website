@@ -181,8 +181,12 @@ export default function Navbar() {
               href="https://www.rice.edu"
               target="_blank"
               rel="noopener noreferrer"
-              className="shrink-0 text-primary-foreground transition-opacity hover:opacity-80"
+              aria-label="In collaboration with Rice University"
+              className="flex shrink-0 flex-col gap-0.5 text-primary-foreground transition-opacity hover:opacity-80"
             >
+              <span className="text-[10px] leading-none font-medium tracking-wide text-primary-foreground/70">
+                In collaboration with
+              </span>
               <RiceLogo />
             </a>
             <span

@@ -1,62 +1,30 @@
-"use client"
-
-import { useEffect, useState } from "react"
+import Image from "next/image"
 import { cn } from "@/lib/utils"
 
 /**
- * Rice University logo that follows the surrounding text colour.
- *
- * Put an official single-colour Rice logo with a transparent background at
- * `public/rice-logo.svg` (download: bit.ly/university-logos, brand.rice.edu).
- * It is drawn as a CSS mask filled with `currentColor`, so it renders white on
- * the navy navbar in both themes (the brand guide's "reversed" usage) and
- * Rice Blue wherever the text colour is Rice Blue. Until the file exists, a
- * text wordmark is shown instead.
+ * Official Rice University preferred mark (public/rice-logo.webp), used
+ * unmodified as the Rice brand guide requires (no recolouring or cropping).
+ * The file is navy on transparent, so it sits on a white chip with
+ * clear-space padding; that keeps it legible on the navy navbar in both
+ * light and dark mode. To use the reversed (white) official file instead,
+ * drop it in public/ and point `src` at it, then remove the chip styling.
  */
-const LOGO_SRC = "/rice-logo.svg"
-
 export default function RiceLogo({ className }: { className?: string }) {
-  const [hasFile, setHasFile] = useState<boolean | null>(null)
-
-  useEffect(() => {
-    let alive = true
-    const img = new Image()
-    img.onload = () => alive && setHasFile(true)
-    img.onerror = () => alive && setHasFile(false)
-    img.src = LOGO_SRC
-    return () => {
-      alive = false
-    }
-  }, [])
-
-  if (hasFile === false) {
-    return (
-      <span
-        className={cn(
-          "font-heading text-lg leading-none font-bold tracking-wide whitespace-nowrap uppercase",
-          className
-        )}
-      >
-        Rice University
-      </span>
-    )
-  }
-
   return (
     <span
-      role="img"
-      aria-label="Rice University"
-      className={cn("block h-8 w-28 bg-current", className)}
-      style={{
-        maskImage: `url(${LOGO_SRC})`,
-        WebkitMaskImage: `url(${LOGO_SRC})`,
-        maskRepeat: "no-repeat",
-        WebkitMaskRepeat: "no-repeat",
-        maskSize: "contain",
-        WebkitMaskSize: "contain",
-        maskPosition: "left center",
-        WebkitMaskPosition: "left center",
-      }}
-    />
+      className={cn(
+        "inline-flex items-center rounded-md bg-white px-2 py-1.5",
+        className
+      )}
+    >
+      <Image
+        src="/rice-logo.webp"
+        alt="Rice University"
+        width={255}
+        height={100}
+        priority
+        className="h-9 w-auto"
+      />
+    </span>
   )
 }

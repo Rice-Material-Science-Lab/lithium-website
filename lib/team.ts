@@ -55,10 +55,10 @@ export const team: TeamMember[] = [
   },
   {
     name: "Andrew Xu",
-    role: "Simulation & Software Development",
+    role: "Student Research Assistant",
     contribution:
       "Ported the LKMC simulation to C++/WebAssembly and connected it to the website.",
-    bio: "I worked mainly on the simulation engine behind this site and how it connects to the web platform. My largest task was porting the lab's Python lattice kinetic Monte Carlo (LKMC) model to C++ compiled to WebAssembly, so the simulation could run quickly in the browser, and then wiring it up to the site's controls and charts.\n\nMuch of my time went into debugging. Some problems never showed up as errors: the simulation would run but behave in ways that didn't match the model. I traced these back through the code and documentation, found places where the documentation was out of date or the port didn't match the original, and fixed them as the model moved through versions 3, 4, and 5, keeping its behavior consistent with the underlying physics.\n\nI also helped keep the team in sync by tracking progress, coordinating urgent fixes, and making sure the simulation and the website stayed aligned as both changed.",
+    bio: "I ported the lab's Python LKMC simulation to C++/WebAssembly so it runs in the browser, connected it to the website, and debugged it across model versions 3 to 5.",
     focus: ["C++ / WebAssembly", "Simulation engine", "Debugging", "Team coordination"],
   },
   {

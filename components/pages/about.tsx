@@ -489,7 +489,7 @@ export default function AboutClientView() {
       <main className="relative mx-auto max-w-6xl space-y-24 px-4 pt-32 pb-24 sm:space-y-32 sm:px-6 sm:pt-36">
         <Reveal>
           <header className="max-w-3xl space-y-6">
-            <Eyebrow>About the lab</Eyebrow>
+            <Eyebrow>About the team</Eyebrow>
             <h1 className="font-heading text-5xl leading-[1.04] font-bold tracking-tight text-balance text-foreground sm:text-6xl">
               The people behind{" "}
 
@@ -499,20 +499,21 @@ export default function AboutClientView() {
               </span>
             </h1>
             <p className="max-w-2xl text-lg leading-relaxed text-pretty text-muted-foreground">
-              We&rsquo;re a small research group at Rice University studying how
-              lithium dendrites form, and building tools that make battery
-              safety easier to understand.
+              We&rsquo;re a small team of student researchers studying how
+              lithium dendrites form and building tools that make battery
+              safety easier to understand, in collaboration with Professor
+              Ming Tang&rsquo;s Mesoscale Materials Science Group at Rice
+              University.
             </p>
             <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
-              <span>Rice University</span>
+              <span>Student research team</span>
               <span aria-hidden className="opacity-40">
                 /
               </span>
-              <span>Rice University * Mesoscale Materials Science Group</span>
-              <span aria-hidden className="opacity-40">
-                /
+              <span>
+                In collaboration with Prof. Ming Tang, Mesoscale Materials
+                Science Group, Rice University
               </span>
-              <span>Houston, Texas</span>
             </p>
           </header>
         </Reveal>

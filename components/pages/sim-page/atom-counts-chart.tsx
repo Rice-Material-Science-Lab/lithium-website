@@ -20,6 +20,9 @@ function formatSimTime(t: number) {
   return t.toExponential(1).replace("e-", "e\u2212")
 }
 
+const formatSteps = (n: number) =>
+  new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(n)
+
 export default function AtomCountsChart({
   data,
 }: {
@@ -36,6 +39,8 @@ export default function AtomCountsChart({
   }[]
 }) {
   const [mounted, setMounted] = useState(false)
+  // x-axis: simulated time (smooth, near-linear growth) or KMC step count
+  const [xMode, setXMode] = useState<"time" | "step">("time")
 
   // Series colours are theme tokens (app/globals.css): they follow
   // light/dark mode on their own and match the lattice.
@@ -54,9 +59,39 @@ export default function AtomCountsChart({
 
   return mounted ? (
     <div className="flex h-full min-h-0 w-full flex-col gap-2">
-      <h3 className="text-center text-sm font-medium text-muted-foreground">
-        Atom counts over time
-      </h3>
+      <div className="flex items-center justify-center gap-3">
+        <h3 className="text-sm font-medium text-muted-foreground">
+          Atom counts over {xMode === "time" ? "time" : "steps"}
+        </h3>
+        <div
+          role="radiogroup"
+          aria-label="Chart x-axis"
+          className="flex rounded-full border border-border p-0.5 text-xs"
+        >
+          {(
+            [
+              ["time", "Time"],
+              ["step", "Steps"],
+            ] as const
+          ).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={xMode === value}
+              onClick={() => setXMode(value)}
+              className={
+                "rounded-full px-2.5 py-0.5 font-medium transition-colors " +
+                (xMode === value
+                  ? "bg-brand text-brand-foreground"
+                  : "text-muted-foreground hover:text-foreground")
+              }
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
       <div className="min-h-0 w-full flex-1">
         {data.length > 0 ? (
           <ChartContainer
@@ -74,15 +109,15 @@ export default function AtomCountsChart({
               />
 
               <XAxis
-                dataKey="time"
+                dataKey={xMode}
                 type="number"
                 domain={[0, "dataMax"]}
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
-                tickFormatter={formatSimTime}
+                tickFormatter={xMode === "time" ? formatSimTime : formatSteps}
                 label={{
-                  value: "Simulated time (s)",
+                  value: xMode === "time" ? "Simulated time (s)" : "KMC step",
                   position: "insideBottomRight",
                   offset: -2,
                   className: "fill-muted-foreground text-[10px]",

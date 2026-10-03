@@ -61,7 +61,7 @@ export default function Hero() {
       <div className="relative z-10 flex h-full items-center px-6 pt-20 sm:px-20">
         <div className="flex max-w-3xl flex-col gap-6">
           <motion.div {...rise(0)}>
-            <Eyebrow>Rice University · Mesoscale Materials Science Group</Eyebrow>
+            <Eyebrow>In collaboration with Rice University · Mesoscale Materials Science Group</Eyebrow>
           </motion.div>
           <motion.h1
             {...rise(0.1)}
