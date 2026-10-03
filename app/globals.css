@@ -13,6 +13,7 @@
  */
 :root {
   --rice-blue: #00205b;
+  --midnight-blue: #13133E;
   --rice-gray: #7c7e7f;
 
   --background: #f4f5f5;
@@ -50,7 +51,7 @@
 }
 
 .dark {
-  --background: #000f2e; /* deep Rice Blue */
+  --background: #091226; /* deep Rice Blue */
   --foreground: #f4f5f5;
   --card: #001a4a;
   --card-foreground: #f4f5f5;
