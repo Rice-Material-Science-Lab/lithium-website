@@ -175,7 +175,7 @@ export default function Navbar() {
           isSimPage && "items-end"
         )}
       >
-        <nav className="z-10 flex w-full items-center justify-between bg-primary px-8 py-4 text-primary-foreground shadow-lg dark:shadow-[0_6px_24px_--theme(--color-foreground/12%)]">
+        <nav className="z-10 flex w-full items-center justify-between bg-primary px-8 py-4 text-primary-foreground shadow-md dark:shadow-[0_6px_24px_--theme(--color-foreground/6%)]">
           <div className="flex items-center gap-4">
             <a
               href="https://www.rice.edu"

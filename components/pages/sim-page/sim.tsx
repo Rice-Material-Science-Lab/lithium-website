@@ -869,6 +869,7 @@ export default function SimPageClientView() {
 
   // Running sim without Live Mode: push carbon edits straight to the sim.
   // (With Live Mode on, the carbon-sync effect below does this.)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const pushCarbonDiffToSim = (before: Set<string>, after: Set<string>) => {
     if (!wasmModule || !hasRunOnce || isLiveMode) return
     let changed = false
