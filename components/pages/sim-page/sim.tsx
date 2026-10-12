@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card"
 import { useState, useEffect, useRef, useMemo } from "react"
 import DisplayHexGrid from "@/components/pages/sim-page/hex-grid"
 import { Input } from "@/components/ui/input"
-import { Atom, HelpCircle, Maximize2, Minimize2 } from "lucide-react"
+import { Atom, Camera, Check, HelpCircle, Maximize2, Minimize2 } from "lucide-react"
 import AtomColorKey from "@/components/pages/sim-page/atom-color-key"
 import AtomCountsChart from "@/components/pages/sim-page/atom-counts-chart"
 import { Label } from "@/components/ui/label"
@@ -23,6 +23,7 @@ import { Slider } from "@/components/ui/slider"
 import { CellInfo } from "@/lib/types"
 import { Reveal } from "../homepage/layout-primitives"
 import { cn } from "@/lib/utils"
+import { SnapshotGallery, useSimSnapshots } from "./snapshot-gallery"
 
 interface CustomWasmModule {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1092,6 +1093,41 @@ export default function SimPageClientView() {
   const [batchProgress, setBatchProgress] = useState({ done: 0, total: 0 })
   const [helpOpen, setHelpOpen] = useState(false)
 
+  // Saved snapshots for the gallery tab (kept in this browser only).
+  const {
+    snapshots,
+    add: addSnapshot,
+    remove: removeSnapshot,
+    rename: renameSnapshot,
+    storageFull,
+  } = useSimSnapshots()
+  const [justSaved, setJustSaved] = useState(false)
+
+  const saveSnapshot = () => {
+    const [nx, ny] = gridDimensions
+    if (simState.length !== nx * ny) return
+    addSnapshot({
+      width: nx,
+      height: ny,
+      cells: simState.map((v) => Math.max(0, Math.min(5, v))).join(""),
+      step: historyMode ? snapshotStep : stepsRan,
+      time: runTime,
+      params: {
+        temp,
+        dropRate,
+        bondedEnergy,
+        atomSubstrate,
+        freeAttFreq,
+        depAttFreq,
+        passAttFreq,
+        carbonEnergy,
+        carbonSites: effectiveCarbon.sites.size,
+      },
+    })
+    setJustSaved(true)
+    window.setTimeout(() => setJustSaved(false), 1600)
+  }
+
   const runBatch = () => {
     if (!wasmModule) return
     const count = Math.max(1, Number(batchCount) || 1)
@@ -1523,6 +1559,28 @@ export default function SimPageClientView() {
                             <Button
                               type="button"
                               variant="outline"
+                              size="sm"
+                              className={cn(
+                                "absolute bottom-0 left-0 z-10 gap-1.5 rounded-2xl bg-card/80 backdrop-blur",
+                                justSaved && "border-success text-success"
+                              )}
+                              onClick={(e) => {
+                                saveSnapshot()
+                                e.currentTarget.blur()
+                              }}
+                              disabled={!hasRunOnce}
+                              title={
+                                hasRunOnce
+                                  ? "Save this lattice to your snapshot gallery"
+                                  : "Run the simulation first"
+                              }
+                            >
+                              {justSaved ? <Check /> : <Camera />}
+                              {justSaved ? "Saved" : "Save snapshot"}
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
                               size="icon-sm"
                               className="absolute right-0 bottom-0 z-10 rounded-2xl bg-card/80 backdrop-blur"
                               onClick={(e) => {
@@ -1590,6 +1648,14 @@ export default function SimPageClientView() {
                     <TabsList>
                       <TabsTrigger value="atom-counts">Atom Counts</TabsTrigger>
                       <TabsTrigger value="batch-run">Batch Run</TabsTrigger>
+                      <TabsTrigger value="snapshots" className="gap-1.5">
+                        Snapshots
+                        {snapshots.length > 0 && (
+                          <span className="rounded-full bg-brand/15 px-1.5 text-[11px] font-semibold text-brand tabular-nums">
+                            {snapshots.length}
+                          </span>
+                        )}
+                      </TabsTrigger>
                     </TabsList>
                     <TabsContent
                       value="atom-counts"
@@ -1741,6 +1807,17 @@ export default function SimPageClientView() {
                           </table>
                         </div>
                       )}
+                    </TabsContent>
+                    <TabsContent
+                      value="snapshots"
+                      className="flex min-h-0 flex-1 flex-col"
+                    >
+                      <SnapshotGallery
+                        snapshots={snapshots}
+                        onRemove={removeSnapshot}
+                        onRename={renameSnapshot}
+                        storageFull={storageFull}
+                      />
                     </TabsContent>
                   </Tabs>
                 </Card>

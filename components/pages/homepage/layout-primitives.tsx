@@ -5,6 +5,7 @@ import { motion, useReducedMotion } from "motion/react"
 import type { ReactNode } from "react"
 import Link from "next/link"
 import { ArrowRight, type LucideIcon } from "lucide-react"
+import { AskButton } from "@/components/ui/ask-button"
 
 export function Reveal({
   children,
@@ -81,6 +82,7 @@ export function SectionShell({
   eyebrow,
   title,
   description,
+  ask,
   children,
   className,
 }: {
@@ -89,6 +91,8 @@ export function SectionShell({
   eyebrow: string
   title: ReactNode
   description?: ReactNode
+  /** A starter question; shows an "Ask about this" button that opens the chat. */
+  ask?: string
   children: ReactNode
   className?: string
 }) {
@@ -111,6 +115,7 @@ export function SectionShell({
             {description}
           </p>
         )}
+        {ask && <AskButton question={ask} className="mt-5" />}
       </Reveal>
       <Reveal delay={0.08}>{children}</Reveal>
     </section>

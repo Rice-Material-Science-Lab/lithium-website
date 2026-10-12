@@ -14,6 +14,7 @@ import {
   type LucideIcon,
 } from "lucide-react"
 import { useState, type ReactNode } from "react"
+import { SavePdfButton } from "@/components/ui/save-pdf-button"
 
 /* ---------------------------------- data ---------------------------------- */
 
@@ -255,6 +256,7 @@ function ScoreRing({ score, stroke }: { score: number; stroke: string }) {
         strokeLinecap="round"
         className={stroke}
         strokeDasharray={c}
+        initial={{ strokeDashoffset: c }}
         animate={{ strokeDashoffset: c * (1 - score / 100) }}
         transition={{ type: "spring", stiffness: 90, damping: 20 }}
       />
@@ -270,6 +272,97 @@ function StepLabel({ n, children }: { n: number; children: ReactNode }) {
       </span>
       {children}
     </p>
+  )
+}
+
+/* ------------------------------ printable plan ----------------------------- */
+
+/** A clean, paper-friendly version of the results. Only shown when printing / saving as PDF. */
+function PrintablePlan({
+  deviceLabel,
+  ageLabel,
+  ageNote,
+  score,
+  scoreLabel,
+  habits,
+  device,
+  health,
+}: {
+  deviceLabel: string
+  ageLabel: string
+  ageNote: string
+  score: number
+  scoreLabel: string
+  habits: Habit[]
+  device: DeviceId
+  health: HealthGuide
+}) {
+  return (
+    <div className="hidden text-[13px] leading-relaxed text-black print:block">
+      <header className="flex items-end justify-between border-b-2 border-black pb-3">
+        <div>
+          <p className="text-[11px] font-semibold tracking-[0.18em] uppercase">Battery Dendrites</p>
+          <h1 className="font-heading text-3xl font-bold">My battery plan</h1>
+          <p className="mt-1 text-neutral-600">
+            {deviceLabel} · {ageLabel} old · {new Date().toLocaleDateString()}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-[11px] font-semibold tracking-wide text-neutral-600 uppercase">Habit score</p>
+          <p className="font-heading text-4xl font-bold">{score}</p>
+          <p className="font-semibold">{scoreLabel}</p>
+        </div>
+      </header>
+
+      <p className="mt-4 text-neutral-700">{ageNote}</p>
+
+      <section className="mt-6">
+        <h2 className="text-[11px] font-semibold tracking-[0.18em] uppercase">
+          {habits.length ? "What to change, most important first" : "What to change"}
+        </h2>
+        {habits.length === 0 ? (
+          <p className="mt-2">
+            Nothing. Room-temperature charging with a gentle charger, without long stretches at 100%, is exactly
+            what a battery likes.
+          </p>
+        ) : (
+          <ol className="mt-3 space-y-3">
+            {habits.map((h, i) => (
+              <li key={h.id} className="flex gap-3 break-inside-avoid">
+                <span className="w-5 shrink-0 font-mono font-bold">{i + 1}.</span>
+                <div>
+                  <p className="text-neutral-600">You said: {h.label.toLowerCase()}</p>
+                  <p className="font-semibold">{h.how[device] ?? h.how.default}</p>
+                  <p className="text-neutral-600">
+                    {h.why}
+                    {h.plating && " (Linked to lithium plating.)"}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        )}
+      </section>
+
+      <section className="mt-6 break-inside-avoid rounded-lg border border-neutral-300 p-4">
+        <h2 className="text-[11px] font-semibold tracking-[0.18em] uppercase">{health.title}</h2>
+        <ol className="mt-2 list-decimal space-y-1 pl-5">
+          {health.steps.map((step) => (
+            <li key={step}>{step}</li>
+          ))}
+        </ol>
+        <p className="mt-3 text-neutral-700">{health.reading}</p>
+        <p className="mt-2 text-[11px] text-neutral-500">Source: {health.source.href}</p>
+        <p className="mt-3 text-neutral-700">
+          My reading: ____________ % capacity on ____ / ____ / ______
+        </p>
+      </section>
+
+      <p className="mt-6 text-[11px] text-neutral-500">
+        A rough guide to charging habits, not a measurement of your battery. Made with the battery check-up on
+        Battery Dendrites, a student project in collaboration with Prof. Ming Tang&rsquo;s group at Rice University.
+      </p>
+    </div>
   )
 }
 
@@ -302,9 +395,19 @@ export default function BatteryCheckup() {
       }
 
   return (
-    <div className="space-y-6">
-      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.04),0_12px_32px_-16px_rgb(0_0_0/0.18)] dark:shadow-none">
-        <div className="flex flex-col gap-1 border-b border-border px-5 py-4 sm:flex-row sm:items-end sm:justify-between sm:px-8 sm:py-5">
+    <div id="battery-checkup" className="space-y-6">
+      <PrintablePlan
+        deviceLabel={deviceLabel}
+        ageLabel={AGES.find((a) => a.id === age)!.label}
+        ageNote={AGE_NOTE[age]}
+        score={score}
+        scoreLabel={b.label}
+        habits={ranked}
+        device={device}
+        health={health}
+      />
+      <div className="print-hide overflow-hidden rounded-2xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.04),0_12px_32px_-16px_rgb(0_0_0/0.18)] dark:shadow-none">
+        <div className="flex flex-col gap-3 border-b border-border px-5 py-4 sm:flex-row sm:items-end sm:justify-between sm:px-8 sm:py-5">
           <div>
             <p className="text-xs font-semibold tracking-[0.18em] text-brand uppercase">
               Your battery check-up
@@ -312,8 +415,16 @@ export default function BatteryCheckup() {
             <h3 className="mt-1 text-xl font-bold text-foreground">
               Advice for your device and your habits
             </h3>
+            <p className="print-hide mt-1 text-sm text-muted-foreground">
+              Nothing you enter leaves your browser.
+            </p>
           </div>
-          <p className="text-sm text-muted-foreground">Nothing you enter leaves your browser.</p>
+          <SavePdfButton
+            targetId="battery-checkup"
+            fileName={`Battery check-up - ${deviceLabel}`}
+            label="Save my plan as PDF"
+            className="self-start sm:self-auto"
+          />
         </div>
 
         <div className="grid gap-8 p-5 sm:p-8 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-10">
@@ -418,7 +529,7 @@ export default function BatteryCheckup() {
                 <button
                   type="button"
                   onClick={() => setHabits([])}
-                  className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground"
+                  className="print-hide mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground"
                 >
                   <RotateCcw className="h-3 w-3" />
                   Clear habits
@@ -500,7 +611,7 @@ export default function BatteryCheckup() {
       </div>
 
       {/* ------------------------- battery health guide ------------------------- */}
-      <div className="relative overflow-hidden rounded-2xl bg-brand-strong p-6 text-primary-foreground sm:p-8">
+      <div className="print-hide relative overflow-hidden rounded-2xl bg-brand-strong p-6 text-primary-foreground sm:p-8">
         <div
           aria-hidden
           className="absolute -top-24 -right-16 h-72 w-72 rounded-full bg-primary-foreground/10 blur-3xl"

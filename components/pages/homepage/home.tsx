@@ -135,6 +135,7 @@ export default function HomepageClientView() {
             eyebrow="The basics"
             title="How a lithium-ion battery works"
             description="Every lithium-ion battery is a sandwich: two electrodes, a liquid electrolyte between them, and a thin separator that keeps them apart. Energy is stored by moving lithium ions from one side to the other and back again."
+            ask="Why do lithium ions move from anode to cathode during discharging?"
           >
             <BatteryBasics />
           </SectionShell>
@@ -145,6 +146,7 @@ export default function HomepageClientView() {
             eyebrow="The problem"
             title="What are dendrites?"
             description="Every time a lithium battery charges, lithium ions move to the negative electrode. Ideally they tuck neatly inside it. Under the wrong conditions, the lithium instead grows as thin, branching metal filaments called dendrites."
+            ask="Why do dendrites grow as branches?"
           >
             <div className="space-y-6">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -208,6 +210,7 @@ export default function HomepageClientView() {
             eyebrow="Why it matters"
             title="Where this shows up in daily life"
             description="Lithium-ion batteries are in nearly everything that holds a charge: phones, laptops, power tools, power banks, e-bikes and scooters, hearing aids, electric vehicles, and grid-scale storage. When they fail, the costs add up fast."
+            ask="What incidents have been most catastrophic in everyday life due to battery dendrites?"
           >
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
@@ -225,6 +228,7 @@ export default function HomepageClientView() {
             eyebrow="Best practices"
             title="Keeping dendrites at bay"
             description="A few everyday habits keep lithium plating slow, even, and manageable."
+            ask="Which charging habit makes the biggest difference for dendrites?"
           >
             <PreventionSection />
           </SectionShell>
@@ -235,6 +239,7 @@ export default function HomepageClientView() {
             eyebrow="Your battery"
             title="Personal advice for the batteries you own"
             description="Tell us what you use and how you charge it, and get advice that fits. Then see how much capacity your own battery has left."
+            ask="How can I tell if my battery is wearing out?"
           >
             <div className="space-y-6">
               <BatteryCheckup />
@@ -248,6 +253,7 @@ export default function HomepageClientView() {
             eyebrow="Chemistry"
             title="The anode decides how easily dendrites grow"
             description="Dendrites grow on the anode, the negative electrode that lithium flows into while charging. What it's made of changes how likely lithium is to pile up as metal, and it trades off against how much energy the battery holds and how long it lasts."
+            ask="Why does lithium metal form dendrites more easily than graphite?"
           >
             <ChemistryComparison />
           </SectionShell>
@@ -258,6 +264,7 @@ export default function HomepageClientView() {
             eyebrow="Detection"
             title="How researchers actually see dendrites"
             description="Dendrites are microscopic and hidden inside a sealed cell, so seeing them takes X-rays, electron beams, and specially built cells."
+            ask="How do scientists see dendrites inside a sealed battery?"
           >
             <DetectionSection />
           </SectionShell>
@@ -268,6 +275,7 @@ export default function HomepageClientView() {
             eyebrow="Engineering"
             title="What's being done about it"
             description="None of these fully solve dendrite growth on their own. Most products combine several."
+            ask="Which fix for dendrites looks most promising right now?"
           >
             <SolutionsSection />
           </SectionShell>

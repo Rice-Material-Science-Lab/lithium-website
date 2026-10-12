@@ -264,3 +264,38 @@ html[data-magicui-theme-vt="active"]::view-transition-new(root) {
     #000f2e 100%
   );
 }
+
+@media screen {
+  #print-root {
+    display: none;
+  }
+}
+
+@media print {
+  @page {
+    margin: 14mm;
+  }
+
+  html:has(body.printing-section),
+  body.printing-section {
+    height: auto !important;
+    background: #fff !important;
+  }
+
+  body.printing-section > *:not(#print-root) {
+    display: none !important;
+  }
+
+  #print-root {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  #print-root .print-hide {
+    display: none !important;
+  }
+
+  #print-root .print-avoid-break {
+    break-inside: avoid;
+  }
+}
