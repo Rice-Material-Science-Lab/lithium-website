@@ -157,17 +157,14 @@ const SPOTLIGHT =
 
 function MemberCard({
   member,
-  index,
   open,
   onToggle,
 }: {
   member: TeamMember
-  index: number
   open: boolean
   onToggle: () => void
 }) {
   const { ref, onMouseMove } = useSpotlight<HTMLButtonElement>()
-  const number = String(index + 1).padStart(2, "0")
 
   return (
     <button
@@ -193,9 +190,6 @@ function MemberCard({
           className="aspect-4/3 w-full sm:aspect-4/5"
         />
         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-overlay/55 to-transparent" />
-        <span className="absolute top-4 left-4 font-mono text-xs font-medium text-overlay-foreground/80">
-          {number}
-        </span>
         <span
           className={cn(
             "absolute top-3 right-3 flex h-9 w-9 items-center justify-center rounded-full border border-overlay-foreground/25 bg-overlay-foreground/15 text-overlay-foreground backdrop-blur-md transition-all duration-500",
@@ -239,14 +233,11 @@ function MemberCard({
 
 function MemberPanel({
   member,
-  index,
   onClose,
 }: {
   member: TeamMember
-  index: number
   onClose: () => void
 }) {
-  const number = String(index + 1).padStart(2, "0")
   return (
     <div className="relative grid overflow-hidden rounded-3xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.04),0_24px_64px_-28px_rgb(0_0_0/0.35)] sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] dark:shadow-none">
       <Portrait
@@ -256,7 +247,7 @@ function MemberPanel({
       />
       <div className="flex flex-col gap-5 p-6 sm:p-10">
         <div className="space-y-2 pr-10">
-          <Eyebrow index={number}>{member.role}</Eyebrow>
+          <Eyebrow>{member.role}</Eyebrow>
           <h3 className="font-heading text-3xl font-bold tracking-tight text-foreground">
             {member.name}
           </h3>
@@ -328,7 +319,6 @@ function TeamGrid() {
             <Reveal delay={0.08 * i} className="h-full">
               <MemberCard
                 member={m}
-                index={i}
                 open={openIndex === i}
                 onToggle={() => setOpenIndex(openIndex === i ? null : i)}
               />
@@ -352,7 +342,6 @@ function TeamGrid() {
             <MemberPanel
               key={openIndex}
               member={open}
-              index={openIndex}
               onClose={() => setOpenIndex(null)}
             />
           )}
@@ -362,21 +351,72 @@ function TeamGrid() {
   )
 }
 
+const MISSION_POINTS = [
+  {
+    k: "Grounded in research",
+    v: "Built on the lattice kinetic Monte Carlo model from Prof. Ming Tang’s Mesoscale Materials Science Group at Rice University.",
+  },
+  {
+    k: "Visualization",
+    v: "An interactive simulation that runs right in your browser, so anyone can watch dendrites form as you change the charging conditions.",
+  },
+  {
+    k: "Made for everyone",
+    v: "Clear explanations and fully cited sources for students, everyday battery users, and the engineers of tomorrow.",
+  },
+]
+
 function MissionStatement() {
   return (
     <section aria-labelledby="mission-statement-title" className="scroll-mt-24">
-      <Reveal className="space-y-6">
-        <Eyebrow index="01">Our mission</Eyebrow>
-        <h2 id="mission-statement-title" className="sr-only">
-          Mission statement
-        </h2>
-        {/* Mission statement placeholder: replace this block with the final text. */}
-        <div className="flex min-h-40 items-center justify-center rounded-3xl border-2 border-dashed border-border bg-card/40 p-8 text-center">
-          <p className="max-w-md text-sm text-muted-foreground">
-            Mission statement coming soon.
-          </p>
-        </div>
-      </Reveal>
+      <div className="relative grid gap-10 overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.04),0_24px_64px_-28px_rgb(0_0_0/0.35)] sm:p-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16 lg:p-12 dark:shadow-none">
+        <Reveal className="space-y-4">
+          <Eyebrow index="01">Our mission</Eyebrow>
+          <h2
+            id="mission-statement-title"
+            className="font-heading text-3xl leading-tight font-bold tracking-tight text-balance text-foreground sm:text-4xl"
+          >
+            Our mission is to make the hidden failure of lithium-ion batteries{" "}
+            <span className="text-brand">visible</span>, and give everyone
+            the understanding to prevent it.
+          </h2>
+        </Reveal>
+
+        <Reveal delay={0.06} className="space-y-8">
+          <div className="space-y-4 text-[15px] leading-relaxed text-pretty text-muted-foreground sm:text-base">
+            <p>
+              Every time a lithium-ion battery charges, lithium can build up
+              unevenly on the anode and grow into thin, branching structures
+              called dendrites. Left unchecked, they can pierce the separator,
+              short-circuit the cell, and lead to overheating or fire, often
+              with no warning on the outside.
+            </p>
+            <p>
+              Battery Dendrites brings that process into view. We pair an
+              interactive, research-based simulation with plain-language
+              explanations of how batteries work, how dendrites are detected,
+              and which charging habits, designs, and materials help keep them
+              from forming.
+            </p>
+          </div>
+
+          <dl className="divide-y divide-foreground/10 border-y border-foreground/10">
+            {MISSION_POINTS.map((p) => (
+              <div
+                key={p.k}
+                className="grid gap-x-6 gap-y-1 py-5 sm:grid-cols-[11rem_minmax(0,1fr)]"
+              >
+                <dt className="pt-0.5 text-[11px] font-semibold tracking-[0.18em] text-brand uppercase">
+                  {p.k}
+                </dt>
+                <dd className="text-[15px] leading-relaxed text-pretty text-muted-foreground">
+                  {p.v}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </Reveal>
+      </div>
     </section>
   )
 }

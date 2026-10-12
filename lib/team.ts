@@ -66,9 +66,11 @@ export const team: TeamMember[] = [
   {
     name: "Faye Tang",
     role: "Student Research Assistant",
-    contribution: "Designed and built the website, extended the LKMC model.",
-    bio: "I'm a student at Clements High School, class of 2027. For this project, I developed a more efficient version of the lab's lattice kinetic Monte Carlo (LKMC) model to realistically simulate dendrite formation, built the Homepage,  Library and References pages. I plan to study materials science and engineering, working closely with technology to advance sustainability.",
+    contribution:
+      "Designed the site's overall design and structure, and extended the LKMC model.",
+    bio: "I'm a student at Clements High School, class of 2027. I came up with the overall design and structure of Battery Dendrites, mapping out how each page would guide readers from battery basics through to the simulation. On the research side, I developed a more efficient version of the lab's lattice kinetic Monte Carlo (LKMC) model to realistically simulate dendrite formation, and I built the Homepage, Library, and References pages. I plan to study materials science and engineering, working closely with technology to advance sustainability.",
     focus: [
+      "Site structure",
       "Web design",
       "Science communication",
       "Simulation",
