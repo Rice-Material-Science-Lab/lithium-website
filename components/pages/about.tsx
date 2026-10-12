@@ -475,6 +475,66 @@ function Mission() {
   )
 }
 
+
+const FEEDBACK_EMAIL = "faye.tang.r@gmail.com" //I will use my email for now, it can be changed later
+const FEEDBACK_HREF = `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(
+  "Educator feedback: Battery Dendrites"
+)}`
+
+const EDUCATOR_ASKS = [
+  "How you used the site or simulation with your students",
+  "Anything that was unclear, too advanced, or inaccurate",
+  "Topics or classroom tools you would like to see next",
+]
+
+function Educators() {
+  return (
+    <section aria-labelledby="educators-title" className="scroll-mt-24">
+      <div className="grid gap-10 rounded-3xl border border-border bg-card/60 p-6 sm:p-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16 lg:p-12">
+        <Reveal className="space-y-4">
+          <Eyebrow index="04">For educators</Eyebrow>
+          <h2
+            id="educators-title"
+            className="font-heading text-3xl leading-tight font-bold tracking-tight text-balance text-foreground sm:text-4xl"
+          >
+            Teachers, we&rsquo;d love to hear from you.
+          </h2>
+        </Reveal>
+
+        <Reveal delay={0.06} className="space-y-6">
+          <p className="text-[15px] leading-relaxed text-pretty text-muted-foreground sm:text-base">
+            We built this site to be used in classrooms, and feedback from
+            teachers helps us make it clearer, more accurate, and more useful
+            for students at every level.
+          </p>
+          <ul className="space-y-3">
+            {EDUCATOR_ASKS.map((item) => (
+              <li
+                key={item}
+                className="flex gap-3 text-[15px] leading-relaxed text-muted-foreground"
+              >
+                <span
+                  aria-hidden
+                  className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand"
+                />
+                {item}
+              </li>
+            ))}
+          </ul>
+          <a
+            href={FEEDBACK_HREF}
+            className="group inline-flex h-11 items-center gap-2 rounded-full bg-brand px-6 text-sm font-semibold text-brand-foreground shadow-sm transition-transform hover:-translate-y-0.5"
+          >
+            <Mail className="h-4 w-4" />
+            Send us feedback
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          </a>
+        </Reveal>
+      </div>
+    </section>
+  )
+}
+
 function Closing() {
   return (
     <Reveal>
@@ -561,6 +621,7 @@ export default function AboutClientView() {
         <MissionStatement />
         <TeamGrid />
         <Mission />
+        <Educators />
         <Closing />
       </main>
     </div>

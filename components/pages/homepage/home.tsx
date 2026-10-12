@@ -30,12 +30,15 @@ import StatsStrip from "./section-cards/stats-strip"
 import GlossarySection from "./section-cards/glossary-section"
 import QuizSection from "./section-cards/quiz-section"
 import Hero from "./section-cards/hero"
+import DeviceGuide from "./section-cards/device-guide"
+import BatteryCheckup from "./section-cards/battery-checkup"
 
 const chapters: Chapter[] = [
   { id: "basics", label: "How batteries work" },
   { id: "dendrites", label: "What are dendrites?" },
   { id: "everyday", label: "Everyday impact" },
   { id: "prevention", label: "Prevention" },
+  { id: "safety", label: "Your battery" },
   { id: "chemistry", label: "Anode chemistry" },
   { id: "detection", label: "Detection" },
   { id: "solutions", label: "Engineering fixes" },
@@ -227,8 +230,21 @@ export default function HomepageClientView() {
           </SectionShell>
 
           <SectionShell
-            id="chemistry"
+            id="safety"
             index="05"
+            eyebrow="Your battery"
+            title="Personal advice for the batteries you own"
+            description="Tell us what you use and how you charge it, and get advice that fits. Then see how much capacity your own battery has left."
+          >
+            <div className="space-y-6">
+              <BatteryCheckup />
+              <DeviceGuide />
+            </div>
+          </SectionShell>
+
+          <SectionShell
+            id="chemistry"
+            index="06"
             eyebrow="Chemistry"
             title="The anode decides how easily dendrites grow"
             description="Dendrites grow on the anode, the negative electrode that lithium flows into while charging. What it's made of changes how likely lithium is to pile up as metal, and it trades off against how much energy the battery holds and how long it lasts."
@@ -238,7 +254,7 @@ export default function HomepageClientView() {
 
           <SectionShell
             id="detection"
-            index="06"
+            index="07"
             eyebrow="Detection"
             title="How researchers actually see dendrites"
             description="Dendrites are microscopic and hidden inside a sealed cell, so seeing them takes X-rays, electron beams, and specially built cells."
@@ -248,7 +264,7 @@ export default function HomepageClientView() {
 
           <SectionShell
             id="solutions"
-            index="07"
+            index="08"
             eyebrow="Engineering"
             title="What's being done about it"
             description="None of these fully solve dendrite growth on their own. Most products combine several."
@@ -258,7 +274,7 @@ export default function HomepageClientView() {
 
           <SectionShell
             id="glossary"
-            index="08"
+            index="09"
             eyebrow="Reference"
             title="Glossary"
             description="The vocabulary you'll run into throughout this site."
