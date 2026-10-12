@@ -41,7 +41,7 @@ function CountUp({ value, prefix, suffix }: { value: number; prefix: string; suf
 
 export default function StatsStrip() {
   return (
-    <dl className="grid grid-cols-2 overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-4 [&>*]:bg-card">
+    <dl className="grid grid-cols-2 overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-4 *:bg-card">
       {stats.map((s) => (
         <div key={s.label} className="flex flex-col gap-2 p-5 sm:p-6">
           <dt className="order-2 text-xs leading-relaxed text-muted-foreground">
