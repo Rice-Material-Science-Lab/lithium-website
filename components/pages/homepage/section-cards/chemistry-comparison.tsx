@@ -143,7 +143,7 @@ export default function ChemistryComparison() {
         })}
       </div>
       <div className="-mx-5 overflow-x-auto px-5 sm:mx-0 sm:px-0">
-        <table className="w-full min-w-160 border-collapse text-sm">
+        <table className="w-full border-collapse text-sm min-w-160 lg:min-w-0">
           <thead>
             <tr className="border-b border-border text-left">
               <th className="w-36 py-3 pr-4 font-semibold text-foreground/70">
@@ -159,13 +159,7 @@ export default function ChemistryComparison() {
                     focus && focus !== a.material && "opacity-40"
                   )}
                 >
-                  <button
-                    type="button"
-                    onClick={() => setFocus(focus === a.material ? null : a.material)}
-                    className="text-left hover:underline hover:underline-offset-4"
-                  >
-                    {a.material}
-                  </button>
+                  {a.material}
                 </th>
               ))}
             </tr>
