@@ -85,7 +85,7 @@ function BatterySchematic({ mode, reduced }: { mode: Mode; reduced: boolean }) {
   return (
     <svg
       viewBox="0 0 800 430"
-      className="h-auto w-full min-w-130"
+      className="h-auto w-full"
       role="img"
       aria-label={
         discharging
