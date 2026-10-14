@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react"
 import Link from "next/link"
 import RiceLogo from "@/components/ui/rice-logo"
 import { usePathname } from "next/navigation"
-import { motion } from "framer-motion"
+import { motion, useReducedMotion } from "framer-motion"
 import { Newspaper, ChevronDown } from "lucide-react"
 import { Button } from "./button"
 import { cn } from "@/lib/utils"
@@ -142,8 +142,61 @@ function NewsPanel() {
 export default function Navbar() {
   const pathname = usePathname()
   const isSimPage = pathname === "/sim"
+  const isHomePage = pathname === "/"
 
   const [navBarOpen, setNavbarOpen] = useState(true)
+
+  // Homepage only: hide the navbar while scrolling down, show it again
+  // as soon as the user starts scrolling up.
+  const [navVisible, setNavVisible] = useState(true)
+
+  useEffect(() => {
+    if (!isHomePage) return
+
+    const HIDE_THRESHOLD = 100
+    const SCROLL_DEAD_ZONE = 5
+    let lastScrollY = window.scrollY
+    let initialized = false
+    let rafId = 0
+
+    function updateVisibility() {
+      const currentY = window.scrollY
+      // Sync with the scroll position on entry (e.g. back navigation).
+      if (!initialized) {
+        initialized = true
+        lastScrollY = currentY
+        setNavVisible(currentY <= HIDE_THRESHOLD)
+        return
+      }
+      const delta = currentY - lastScrollY
+      lastScrollY = currentY
+      if (currentY <= HIDE_THRESHOLD) {
+        setNavVisible(true)
+      } else if (delta > SCROLL_DEAD_ZONE) {
+        setNavVisible(false)
+      } else if (delta < -SCROLL_DEAD_ZONE) {
+        setNavVisible(true)
+      }
+    }
+
+    function onScroll() {
+      if (rafId) return
+      rafId = requestAnimationFrame(() => {
+        rafId = 0
+        updateVisibility()
+      })
+    }
+
+    onScroll()
+
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => {
+      window.removeEventListener("scroll", onScroll)
+      cancelAnimationFrame(rafId)
+    }
+  }, [isHomePage])
+
+  const reduceMotion = useReducedMotion()
 
   const navLinks = [
     { label: "Home", href: "/" },
@@ -168,11 +221,26 @@ export default function Navbar() {
     <div className="relative z-50">
       <motion.div
         initial={false}
-        animate={{ y: navBarOpen || !isSimPage ? 0 : "calc(-100% + 40px)" }}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        animate={{
+          y: isSimPage
+            ? navBarOpen
+              ? 0
+              : "calc(-100% + 40px)"
+            : isHomePage && !navVisible
+              ? "-100%"
+              : 0,
+        }}
+        transition={
+          reduceMotion
+            ? { duration: 0 }
+            : { type: "spring", stiffness: 300, damping: 30 }
+        }
         className={cn(
-          "absolute inset-x-0 top-0 z-50 flex w-full flex-col",
-          isSimPage && "items-end"
+          "inset-x-0 top-0 z-50 flex w-full flex-col",
+          isSimPage && "items-end",
+          // Fixed on the homepage so the bar can slide back into view on
+          // scroll-up; absolute everywhere else (unchanged behavior).
+          isHomePage ? "fixed" : "absolute"
         )}
       >
         <nav className="z-10 flex w-full items-center justify-between bg-primary px-8 py-4 text-primary-foreground shadow-md dark:shadow-[0_6px_24px_--theme(--color-foreground/6%)]">
