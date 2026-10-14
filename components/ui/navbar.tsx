@@ -76,13 +76,13 @@ function NewsPanel() {
         size="icon-sm"
         className={`hover:bg-primary-foreground/10 ${open ? "text-primary-foreground" : "text-primary-foreground/70 hover:text-primary-foreground"}`}
         onClick={handleOpen}
-        aria-label="news tab toggle"
+        aria-label="Recent news"
       >
         <Newspaper className="h-5 w-5" />
       </Button>
 
       {open && (
-        <div className="absolute top-full right-0 z-50 mt-3 flex max-h-130 w-96 flex-col rounded-2xl border border-border bg-card text-card-foreground">
+        <div className="absolute top-full right-0 z-50 mt-3 flex max-h-130 w-96 max-w-[calc(100vw-1.5rem)] flex-col rounded-2xl border border-border bg-card text-card-foreground">
           <div className="px-5 pt-5 pb-3">
             <p className="text-base font-bold text-foreground">Recent News</p>
             {lastUpdated && (
@@ -147,7 +147,7 @@ export default function Navbar() {
 
   const navLinks = [
     { label: "Home", href: "/" },
-    { label: "Sim", href: "/sim" },
+    { label: "Simulator", href: "/sim" },
     { label: "Library", href: "/library" },
     { label: "References", href: "/references" },
     { label: "About", href: "/about" },

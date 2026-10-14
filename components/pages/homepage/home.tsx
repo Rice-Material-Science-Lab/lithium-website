@@ -43,6 +43,7 @@ const chapters: Chapter[] = [
   { id: "detection", label: "Detection" },
   { id: "solutions", label: "Engineering fixes" },
   { id: "glossary", label: "Glossary" },
+  { id: "quiz", label: "Quiz" },
 ]
 
 const risks = [
@@ -121,7 +122,7 @@ export default function HomepageClientView() {
   if (!mounted) return null
 
   return (
-    <div className="min-h-screen bg-background font-sans">
+    <div id="top" className="min-h-screen bg-background font-sans">
       <ReadingProgress />
       <Hero />
 

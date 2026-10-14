@@ -8,7 +8,7 @@ const glossaryTerms = [
   {
     term: "Anode",
     definition:
-      "The electrode that hosts lithium during discharge (graphite or metal); where dendrites typically nucleate.",
+      "The electrode that hosts lithium during charge (graphite or metal); where dendrites typically nucleate.",
   },
   {
     term: "Cathode",

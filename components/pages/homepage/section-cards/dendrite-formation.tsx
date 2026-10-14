@@ -478,6 +478,7 @@ export default function DendriteFormation() {
                 type="button"
                 onClick={() => go(i)}
                 aria-current={isActive ? "step" : undefined}
+                aria-label={`Step ${i + 1} of ${steps.length}: ${s.title}`}
                 className={cn(
                   "relative w-full overflow-hidden rounded-xl border px-4 py-3 text-left transition-colors",
                   isActive
