@@ -1,9 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import NextImage from "next/image"
-import { useEffect, useState } from "react"
-import { useTheme } from "next-themes"
 import {
   ArrowRight,
   BatteryLow,
@@ -32,6 +29,13 @@ import QuizSection from "./section-cards/quiz-section"
 import Hero from "./section-cards/hero"
 import DeviceGuide from "./section-cards/device-guide"
 import BatteryCheckup from "./section-cards/battery-checkup"
+import {
+  AviationIcon,
+  ConsumerTechIcon,
+  EbikeIcon,
+  EVehicleIcon,
+} from "./section-cards/daily-life-icons"
+import type { ComponentType } from "react"
 
 const chapters: Chapter[] = [
   { id: "basics", label: "How batteries work" },
@@ -64,43 +68,24 @@ const risks = [
   },
 ]
 
-const dailyLifeItems = [
-  {
-    label: "E-bikes & scooters",
-    src: "/icons/ebike.png",
-    darkSrc: "/icons/ebikedark.png",
-  },
-  {
-    label: "Consumer electronics",
-    src: "/icons/consumertech.png",
-    darkSrc: "/icons/consumertechdark.png",
-  },
-  { label: "Electric vehicles", src: "/icons/evehicle.png" },
-  { label: "Aviation", src: "/icons/aviation.png" },
+const dailyLifeItems: { label: string; Icon: ComponentType }[] = [
+  { label: "E-bikes & scooters", Icon: EbikeIcon },
+  { label: "Consumer electronics", Icon: ConsumerTechIcon },
+  { label: "Electric vehicles", Icon: EVehicleIcon },
+  { label: "Aviation", Icon: AviationIcon },
 ]
 
 function DailyLifeCard({
   label,
-  src,
-  darkSrc,
-  isDark,
+  Icon,
 }: {
   label: string
-  src: string
-  darkSrc?: string
-  isDark: boolean
+  Icon: ComponentType
 }) {
-  const activeSrc = isDark && darkSrc ? darkSrc : src
   return (
     <div className="group flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-4 py-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_40px_-20px_rgb(0_0_0/0.35)]">
-      <div className="relative h-20 w-20 transition-transform duration-500 group-hover:scale-110 sm:h-24 sm:w-24">
-        <NextImage
-          src={activeSrc}
-          alt=""
-          fill
-          sizes="(max-width: 640px) 80px, 96px"
-          className="object-contain"
-        />
+      <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-brand/8 p-3.5 text-foreground transition-transform duration-500 group-hover:scale-110 sm:h-24 sm:w-24 dark:bg-brand/10">
+        <Icon />
       </div>
       <p className="text-center text-sm font-semibold text-foreground">
         {label}
@@ -110,17 +95,6 @@ function DailyLifeCard({
 }
 
 export default function HomepageClientView() {
-  const { resolvedTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-  const isDark = resolvedTheme === "dark"
-
-  useEffect(() => {
-    const handle = requestAnimationFrame(() => setMounted(true))
-    return () => cancelAnimationFrame(handle)
-  }, [])
-
-  if (!mounted) return null
-
   return (
     <div id="top" className="min-h-screen bg-background font-sans">
       <ReadingProgress />
@@ -216,7 +190,7 @@ export default function HomepageClientView() {
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
                 {dailyLifeItems.map((item) => (
-                  <DailyLifeCard key={item.label} {...item} isDark={isDark} />
+                  <DailyLifeCard key={item.label} {...item} />
                 ))}
               </div>
               <StatsStrip />
