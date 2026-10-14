@@ -38,11 +38,6 @@ export function EbikeIcon() {
       <path d="M35 44 H45" />
       <path d="M40 44 V50" />
       <circle cx="52" cy="66" r="3" />
-      <path
-        className="fill-brand"
-        stroke="none"
-        d="M60 50 L53 59 H57.5 L55.5 65 L62 56 H57.5 Z"
-      />
     </IconShell>
   )
 }
@@ -52,11 +47,6 @@ export function ConsumerTechIcon() {
     <IconShell>
       <rect x="34" y="20" width="28" height="56" rx="9" />
       <path d="M44 29 h8" />
-      <path
-        className="fill-brand"
-        stroke="none"
-        d="M52 38 L42 52 H49 L46 63 L57 49 H50 Z"
-      />
     </IconShell>
   )
 }
@@ -68,11 +58,6 @@ export function EVehicleIcon() {
       <circle cx="31" cy="62" r="7.5" />
       <circle cx="65" cy="62" r="7.5" />
       <path d="M38.5 62 H57.5" />
-      <path
-        className="fill-brand"
-        stroke="none"
-        d="M51 41 L45.5 50 H49.5 L48 56 L55 47.5 H51 Z"
-      />
     </IconShell>
   )
 }
