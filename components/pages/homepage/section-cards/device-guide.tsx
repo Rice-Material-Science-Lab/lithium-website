@@ -123,7 +123,7 @@ export default function DeviceGuide() {
         <div
           role="tablist"
           aria-label="Device type"
-          className="inline-flex w-full gap-1 overflow-x-auto rounded-full bg-background p-1 shadow-inner lg:w-auto"
+          className="inline-flex w-full gap-1 overflow-x-auto rounded-full bg-background p-1 shadow-inner [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:w-auto"
         >
           {devices.map((x) => {
             const selected = x.id === active
