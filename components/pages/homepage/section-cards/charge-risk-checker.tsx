@@ -76,7 +76,7 @@ function Segmented<T extends string>({
               aria-pressed={selected}
               onClick={() => onChange(o.id)}
               className={cn(
-                "rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all",
+                "rounded-full border px-3.5 py-2.5 text-sm font-medium transition-all",
                 selected
                   ? "border-brand bg-brand text-brand-foreground shadow-sm"
                   : "border-border bg-background text-foreground/80 hover:border-primary/40 hover:text-foreground"

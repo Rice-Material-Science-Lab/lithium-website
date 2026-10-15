@@ -137,7 +137,7 @@ export default function DeviceGuide() {
                 aria-controls="device-panel"
                 onClick={() => setActive(x.id)}
                 className={cn(
-                  "relative flex shrink-0 items-center justify-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold whitespace-nowrap transition-colors",
+                  "relative flex shrink-0 items-center justify-center gap-1.5 rounded-full px-3.5 py-2.5 text-sm font-semibold whitespace-nowrap transition-colors",
                   selected ? "text-brand-foreground" : "text-muted-foreground hover:text-foreground"
                 )}
               >
