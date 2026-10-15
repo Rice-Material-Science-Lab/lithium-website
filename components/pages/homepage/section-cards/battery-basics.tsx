@@ -85,7 +85,7 @@ function BatterySchematic({ mode, reduced }: { mode: Mode; reduced: boolean }) {
   return (
     <svg
       viewBox="0 0 800 430"
-      className="h-auto w-full"
+      className="h-auto w-full min-w-[560px] sm:min-w-0"
       role="img"
       aria-label={
         discharging
@@ -310,7 +310,7 @@ export default function BatteryBasics() {
                 aria-selected={mode === id}
                 onClick={() => setMode(id)}
                 className={cn(
-                  "flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-semibold transition-colors sm:flex-none",
+                  "flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-semibold transition-colors sm:flex-none",
                   mode === id
                     ? "bg-brand text-brand-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"

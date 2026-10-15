@@ -175,7 +175,7 @@ function FormationDiagram({
   return (
     <svg
       viewBox="0 0 520 300"
-      className="h-auto w-full"
+      className="h-auto w-full min-w-[480px] sm:min-w-0"
       role="img"
       aria-label={`Step ${step + 1}: ${steps[step].title}. ${steps[step].text}`}
     >
@@ -536,7 +536,7 @@ export default function DendriteFormation() {
       </ol>
 
       <div className="flex flex-col gap-3">
-        <div className="rounded-2xl border border-border bg-muted/30 p-3 sm:p-5">
+        <div className="overflow-x-auto rounded-2xl border border-border bg-muted/30 p-3 sm:p-5">
           <FormationDiagram
             step={step}
             reduced={reduced}
@@ -555,7 +555,7 @@ export default function DendriteFormation() {
               type="button"
               onClick={() => go(step - 1)}
               aria-label="Previous stage"
-              className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -563,7 +563,7 @@ export default function DendriteFormation() {
               type="button"
               onClick={() => setPlaying((p) => !p)}
               aria-label={playing ? "Pause" : "Play"}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-brand-foreground transition-opacity hover:opacity-90"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-brand-foreground transition-opacity hover:opacity-90"
             >
               {playing ? (
                 <Pause className="h-3.5 w-3.5" />
@@ -575,7 +575,7 @@ export default function DendriteFormation() {
               type="button"
               onClick={() => go(step + 1)}
               aria-label="Next stage"
-              className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               <ChevronRight className="h-4 w-4" />
             </button>

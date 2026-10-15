@@ -262,7 +262,7 @@ export default function ParamsCard({
                         title={hint}
                         onClick={() => setGraphiteAngle(value)}
                         className={
-                          "rounded-full px-3 py-1 text-sm font-medium transition-colors " +
+                          "rounded-full px-3 py-2.5 text-sm font-medium transition-colors " +
                           (graphiteAngle === value
                             ? "bg-brand text-brand-foreground"
                             : "text-muted-foreground hover:bg-accent hover:text-accent-foreground")

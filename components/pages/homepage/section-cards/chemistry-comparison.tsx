@@ -131,7 +131,7 @@ export default function ChemistryComparison() {
               aria-pressed={selected}
               onClick={() => setFocus(selected ? null : a.material)}
               className={cn(
-                "rounded-full border px-3 py-1 text-sm font-medium transition-all",
+                "rounded-full border px-3 py-2.5 text-sm font-medium transition-all",
                 selected
                   ? "border-brand bg-brand text-brand-foreground"
                   : "border-border bg-background text-foreground/80 hover:border-primary/40 hover:text-foreground"

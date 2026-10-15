@@ -81,7 +81,7 @@ export default function AtomCountsChart({
               aria-checked={xMode === value}
               onClick={() => setXMode(value)}
               className={
-                "rounded-full px-2.5 py-0.5 font-medium transition-colors " +
+                "rounded-full px-2.5 py-2.5 font-medium transition-colors " +
                 (xMode === value
                   ? "bg-brand text-brand-foreground"
                   : "text-muted-foreground hover:text-foreground")

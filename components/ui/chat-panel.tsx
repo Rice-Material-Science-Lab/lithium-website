@@ -82,7 +82,7 @@ export default function ChatPanel() {
         "z-50 flex h-110 flex-col rounded-2xl border border-border bg-card/95 text-card-foreground shadow-lg ring-1 ring-foreground/10 backdrop-blur-xl",
         floating
           ? "fixed right-4 bottom-4 max-h-[calc(100dvh-2rem)] w-[min(24rem,calc(100vw-2rem))] shadow-[0_24px_64px_-20px_rgb(0_0_0/0.45)] sm:right-6 sm:bottom-6"
-          : "absolute top-full right-0 mt-3 w-96"
+          : "absolute top-full right-0 mt-3 w-96 max-w-[calc(100vw-2rem)]"
       )}
     >
       <div className="flex items-start justify-between gap-3 border-b border-border px-5 pt-5 pb-3">
@@ -98,7 +98,7 @@ export default function ChatPanel() {
           type="button"
           onClick={close}
           aria-label="Close chat"
-          className="-mt-1 -mr-2 flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+          className="-mt-1 -mr-2 flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
         >
           <X className="h-4 w-4" />
         </button>
@@ -176,7 +176,12 @@ export default function ChatPanel() {
           placeholder="Ask a question…"
           className="h-9"
         />
-        <Button type="submit" size="icon-sm" disabled={!input.trim() || busy}>
+        <Button
+          type="submit"
+          size="icon-sm"
+          className="size-9"
+          disabled={!input.trim() || busy}
+        >
           <Send className="h-4 w-4" />
         </Button>
       </form>

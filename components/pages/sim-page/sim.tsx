@@ -1384,14 +1384,14 @@ export default function SimPageClientView() {
 
   return (
     <>
-      <div className="relative flex h-full w-full flex-col overflow-hidden">
-        <div className="relative z-10 flex h-full w-full flex-col overflow-hidden p-5">
+      <div className="relative flex h-full w-full flex-col overflow-x-hidden overflow-y-auto lg:overflow-hidden">
+        <div className="relative z-10 flex h-auto w-full flex-col p-3 pt-28 sm:p-5 sm:pt-32 lg:h-full lg:overflow-hidden lg:p-5">
           <div className="flex shrink-0 items-center gap-3 px-4 pb-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand">
               <Atom className="h-5 w-5 text-brand-foreground" />
             </div>
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-brand">
+              <h1 className="text-lg font-bold text-brand sm:text-2xl">
                 LKMC Electrodeposition Simulator
               </h1>
               <h2 className="text-xs text-muted-foreground">
@@ -1402,15 +1402,15 @@ export default function SimPageClientView() {
               type="button"
               variant="outline"
               size="sm"
-              className="gap-1.5 rounded-full"
+              className="h-9 gap-1.5 rounded-full"
               onClick={() => setHelpOpen(true)}
             >
               <HelpCircle size={15} />
               How to use
             </Button>
           </div>
-          <div className="flex min-h-0 flex-1 gap-4 p-4">
-            <Reveal className="w-[30%]">
+          <div className="flex min-h-0 flex-1 flex-col gap-4 p-2 sm:p-4 lg:flex-row">
+            <Reveal className="order-2 w-full lg:order-1 lg:w-[30%]">
               <ParamsCard
                 handleSubmit={handleSubmit}
                 isLiveMode={isLiveMode}
@@ -1466,8 +1466,8 @@ export default function SimPageClientView() {
               />
             </Reveal>
 
-            <div className="flex min-h-0 flex-1 flex-col gap-4">
-              <Reveal className="flex h-1/2 flex-1" delay={0.1}>
+            <div className="order-1 flex min-h-0 flex-1 flex-col gap-4 lg:order-2">
+              <Reveal className="flex h-[68svh] min-h-[400px] flex-1 lg:h-1/2" delay={0.1}>
                 <Card
                   ref={fullscreenRef}
                   className={cn(
@@ -1475,11 +1475,11 @@ export default function SimPageClientView() {
                     isFullscreen && "rounded-none border-0 bg-background p-6"
                   )}
                 >
-                  <div className="flex min-h-0 w-full grow flex-row justify-between gap-2">
+                  <div className="flex min-h-0 w-full grow flex-col justify-between gap-2 sm:flex-row">
                     <div className="flex grow flex-col">
                       <div className="flex h-full w-full flex-1 gap-4">
                         <div className="flex h-full flex-1 grow flex-col items-center">
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <div className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1">
                               <span
                                 className={
@@ -1561,7 +1561,7 @@ export default function SimPageClientView() {
                               variant="outline"
                               size="sm"
                               className={cn(
-                                "absolute bottom-0 left-0 z-10 gap-1.5 rounded-2xl bg-card/80 backdrop-blur",
+                                "absolute bottom-0 left-0 z-10 h-9 gap-1.5 rounded-2xl bg-card/80 backdrop-blur",
                                 justSaved && "border-success text-success"
                               )}
                               onClick={(e) => {
@@ -1582,7 +1582,7 @@ export default function SimPageClientView() {
                               type="button"
                               variant="outline"
                               size="icon-sm"
-                              className="absolute right-0 bottom-0 z-10 rounded-2xl bg-card/80 backdrop-blur"
+                              className="absolute right-0 bottom-0 z-10 size-9 rounded-2xl bg-card/80 backdrop-blur"
                               onClick={(e) => {
                                 toggleFullscreen()
                                 e.currentTarget.blur()
@@ -1633,7 +1633,7 @@ export default function SimPageClientView() {
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="rounded-full text-primary"
+                        className="h-9 rounded-full text-primary"
                         onClick={returnToLive}
                       >
                         Back to Live
@@ -1642,10 +1642,10 @@ export default function SimPageClientView() {
                   </div>
                 </Card>
               </Reveal>
-              <Reveal className="flex h-1/2 flex-1" delay={0.2}>
+              <Reveal className="flex h-[52svh] min-h-[320px] flex-1 lg:h-1/2" delay={0.2}>
                 <Card className="flex min-h-0 flex-1 flex-col rounded-2xl p-4 backdrop-blur-xl">
                   <Tabs defaultValue="atom-counts" className="h-full w-full">
-                    <TabsList>
+                    <TabsList className="max-w-full overflow-x-auto">
                       <TabsTrigger value="atom-counts">Atom Counts</TabsTrigger>
                       <TabsTrigger value="batch-run">Batch Run</TabsTrigger>
                       <TabsTrigger value="snapshots" className="gap-1.5">
@@ -1670,7 +1670,7 @@ export default function SimPageClientView() {
                           type="button"
                           variant="outline"
                           size="sm"
-                          className="rounded-full"
+                          className="h-9 rounded-full"
                           onClick={exportStatsCSV}
                           disabled={statsData.length === 0}
                         >
@@ -1680,7 +1680,7 @@ export default function SimPageClientView() {
                           type="button"
                           variant="outline"
                           size="sm"
-                          className="rounded-full"
+                          className="h-9 rounded-full"
                           onClick={exportLatticeCSV}
                           disabled={simState.length === 0}
                         >

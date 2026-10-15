@@ -445,7 +445,7 @@ export default function BatteryCheckup() {
                       aria-pressed={on}
                       onClick={() => setDevice(d.id)}
                       className={cn(
-                        "relative flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left text-sm font-semibold transition-colors",
+                        "relative flex items-center gap-2.5 rounded-xl border px-3 py-3 text-left text-sm font-semibold transition-colors",
                         on
                           ? "border-brand text-foreground"
                           : "border-border bg-background/60 text-foreground/75 hover:border-brand/40 hover:text-foreground"
@@ -481,7 +481,7 @@ export default function BatteryCheckup() {
                       aria-pressed={on}
                       onClick={() => setAge(a.id)}
                       className={cn(
-                        "relative flex-1 rounded-full px-3.5 py-1.5 text-sm font-semibold whitespace-nowrap transition-colors sm:flex-none",
+                        "relative flex-1 rounded-full px-3.5 py-2.5 text-sm font-semibold whitespace-nowrap transition-colors sm:flex-none",
                         on ? "text-brand-foreground" : "text-muted-foreground hover:text-foreground"
                       )}
                     >
@@ -514,7 +514,7 @@ export default function BatteryCheckup() {
                       aria-pressed={on}
                       onClick={() => toggle(h.id)}
                       className={cn(
-                        "rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all",
+                        "rounded-full border px-3.5 py-2.5 text-sm font-medium transition-all",
                         on
                           ? "border-brand bg-brand text-brand-foreground shadow-sm"
                           : "border-border bg-background text-foreground/80 hover:border-brand/40 hover:text-foreground"
