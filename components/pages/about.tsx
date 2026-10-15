@@ -124,7 +124,7 @@ function LinkRow({
             {...(external
               ? { target: "_blank", rel: "noopener noreferrer" }
               : {})}
-            className="group/link inline-flex h-9 items-center gap-2 rounded-full border border-border bg-background/60 px-3.5 text-sm font-medium text-foreground/80 transition-all hover:border-brand/40 hover:bg-background hover:text-foreground dark:bg-foreground/3"
+            className="group/link inline-flex h-10 items-center gap-2 rounded-full border border-border bg-background/60 px-3.5 text-sm font-medium text-foreground/80 transition-all hover:border-brand/40 hover:bg-background hover:text-foreground dark:bg-foreground/3"
           >
             {meta.icon({ className: "h-3.5 w-3.5" })}
             {meta.label}
@@ -270,7 +270,7 @@ function MemberPanel({
         type="button"
         onClick={onClose}
         aria-label={`Close ${member.name}'s profile`}
-        className="absolute top-4 right-4 flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background/80 text-muted-foreground backdrop-blur transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+        className="absolute top-4 right-4 flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background/80 text-muted-foreground backdrop-blur transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
       >
         <X className="h-4 w-4" />
       </button>

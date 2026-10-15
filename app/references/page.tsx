@@ -744,7 +744,7 @@ function CopyCitation({ reference }: { reference: Reference }) {
       type="button"
       onClick={onCopy}
       aria-label="Copy citation"
-      className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground"
+      className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground"
     >
       {copied ? (
         <Check className="h-3.5 w-3.5 text-success" />
@@ -799,7 +799,7 @@ function ReferenceCard({
               href={reference.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex h-8 items-center gap-1 rounded-full bg-brand/10 px-3 text-xs font-medium text-brand transition-colors hover:bg-brand hover:text-brand-foreground"
+              className="inline-flex h-9 items-center gap-1 rounded-full bg-brand/10 px-3 text-xs font-medium text-brand transition-colors hover:bg-brand hover:text-brand-foreground"
             >
               Read paper <ArrowUpRight className="h-3.5 w-3.5" />
             </a>
@@ -995,7 +995,7 @@ export default function ReferencesClientView() {
                         type="button"
                         onClick={() => setQuery("")}
                         aria-label="Clear search"
-                        className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+                        className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
                       >
                         <X className="h-3.5 w-3.5" />
                       </button>
