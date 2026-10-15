@@ -348,7 +348,7 @@ function SnapshotCard({
               onClick={() => downloadPng(snap)}
               aria-label={`Download ${snap.name} as an image`}
               title="Download image"
-              className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               <Download className="h-3.5 w-3.5" />
             </button>
@@ -357,7 +357,7 @@ function SnapshotCard({
               onClick={onRemove}
               aria-label={`Delete ${snap.name}`}
               title="Delete"
-              className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
             >
               <Trash2 className="h-3.5 w-3.5" />
             </button>
