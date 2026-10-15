@@ -1467,7 +1467,7 @@ export default function SimPageClientView() {
             </Reveal>
 
             <div className="order-1 flex min-h-0 flex-1 flex-col gap-4 lg:order-2">
-              <Reveal className="flex h-[68svh] min-h-[400px] flex-1 lg:h-1/2" delay={0.1}>
+              <Reveal className="flex h-[68svh] min-h-100 flex-1 lg:h-1/2" delay={0.1}>
                 <Card
                   ref={fullscreenRef}
                   className={cn(
@@ -1642,7 +1642,7 @@ export default function SimPageClientView() {
                   </div>
                 </Card>
               </Reveal>
-              <Reveal className="flex h-[52svh] min-h-[320px] flex-1 lg:h-1/2" delay={0.2}>
+              <Reveal className="flex h-[52svh] min-h-80 flex-1 lg:h-1/2" delay={0.2}>
                 <Card className="flex min-h-0 flex-1 flex-col rounded-2xl p-4 backdrop-blur-xl">
                   <Tabs defaultValue="atom-counts" className="h-full w-full">
                     <TabsList className="max-w-full overflow-x-auto">

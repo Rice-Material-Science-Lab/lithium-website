@@ -77,7 +77,7 @@ export default function DisplayHexGrid({
     }
   }
 
-  // Lattice colours come from theme tokens (app/globals.css), so they
+  // Lattice colors come from theme tokens (app/globals.css), so they
   // follow light/dark mode automatically, with no flash on hydration.
   const LATTICE_VAR: Record<number, string> = {
     0: "var(--lattice-empty)",
