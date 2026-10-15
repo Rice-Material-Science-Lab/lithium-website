@@ -683,7 +683,7 @@ function VideoCard({ clip, onOpen }: { clip: VideoClip; onOpen: () => void }) {
       </div>
 
       <div className="flex flex-1 flex-col gap-2 p-4">
-        <h3 className="font-heading text-[15px] leading-snug font-semibold text-foreground">
+        <h3 className="font-heading text-[15px] leading-snug font-bold text-foreground">
           {clip.title}
         </h3>
         <p className="line-clamp-2 flex-1 text-[13px] leading-relaxed text-muted-foreground">
@@ -853,7 +853,7 @@ function EventCard({ event }: { event: CatastrophicEvent }) {
             {event.impact}
           </span>
         </div>
-        <h3 className="font-heading text-lg leading-snug font-semibold text-foreground">
+        <h3 className="font-heading text-lg leading-snug font-bold text-foreground">
           {event.title}
         </h3>
         <p className="text-sm leading-relaxed text-muted-foreground">

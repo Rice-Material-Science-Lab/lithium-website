@@ -1,4 +1,4 @@
-import { Geist_Mono, Inter, Merriweather } from "next/font/google"
+import { Geist_Mono, Lato, Cormorant_Garamond } from "next/font/google"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -15,13 +15,19 @@ export const metadata: Metadata = {
 };
 
 
-const merriweatherHeading = Merriweather({
+const cormorantHeading = Cormorant_Garamond({
   subsets: ["latin"],
-  weight: ["400", "700", "900"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
   variable: "--font-heading",
 })
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
+const lato = Lato({
+  subsets: ["latin"],
+  weight: ["400", "700", "900"],
+  style: ["normal", "italic"],
+  variable: "--font-sans",
+})
 
 const fontMono = Geist_Mono({
   subsets: ["latin"],
@@ -41,8 +47,8 @@ export default function RootLayout({
         "antialiased",
         fontMono.variable,
         "font-sans",
-        inter.variable,
-        merriweatherHeading.variable
+        lato.variable,
+        cormorantHeading.variable
       )}
     >
       <body className="h-screen relative">
