@@ -4,10 +4,10 @@ import { animate, useInView, useReducedMotion } from "motion/react"
 import { useEffect, useRef, useState } from "react"
 
 const stats = [
-  { prefix: "$", value: 5, suffix: "B+", label: "Cost of the Samsung Galaxy Note7 recall" },
-  { prefix: "$", value: 2, suffix: "B", label: "Cost of the Chevy Bolt EV battery recall" },
-  { prefix: "", value: 18, suffix: "", label: "Deaths from lithium-ion battery fires in New York City in 2023" },
-  { prefix: "", value: 6, suffix: " hrs", label: "Burn time of the 2021 Victorian Big Battery fire" },
+  { prefix: "$", value: 5, suffix: "B+", label: "Cost of the Samsung Galaxy Note7 recall", source: "Source: Samsung via AP — ≈$5.3B total" },
+  { prefix: "$", value: 2, suffix: "B", label: "Cost of the Chevy Bolt EV battery recall", source: "Source: GM / LG — ~$1.9B reimbursed, ~$2B total" },
+  { prefix: "", value: 18, suffix: "", label: "Deaths from lithium-ion battery fires in New York City in 2023", source: "Source: NYC Mayor's Office / FDNY" },
+  { prefix: "", value: 6, suffix: " hrs", label: "Burn time of the 2021 Victorian Big Battery fire", source: "Source: Technical investigation — burned out in ~6 hrs" },
 ]
 
 function CountUp({ value, prefix, suffix }: { value: number; prefix: string; suffix: string }) {
@@ -50,6 +50,9 @@ export default function StatsStrip() {
           <dd className="order-1 font-heading text-3xl font-bold text-foreground sm:text-4xl">
             <CountUp value={s.value} prefix={s.prefix} suffix={s.suffix} />
           </dd>
+          <p className="order-3 text-[11px] leading-relaxed text-muted-foreground/80">
+            {s.source}
+          </p>
         </div>
       ))}
     </dl>
