@@ -17,7 +17,7 @@ export function AskButton({
       type="button"
       onClick={() => askTheLab(question)}
       className={cn(
-        "print-hide group/ask inline-flex max-w-full items-center gap-2 rounded-full border border-brand/25 bg-brand/5 py-1.5 pr-3.5 pl-1.5 text-left text-sm text-foreground/85 transition-all hover:border-brand/50 hover:bg-brand/10 hover:text-foreground",
+        "print-hide group/ask inline-flex max-w-full items-center gap-2 rounded-full border border-brand/25 bg-brand/5 py-2.5 pr-3.5 pl-1.5 text-left text-sm text-foreground/85 transition-all hover:border-brand/50 hover:bg-brand/10 hover:text-foreground",
         className
       )}
     >

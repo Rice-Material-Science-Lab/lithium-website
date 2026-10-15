@@ -29,7 +29,7 @@ export function SavePdfButton({
         if (el) printSection(el, fileName)
       }}
       className={cn(
-        "print-hide inline-flex h-9 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition-colors",
+        "print-hide inline-flex h-10 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition-colors",
         variant === "outline" &&
           "border-border bg-background/60 text-foreground/80 hover:border-brand/40 hover:text-foreground",
         variant === "onBrand" &&

@@ -5,7 +5,7 @@ import Link from "next/link"
 import RiceLogo from "@/components/ui/rice-logo"
 import { usePathname } from "next/navigation"
 import { motion, useReducedMotion } from "framer-motion"
-import { Newspaper, ChevronDown } from "lucide-react"
+import { Newspaper, ChevronDown, Menu, X } from "lucide-react"
 import { Button } from "./button"
 import { cn } from "@/lib/utils"
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler"
@@ -145,6 +145,25 @@ export default function Navbar() {
   const isHomePage = pathname === "/"
 
   const [navBarOpen, setNavbarOpen] = useState(true)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [menuPathname, setMenuPathname] = useState(pathname)
+
+  // Close the mobile menu on navigation (adjusting state during render
+  // keeps this in sync without an effect).
+  if (menuPathname !== pathname) {
+    setMenuPathname(pathname)
+    setMenuOpen(false)
+  }
+
+  // Close the mobile menu on Escape.
+  useEffect(() => {
+    if (!menuOpen) return
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setMenuOpen(false)
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [menuOpen])
 
   // Homepage only: hide the navbar while scrolling down, show it again
   // as soon as the user starts scrolling up.
@@ -243,14 +262,14 @@ export default function Navbar() {
           isHomePage ? "fixed" : "absolute"
         )}
       >
-        <nav className="z-10 flex w-full items-center justify-between bg-primary px-8 py-4 text-primary-foreground shadow-md dark:shadow-[0_6px_24px_--theme(--color-foreground/6%)]">
-          <div className="flex items-center gap-4">
+        <nav className="z-10 flex w-full items-center justify-between bg-primary px-4 py-3 text-primary-foreground shadow-md lg:px-8 lg:py-4 dark:shadow-[0_6px_24px_--theme(--color-foreground/6%)]">
+          <div className="flex min-w-0 items-center gap-4">
             <a
               href="https://www.rice.edu"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="In collaboration with Rice University"
-              className="flex shrink-0 flex-col gap-0.5 text-primary-foreground transition-opacity hover:opacity-80"
+              className="hidden shrink-0 flex-col gap-0.5 text-primary-foreground transition-opacity hover:opacity-80 sm:flex"
             >
               <span className="text-[10px] leading-none font-medium tracking-wide text-primary-foreground/70">
                 In collaboration with
@@ -261,16 +280,37 @@ export default function Navbar() {
               aria-hidden
               className="hidden h-9 w-px bg-primary-foreground/25 sm:block"
             />
-            <Link href="/" className="flex flex-col leading-tight">
+            <Link href="/" className="flex min-w-0 flex-col leading-tight">
               <span className="font-heading text-xl font-bold tracking-tight sm:text-2xl">
                 Battery Dendrites
               </span>
-              <span className="text-xs font-medium text-primary-foreground/70">
+              <span className="hidden text-xs font-medium text-primary-foreground/70 sm:block">
                 An educational resource
               </span>
             </Link>
           </div>
-          <div className="flex items-center gap-6 text-sm font-medium">
+          <div className="flex shrink-0 items-center gap-2 text-sm font-medium lg:gap-6">
+            <div className="hidden items-center gap-6 lg:flex">
+              {navLinks.map((link) => {
+                const isActive = pathname === link.href
+
+                return (
+                  <Button
+                    key={link.href}
+                    asChild
+                    variant="link"
+                    className={
+                      isActive
+                        ? "font-bold text-primary-foreground underline underline-offset-4"
+                        : "text-primary-foreground/70 hover:text-primary-foreground hover:underline"
+                    }
+                  >
+                    <Link href={link.href}>{link.label}</Link>
+                  </Button>
+                )
+              })}
+            </div>
+
             {mounted && (
               <AnimatedThemeToggler
                 theme={resolvedTheme === "dark" ? "dark" : "light"}
@@ -280,29 +320,70 @@ export default function Navbar() {
               />
             )}
 
-            {navLinks.map((link) => {
-              const isActive = pathname === link.href
+            <div className="hidden items-center gap-6 lg:flex">
+              <NewsPanel />
+              <ChatPanel />
+            </div>
 
-              return (
-                <Button
-                  key={link.href}
-                  asChild
-                  variant="link"
-                  className={
-                    isActive
-                      ? "font-bold text-primary-foreground underline underline-offset-4"
-                      : "text-primary-foreground/70 hover:text-primary-foreground hover:underline"
-                  }
-                >
-                  <Link href={link.href}>{link.label}</Link>
-                </Button>
-              )
-            })}
-
-            <NewsPanel />
-            <ChatPanel />
+            <button
+              type="button"
+              onClick={() => setMenuOpen((prev) => !prev)}
+              aria-expanded={menuOpen}
+              aria-controls="mobile-menu"
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              className="flex h-10 w-10 items-center justify-center rounded-full text-primary-foreground transition-colors hover:bg-primary-foreground/10 lg:hidden"
+            >
+              {menuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </button>
           </div>
         </nav>
+
+        {menuOpen && (
+          <div
+            id="mobile-menu"
+            className="border-t border-primary-foreground/15 bg-primary px-2 pt-2 pb-4 lg:hidden"
+          >
+            <div className="flex flex-col">
+              {navLinks.map((link) => {
+                const isActive = pathname === link.href
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    aria-current={isActive ? "page" : undefined}
+                    onClick={() => setMenuOpen(false)}
+                    className={cn(
+                      "flex h-11 items-center rounded-xl px-3 text-base font-medium transition-colors",
+                      isActive
+                        ? "bg-primary-foreground/10 font-bold text-primary-foreground"
+                        : "text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground"
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                )
+              })}
+            </div>
+            <div className="mt-2 border-t border-primary-foreground/15 pt-2">
+              <div className="flex h-11 items-center justify-between px-3">
+                <span className="text-base font-medium text-primary-foreground/80">
+                  Recent news
+                </span>
+                <NewsPanel />
+              </div>
+              <div className="flex h-11 items-center justify-between px-3">
+                <span className="text-base font-medium text-primary-foreground/80">
+                  Ask the Lab
+                </span>
+                <ChatPanel />
+              </div>
+            </div>
+          </div>
+        )}
 
         {isSimPage && (
           <button
