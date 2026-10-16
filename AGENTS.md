@@ -123,6 +123,8 @@ Import as `@/components/ui/button`, `@/lib/utils`, etc.
 
 8. **TypeScript strict mode** — `strict: true`, `noEmit: true`.
 
+9. **Prefer canonical Tailwind utilities over arbitrary values.** When a canonical utility produces the exact same style, use it — the Tailwind linter flags the arbitrary form (`suggestCanonicalClasses`). Examples: `min-h-80`, not `min-h-[320px]`; `min-w-140`, not `min-w-[560px]`; `ring-3`, not `ring-[3px]`; `p-0.75`, not `p-[3px]`. Tailwind v4 spacing utilities accept any multiple of 0.25 (including fractions like `0.75` and large values like `140`), so most px sizes map. Only use arbitrary values when no canonical utility matches: `calc()` expressions, `%`/`svh`/`vw` units, non-scale sizes (e.g. `text-[11px]`, `tracking-[0.18em]`, `h-[18.4px]`), arbitrary colors, shadows, and data/variant selectors.
+
 ---
 
 ## Adding shadcn/ui Components

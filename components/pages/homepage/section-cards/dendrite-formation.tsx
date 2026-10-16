@@ -175,7 +175,7 @@ function FormationDiagram({
   return (
     <svg
       viewBox="0 0 520 300"
-      className="h-auto w-full min-w-[480px] sm:min-w-0"
+      className="h-auto w-full min-w-120 sm:min-w-0"
       role="img"
       aria-label={`Step ${step + 1}: ${steps[step].title}. ${steps[step].text}`}
     >
