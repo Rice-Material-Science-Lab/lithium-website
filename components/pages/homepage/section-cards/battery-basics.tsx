@@ -198,7 +198,7 @@ function BatterySchematic({ mode, reduced }: { mode: Mode; reduced: boolean }) {
         ) : null
       )}
 
-      {/* travelling Li+ ions */}
+      {/* traveling Li+ ions */}
       {LANE_YS.map((y, i) =>
         [0, 0.5].map((phase) => {
           const d = ionPath(y, mode)
