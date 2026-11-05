@@ -473,9 +473,11 @@ export default function SimPageClientView() {
         // this is the main lever on load time, since re-fetching a
         // multi-MB .wasm binary on every visit was otherwise unavoidable.
         const isDev = process.env.NODE_ENV !== "production"
-        // Bump whenever lkmc-wasm.js/.wasm are rebuilt, so browsers don't
-        // keep running a cached old simulator after a deploy.
-        const WASM_VERSION = "2026-09-29"
+        // Content hash of lkmc-wasm.js/.wasm, computed in next.config.ts at
+        // build time, so browsers never keep a cached old simulator after a
+        // deploy -- including the lithium-kmc bot's file-only updates. No
+        // manual bump needed.
+        const WASM_VERSION = process.env.LKMC_WASM_VERSION
         const scriptUrl = isDev
           ? `/lkmc-wasm.js?v=${Date.now()}`
           : `/lkmc-wasm.js?v=${WASM_VERSION}`

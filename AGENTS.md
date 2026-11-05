@@ -64,7 +64,8 @@ public/
 - **Source:** `lithium-kmc` repo (C++), compiled to WASM via Emscripten
 - **Loaded in:** `components/pages/sim-page/sim.tsx` via dynamic import
 - **Dev cache-bust:** `?v=${Date.now()}` on both `.js` and `.wasm`
-- **Prod cache-bust:** `WASM_VERSION = "2026-09-29"` — bump when rebuilding WASM
+- **Prod cache-bust:** `WASM_VERSION = process.env.LKMC_WASM_VERSION` — a content hash of `public/lkmc-wasm.{js,wasm}` computed in `next.config.ts` at build time. No manual bump; it changes exactly when the bytes do (including lithium-kmc bot updates)
+- **Provenance:** after the next bot update, `public/lkmc-wasm.build.json` records the lithium-kmc commit, Emscripten version and sha256 of the served files
 - **Interface:** `CustomWasmModule` type in `sim.tsx` lines 27–97
 - **Callbacks registered on `window`:** `updateSimulation`, `onSimulationTerminated`, `onBatchRunProgress`
 
