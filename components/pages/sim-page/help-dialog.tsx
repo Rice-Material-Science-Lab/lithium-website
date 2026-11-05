@@ -280,12 +280,58 @@ export default function HelpDialog({
                   Export Lattice CSV
                 </span>{" "}
                 for a snapshot of the current grid state as a grid of cell
-                codes.
+                codes. The Intercalation tab&apos;s{" "}
+                <span className="font-medium text-foreground">Export CSV</span>{" "}
+                saves intercalated and plating totals over time.
+              </p>
+            </section>
+
+            <section>
+              <h4 className="mb-2 font-semibold">Intercalation</h4>
+              <p className="text-muted-foreground">
+                Empty lattice columns right beside a carbon column are gap
+                columns. Li atoms in a gap column count as intercalated up to
+                the column&apos;s capacity (the height of the neighbouring
+                carbon); any above that count as plating. Carbon has to stand in
+                vertical columns for gaps to exist: use the 90&deg; graphite
+                lattice, or draw columns by hand.
               </p>
             </section>
           </div>
         </div>
+        <BuildInfo />
       </DialogContent>
     </Dialog>
+  )
+}
+
+// Which simulator build this page runs (values baked in by next.config.ts).
+function BuildInfo() {
+  const version = process.env.LKMC_WASM_VERSION
+  const status = process.env.LKMC_WASM_PROVENANCE
+  const commit = process.env.LKMC_WASM_SOURCE_COMMIT
+  if (!version) return null
+  return (
+    <p className="border-t border-border pt-3 text-xs text-muted-foreground">
+      Simulator build{" "}
+      <code className="font-mono" title="Content hash of lkmc-wasm.js + .wasm">
+        {version}
+      </code>
+      {commit && status === "verified" && (
+        <>
+          {" "}
+          from lithium-kmc{" "}
+          <a
+            className="font-mono underline underline-offset-2 hover:text-foreground"
+            href={`https://github.com/Rice-Material-Science-Lab/lithium-kmc/commit/${commit}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {commit.slice(0, 7)}
+          </a>
+        </>
+      )}
+      {status === "mismatch" && " (build record doesn't match these files)"}
+    </p>
   )
 }

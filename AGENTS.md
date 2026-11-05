@@ -65,7 +65,7 @@ public/
 - **Loaded in:** `components/pages/sim-page/sim.tsx` via dynamic import
 - **Dev cache-bust:** `?v=${Date.now()}` on both `.js` and `.wasm`
 - **Prod cache-bust:** `WASM_VERSION = process.env.LKMC_WASM_VERSION` — a content hash of `public/lkmc-wasm.{js,wasm}` computed in `next.config.ts` at build time. No manual bump; it changes exactly when the bytes do (including lithium-kmc bot updates)
-- **Provenance:** after the next bot update, `public/lkmc-wasm.build.json` records the lithium-kmc commit, Emscripten version and sha256 of the served files
+- **Provenance:** once lithium-kmc CI writes `public/lkmc-wasm.build.json` (lithium-kmc commit, Emscripten version, sha256 of the served files), `next.config.ts` verifies its hashes against the actual files and the sim's How to use dialog shows the build hash plus the source commit (or a mismatch warning). Without the file, only the hash is shown
 - **Interface:** `CustomWasmModule` type in `sim.tsx` lines 39–112
 - **Intercalation stats:** `get_intercalation_json` (lithium-kmc PR #78) shown in the sim's Intercalation tab (`intercalation-panel.tsx`). It costs O(gap columns × lattice), so it is read only while that tab is open and throttled. Gap columns exist only beside *vertical* carbon columns; the leaning graphite lattice (height ≥ 4) yields none
 - **Callbacks registered on `window`:** `updateSimulation`, `onSimulationTerminated`, `onBatchRunProgress`
