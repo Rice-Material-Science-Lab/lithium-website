@@ -24,6 +24,17 @@ import { CellInfo } from "@/lib/types"
 import { Reveal } from "../homepage/layout-primitives"
 import { cn } from "@/lib/utils"
 import { SnapshotGallery, useSimSnapshots } from "./snapshot-gallery"
+import IntercalationPanel, {
+  readIntercalationStats,
+  supportsIntercalation,
+  type IntercalationStats,
+} from "./intercalation-panel"
+
+// Intercalation stats cost O(gap columns x lattice) in the current WASM
+// (~5 ms at 60x25, ~190 ms at 200x100), so they are read only while their
+// tab is open, and auto-refresh waits at least 10x the last read's cost.
+const INTERCALATION_MIN_INTERVAL_MS = 500
+const INTERCALATION_SLOW_MS = 100
 
 interface CustomWasmModule {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -82,6 +93,9 @@ interface CustomWasmModule {
 
   _get_stats_json(): number
   _get_stats_json_len(): number
+  // Added in lithium-kmc PR #78; optional so a cached pre-#78 build still types.
+  _get_intercalation_json?(): number
+  _get_intercalation_json_len?(): number
   _set_stats_interval(interval: number): void
   _get_stats_interval(): number
   _get_terminated(): number
@@ -437,6 +451,12 @@ export default function SimPageClientView() {
   const [snapshotStep, setSnapshotStep] = useState(0)
   const latestLiveStateRef = useRef<number[]>([])
   const historyModeRef = useRef(false)
+  const [intercalation, setIntercalation] = useState<IntercalationStats | null>(
+    null
+  )
+  const [intercalationSlow, setIntercalationSlow] = useState(false)
+  const activeTabRef = useRef("atom-counts")
+  const intercalationTimingRef = useRef({ at: -Infinity, cost: 0 })
 
   useEffect(() => {
     historyModeRef.current = historyMode
@@ -595,6 +615,30 @@ export default function SimPageClientView() {
                   console.log(
                     `step=${row.step} time=${row.time} empty=${row.empty} free=${row.free} deposited=${row.deposited} passivated=${row.passivated} nu_p_used=${row.nu_p_used}`
                   )
+                }
+
+                // Last on purpose: building the intercalation JSON can grow
+                // the WASM heap and detach `buffer`, so every read of
+                // `buffer` above must already be done.
+                if (activeTabRef.current === "intercalation") {
+                  const startedAt = performance.now()
+                  const last = intercalationTimingRef.current
+                  if (
+                    startedAt - last.at >=
+                    Math.max(INTERCALATION_MIN_INTERVAL_MS, last.cost * 10)
+                  ) {
+                    const stats = readIntercalationStats(
+                      initializedModule,
+                      () => getWasmBuffer(initializedModule)
+                    )
+                    const cost = performance.now() - startedAt
+                    intercalationTimingRef.current = {
+                      at: performance.now(),
+                      cost,
+                    }
+                    setIntercalationSlow(cost > INTERCALATION_SLOW_MS)
+                    setIntercalation(stats)
+                  }
                 }
               } catch (e) {
                 console.error("updateSimulation callback failed:", e)
@@ -946,10 +990,26 @@ export default function SimPageClientView() {
     setSnapshotIndex(0)
     setSnapshotStep(0)
     setStatsData([])
+    setIntercalation(null)
+    intercalationTimingRef.current = { at: -Infinity, cost: 0 }
     setStepsRan(0)
     setRunTime(0)
     setSelectedCell(null)
     setHasRunOnce(false)
+  }
+
+  // On-demand read (tab opened, Refresh pressed). Not throttled: the user
+  // asked for it.
+  const refreshIntercalation = () => {
+    if (!wasmModule || !hasRunOnce) return
+    const startedAt = performance.now()
+    const stats = readIntercalationStats(wasmModule, () =>
+      getWasmBuffer(wasmModule)
+    )
+    const cost = performance.now() - startedAt
+    intercalationTimingRef.current = { at: performance.now(), cost }
+    setIntercalationSlow(cost > INTERCALATION_SLOW_MS)
+    setIntercalation(stats)
   }
 
   // Returns false if the user cancels the reset.
@@ -1646,9 +1706,19 @@ export default function SimPageClientView() {
               </Reveal>
               <Reveal className="flex h-[52svh] min-h-80 flex-1 lg:h-1/2" delay={0.2}>
                 <Card className="flex min-h-0 flex-1 flex-col rounded-2xl p-4 backdrop-blur-xl">
-                  <Tabs defaultValue="atom-counts" className="h-full w-full">
+                  <Tabs
+                    defaultValue="atom-counts"
+                    className="h-full w-full"
+                    onValueChange={(value) => {
+                      activeTabRef.current = value
+                      if (value === "intercalation") refreshIntercalation()
+                    }}
+                  >
                     <TabsList className="max-w-full overflow-x-auto">
                       <TabsTrigger value="atom-counts">Atom Counts</TabsTrigger>
+                      <TabsTrigger value="intercalation">
+                        Intercalation
+                      </TabsTrigger>
                       <TabsTrigger value="batch-run">Batch Run</TabsTrigger>
                       <TabsTrigger value="snapshots" className="gap-1.5">
                         Snapshots
@@ -1689,6 +1759,18 @@ export default function SimPageClientView() {
                           Export Lattice CSV
                         </Button>
                       </div>
+                    </TabsContent>
+                    <TabsContent
+                      value="intercalation"
+                      className="flex min-h-0 flex-1 flex-col pb-4"
+                    >
+                      <IntercalationPanel
+                        stats={intercalation}
+                        supported={supportsIntercalation(wasmModule)}
+                        hasRun={hasRunOnce}
+                        slow={intercalationSlow}
+                        onRefresh={refreshIntercalation}
+                      />
                     </TabsContent>
                     <TabsContent value="batch-run">
                       <div className="mb-4 flex shrink-0 items-center justify-between">

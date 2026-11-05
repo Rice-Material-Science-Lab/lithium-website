@@ -1,0 +1,224 @@
+"use client"
+
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+
+// Shape of get_intercalation_json() (lithium-kmc "Stage 5", PR #78). All
+// per-column arrays are parallel to gap_columns.
+export type IntercalationStats = {
+  gap_columns: number[]
+  capacities: number[]
+  counts: number[]
+  intercalated: number[]
+  plating: number[]
+  intercalated_total: number
+  plating_total: number
+  saturated_columns: number[]
+}
+
+// Minimal structural slice of the WASM module this reader needs. The two
+// functions are optional: builds older than PR #78 don't export them, and a
+// browser can still be holding one of those in its cache.
+type IntercalationModule = {
+  _get_intercalation_json?: () => number
+  _get_intercalation_json_len?: () => number
+}
+
+export function supportsIntercalation(mod: unknown): boolean {
+  const m = mod as IntercalationModule | null
+  return (
+    typeof m?._get_intercalation_json === "function" &&
+    typeof m?._get_intercalation_json_len === "function"
+  )
+}
+
+const isIntArray = (v: unknown): v is number[] =>
+  Array.isArray(v) && v.every((n) => Number.isInteger(n))
+
+function isIntercalationStats(v: unknown): v is IntercalationStats {
+  if (typeof v !== "object" || v === null) return false
+  const s = v as Record<string, unknown>
+  const cols = s.gap_columns
+  if (!isIntArray(cols)) return false
+  const parallel = ["capacities", "counts", "intercalated", "plating"] as const
+  return (
+    parallel.every((k) => isIntArray(s[k]) && s[k].length === cols.length) &&
+    isIntArray(s.saturated_columns) &&
+    Number.isInteger(s.intercalated_total) &&
+    Number.isInteger(s.plating_total)
+  )
+}
+
+// Reads and validates the intercalation JSON. Returns null for an old build,
+// an uninitialized simulation, or a malformed frame.
+// - Pointer and length are each read exactly once: every call to
+//   _get_intercalation_json() rebuilds the C++ string and may move it, so a
+//   second call would invalidate the first pointer.
+// - The memory buffer is fetched AFTER those calls: building the string can
+//   grow the WASM heap (ALLOW_MEMORY_GROWTH), which detaches any
+//   ArrayBuffer obtained before it.
+export function readIntercalationStats(
+  mod: unknown,
+  getBuffer: () => ArrayBuffer | null
+): IntercalationStats | null {
+  if (!supportsIntercalation(mod)) return null
+  const m = mod as Required<IntercalationModule>
+  try {
+    const ptr = m._get_intercalation_json()
+    const len = m._get_intercalation_json_len()
+    const buffer = getBuffer()
+    if (!buffer || !ptr || len <= 0 || ptr + len > buffer.byteLength)
+      return null
+    const text = new TextDecoder("utf-8").decode(
+      new Uint8Array(buffer, ptr, len)
+    )
+    const parsed: unknown = JSON.parse(text)
+    return isIntercalationStats(parsed) ? parsed : null
+  } catch (e) {
+    console.warn("Skipped malformed intercalation frame from WASM memory:", e)
+    return null
+  }
+}
+
+function Stat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="flex min-w-24 flex-col rounded-xl border border-border px-3 py-2">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className="text-lg font-semibold tabular-nums">
+        {value.toLocaleString()}
+      </span>
+    </div>
+  )
+}
+
+export default function IntercalationPanel({
+  stats,
+  supported,
+  hasRun,
+  slow,
+  onRefresh,
+}: {
+  stats: IntercalationStats | null
+  supported: boolean
+  hasRun: boolean
+  // True when one read took long enough that auto-refresh was throttled
+  // hard (large grid); the panel then says so next to Refresh.
+  slow: boolean
+  onRefresh: () => void
+}) {
+  const message = !supported
+    ? "This simulator build doesn't report intercalation. Reload the page to load the latest build."
+    : !hasRun || !stats
+      ? "No data yet. Run the simulation to see intercalation."
+      : stats.gap_columns.length === 0
+        ? "No gap columns. Intercalation is counted in empty lattice columns directly beside a carbon column, so carbon must stand in straight vertical columns: draw them with Draw Carbon. The leaning graphite lattice (height 4 or more) touches every column and leaves no gaps."
+        : null
+
+  return (
+    <div className="flex h-full min-h-0 flex-col gap-3">
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-2">
+        <p className="max-w-prose text-xs text-muted-foreground">
+          Li atoms in each gap column beside the carbon anode, up to that
+          column&apos;s capacity (the height of the neighbouring carbon), count
+          as intercalated. Anything above capacity is plating.
+        </p>
+        <div className="flex items-center gap-2">
+          {slow && (
+            <span className="text-xs text-muted-foreground">
+              Large grid: updates slowly
+            </span>
+          )}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-9 rounded-full"
+            onClick={onRefresh}
+            disabled={!supported || !hasRun}
+          >
+            Refresh
+          </Button>
+        </div>
+      </div>
+
+      {message || !stats ? (
+        <div className="flex min-h-24 flex-1 items-center justify-center px-4 text-center text-sm text-muted-foreground">
+          {message}
+        </div>
+      ) : (
+        <>
+          <div className="flex shrink-0 flex-wrap gap-2">
+            <Stat label="Intercalated" value={stats.intercalated_total} />
+            <Stat label="Plating" value={stats.plating_total} />
+            <Stat label="Gap columns" value={stats.gap_columns.length} />
+            <Stat label="Saturated" value={stats.saturated_columns.length} />
+          </div>
+          <div className="min-h-0 flex-1 overflow-auto rounded-xl border border-border">
+            <table className="w-full text-xs">
+              <thead className="sticky top-0 bg-primary/30">
+                <tr>
+                  <th className="p-1 text-left">Column x</th>
+                  <th className="p-1 text-left">Capacity</th>
+                  <th className="p-1 text-left">Li atoms</th>
+                  <th className="p-1 text-left">Intercalated</th>
+                  <th className="p-1 text-left">Plating</th>
+                  <th className="w-1/4 p-1 text-left">Fill</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.gap_columns.map((x, i) => {
+                  const cap = stats.capacities[i]
+                  const pct =
+                    cap > 0 ? Math.min(100, (stats.counts[i] / cap) * 100) : 0
+                  const plating = stats.plating[i] > 0
+                  return (
+                    <tr
+                      key={x}
+                      className="border-t border-border hover:bg-primary/5 dark:border-border dark:hover:bg-primary/5"
+                    >
+                      <td className="p-1 tabular-nums">{x}</td>
+                      <td className="p-1 tabular-nums">{cap}</td>
+                      <td className="p-1 tabular-nums">{stats.counts[i]}</td>
+                      <td className="p-1 tabular-nums">
+                        {stats.intercalated[i]}
+                      </td>
+                      <td
+                        className={cn(
+                          "p-1 tabular-nums",
+                          // Emphasis only: orange text fails AA contrast on
+                          // the light theme; the bar carries the colour.
+                          plating && "font-semibold"
+                        )}
+                      >
+                        {stats.plating[i]}
+                      </td>
+                      <td className="p-1">
+                        <div
+                          className="h-1.5 w-full overflow-hidden rounded-full bg-foreground/10"
+                          role="meter"
+                          aria-label={`Column ${x} fill`}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-valuenow={Math.round(pct)}
+                        >
+                          <div
+                            className={cn(
+                              "h-full rounded-full",
+                              // Plating reuses the lattice's "Deposited" colour.
+                              plating ? "bg-lattice-deposited" : "bg-brand"
+                            )}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
