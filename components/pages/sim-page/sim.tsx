@@ -25,8 +25,11 @@ import { Reveal } from "../homepage/layout-primitives"
 import { cn } from "@/lib/utils"
 import { SnapshotGallery, useSimSnapshots } from "./snapshot-gallery"
 import IntercalationPanel, {
+  appendHistory,
+  intercalationTotals,
   readIntercalationStats,
   supportsIntercalation,
+  type IntercalationHistoryPoint,
   type IntercalationStats,
 } from "./intercalation-panel"
 
@@ -460,6 +463,9 @@ export default function SimPageClientView() {
     null
   )
   const [intercalationSlow, setIntercalationSlow] = useState(false)
+  const [intercalationHistory, setIntercalationHistory] = useState<
+    IntercalationHistoryPoint[]
+  >([])
   const activeTabRef = useRef("atom-counts")
   const intercalationTimingRef = useRef({ at: -Infinity, cost: 0 })
 
@@ -622,6 +628,21 @@ export default function SimPageClientView() {
                   )
                 }
 
+                // Intercalation history: computed in JS from the lattice copy
+                // above (O(nx*ny), sub-millisecond), so it is recorded every
+                // frame whether or not the tab is open.
+                const totals = intercalationTotals(snapshotData, width, height)
+                if (totals.gaps > 0) {
+                  setIntercalationHistory((prev) =>
+                    appendHistory(prev, {
+                      step,
+                      time: initializedModule._get_time(),
+                      intercalated: totals.intercalated,
+                      plating: totals.plating,
+                    })
+                  )
+                }
+
                 // Last on purpose: building the intercalation JSON can grow
                 // the WASM heap and detach `buffer`, so every read of
                 // `buffer` above must already be done.
@@ -643,6 +664,20 @@ export default function SimPageClientView() {
                     }
                     setIntercalationSlow(cost > INTERCALATION_SLOW_MS)
                     setIntercalation(stats)
+                    // Same frame, same lattice: the JS totals behind the
+                    // history must agree with the WASM. A mismatch means
+                    // lithium-kmc changed the Stage 5 rules.
+                    if (
+                      stats &&
+                      (stats.intercalated_total !== totals.intercalated ||
+                        stats.plating_total !== totals.plating ||
+                        stats.gap_columns.length !== totals.gaps)
+                    ) {
+                      console.warn(
+                        "Intercalation history disagrees with get_intercalation_json; update intercalationTotals()",
+                        { wasm: stats, js: totals }
+                      )
+                    }
                   }
                 }
               } catch (e) {
@@ -996,6 +1031,7 @@ export default function SimPageClientView() {
     setSnapshotStep(0)
     setStatsData([])
     setIntercalation(null)
+    setIntercalationHistory([])
     intercalationTimingRef.current = { at: -Infinity, cost: 0 }
     setStepsRan(0)
     setRunTime(0)
@@ -1139,6 +1175,16 @@ export default function SimPageClientView() {
         `${r.step},${r.time},${r.empty},${r.free},${r.deposited},${r.passivated},${r.substrate},${r.fill},${r.total_rate},${r.nu_p_used}`
     )
     downloadCSV(`lkmc-stats-step${stepsRan}.csv`, [header, ...rows])
+  }
+  const exportIntercalationCSV = () => {
+    if (intercalationHistory.length === 0) return
+    const rows = intercalationHistory.map(
+      (r) => `${r.step},${r.time},${r.intercalated},${r.plating}`
+    )
+    downloadCSV(`lkmc-intercalation-step${stepsRan}.csv`, [
+      "step,time,intercalated,plating",
+      ...rows,
+    ])
   }
   const exportLatticeCSV = () => {
     const [nx, ny] = gridDimensions
@@ -1775,6 +1821,8 @@ export default function SimPageClientView() {
                         hasRun={hasRunOnce}
                         slow={intercalationSlow}
                         onRefresh={refreshIntercalation}
+                        history={intercalationHistory}
+                        onExportHistory={exportIntercalationCSV}
                       />
                     </TabsContent>
                     <TabsContent value="batch-run">
