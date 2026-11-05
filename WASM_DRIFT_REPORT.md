@@ -186,17 +186,29 @@ The CI hash check and the daily drift check catch drift in the bytes. The config
 
 ---
 
+## 7b. Follow-up features (added later, same rules, local commits only)
+
+| Commit | Feature | Verified |
+|---|---|---|
+| `a128e70` | **90° graphite lattice option.** Vertical stacks that leave an empty column between them, the only built-in layout that produces intercalation data. 60×25 at height 15 gives 30 gap columns of capacity 15. | Checked against the real WASM at 60×25, 61×25 (wrap seam), 10×8 (height cap) and 3×10. Tested in the browser. |
+| `a857e2d` | **Intercalation history.** A "Columns / Over time" toggle, a line chart of intercalated vs plating by KMC step, and Export CSV (`step,time,intercalated,plating`). Totals are computed in JS from the lattice the page already copies each frame (about 0.4 ms at 400×200), so history is recorded even with the tab closed. Whenever the tab reads the WASM, it cross-checks the JS totals for the same frame and warns if lithium-kmc's rules change. History is capped at 2000 points by halving resolution. | The real transpiled `intercalationTotals` equals `get_intercalation_json` on 424 frames, including plating. In the browser, the chart draws, the CSV downloads (101 rows, increasing steps), and the cross-check stayed silent. |
+| `0bfaf00` | **Build provenance in the "How to use" dialog.** Shows the content-hash build id. Once lithium-kmc CI writes `public/lkmc-wasm.build.json`, `next.config.ts` checks its sha256 values against the served files: if they match, it links the source commit; if not, it says the record doesn't match. Also adds help text for the Intercalation tab, the 90° option and the new export. | All four states were tested in the browser: no record, verified, mismatch, invalid JSON. |
+
+Each commit typechecks, lints and builds on its own.
+
 ## 8. Teleport-ready summary
 
 **Local files changed:**
-- **This repo (`/home/user/repo`):** branch `local/intercalation-and-cache-bust` holds 3 commits on top of upstream `5cfbaf1`:
+- **This repo (`/home/user/repo`):** branch `local/intercalation-and-cache-bust` holds 8 commits on top of upstream `5cfbaf1`: 3 for the fix and tab, 2 for this report, and 3 follow-up features (§7b). Files touched:
   - `next.config.ts`
   - `components/pages/sim-page/sim.tsx`
   - `components/pages/sim-page/intercalation-panel.tsx` (new)
   - `AGENTS.md`
   - `eslint.config.mjs`
+  - `components/pages/sim-page/cards/params-card.tsx`
+  - `components/pages/sim-page/help-dialog.tsx`
 
-  This report is untracked. The `public/lkmc-wasm.*` files are unchanged versus upstream; they're already canonical.
+  This report is committed in this repo (`d160303`). The `public/lkmc-wasm.*` files are unchanged versus upstream; they're already canonical.
 - **lithium-kmc scratchpad clone:**
   - branch `local/wasm-drift-check` holds 2 commits;
   - uncommitted perf refactor in the working tree, also exported as `scratchpad/lithium-kmc-intercalation-perf.patch`.
