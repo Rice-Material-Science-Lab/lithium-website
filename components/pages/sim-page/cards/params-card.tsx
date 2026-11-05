@@ -246,12 +246,17 @@ export default function ParamsCard({
                   <div
                     role="radiogroup"
                     aria-labelledby="graphite-angle-label"
-                    className="grid grid-cols-2 gap-1 rounded-full border border-border p-1"
+                    className="grid grid-cols-3 gap-1 rounded-full border border-border p-1"
                   >
                     {(
                       [
                         ["60", "60\u00b0", "Touching atoms along a lattice line"],
                         ["30", "30\u00b0", "Atoms one lattice step apart"],
+                        [
+                          "90",
+                          "90\u00b0",
+                          "Vertical stacks with empty columns between them (shows intercalation stats)",
+                        ],
                       ] as const
                     ).map(([value, label, hint]) => (
                       <button

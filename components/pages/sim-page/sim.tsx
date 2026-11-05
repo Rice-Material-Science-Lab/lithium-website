@@ -154,8 +154,12 @@ function applyCarbonOverlay(
 //           chain of touching atoms leaning right.
 //   30 deg: second-neighbour direction -> a straight line whose atoms sit
 //           one lattice step apart (they share neighbours but not an edge).
+//   90 deg: one lattice column per stack (same x on every row; it zigzags
+//           by half a cell on screen because of the odd-r offset). This is
+//           the only layout that leaves whole empty columns between the
+//           stacks, which is what the intercalation stats count as gaps.
 // Odd rows are shifted half a cell right (odd-r layout, same as the C++).
-export type GraphiteAngle = "60" | "30"
+export type GraphiteAngle = "60" | "30" | "90"
 export type GraphiteSpec = { height: number; angle: GraphiteAngle }
 
 function graphiteKeys(nx: number, ny: number, spec: GraphiteSpec): string[] {
@@ -170,7 +174,8 @@ function graphiteKeys(nx: number, ny: number, spec: GraphiteSpec): string[] {
     let x = x0
     for (let y = 1; y <= h; y++) {
       keys.add(`${((x % nx) + nx) % nx},${y}`)
-      x += (y & 1 ? 1 : 0) + extra // up-right neighbour (+1 cell for 30 deg)
+      // up-right neighbour (+1 cell for 30 deg); 90 deg stays in its column
+      if (spec.angle !== "90") x += (y & 1 ? 1 : 0) + extra
     }
   }
   return [...keys]
