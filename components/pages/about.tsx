@@ -285,12 +285,41 @@ function TeamGrid() {
   // Bring the expanded profile into view and allow Escape to close it.
   useEffect(() => {
     if (openIndex === null) return
-    panelRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
+    const panel = panelRef.current
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches
+    const behavior: ScrollBehavior = reduced ? "auto" : "smooth"
+    // On mobile the grid is a single column, so the panel sits far below
+    // the tapped card and ends up taller than the viewport — and it is
+    // still expanding from 0fr when this runs, so "nearest" stops short.
+    const singleColumn = window.matchMedia("(max-width: 639px)").matches
+    const scrollToPanel = () =>
+      panel?.scrollIntoView({
+        behavior,
+        block: singleColumn ? "start" : "nearest",
+      })
+    scrollToPanel()
+    // Re-check the landing once the 500ms expand has settled and correct
+    // it if the first scroll stopped short.
+    const settle = singleColumn
+      ? window.setTimeout(() => {
+          if (!panel) return
+          const margin =
+            Number.parseFloat(getComputedStyle(panel).scrollMarginTop) || 0
+          if (Math.abs(panel.getBoundingClientRect().top - margin) > 2) {
+            scrollToPanel()
+          }
+        }, 550)
+      : undefined
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpenIndex(null)
     }
     window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
+    return () => {
+      if (settle !== undefined) window.clearTimeout(settle)
+      window.removeEventListener("keydown", onKey)
+    }
   }, [openIndex])
 
   const open = openIndex === null ? null : team[openIndex]
