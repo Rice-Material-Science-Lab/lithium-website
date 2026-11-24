@@ -219,11 +219,18 @@ export default function HelpDialog({
                 <span className="font-medium text-foreground">
                   Sparse / dendritic
                 </span>
-                , and{" "}
-                <span className="font-medium text-foreground">SEI-heavy</span>{" "}
+                ,{" "}
+                <span className="font-medium text-foreground">SEI-heavy</span>,
+                and{" "}
+                <span className="font-medium text-foreground">
+                  Graphite plating
+                </span>{" "}
                 are ready-made parameter sets that produce visually distinct
                 growth regimes &mdash; a fast way to explore the model without
-                hand-tuning every slider.
+                hand-tuning every slider. Graphite plating raises drop rate and
+                switches the lattice angle to 90&deg; so gap columns exist; add
+                a graphite lattice, then Run, and watch the Intercalation tab
+                for plating above capacity.
               </p>
             </section>
 

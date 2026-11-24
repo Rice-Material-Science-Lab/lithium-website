@@ -70,6 +70,8 @@ export default function ParamsCard({
   setDepAttFreq,
   passAttFreq,
   setPassAttFreq,
+  presetNames,
+  applyPreset,
   wasmModule,
   isPaused,
   handleResumeSim,
@@ -93,6 +95,25 @@ export default function ParamsCard({
           </CardHeader>
 
           <div className="flex flex-col gap-4 overflow-y-auto px-2 py-4">
+            {Array.isArray(presetNames) && presetNames.length > 0 && (
+              <div className="flex flex-col gap-2">
+                <Label className="text-sm font-medium">Presets</Label>
+                <div className="flex flex-wrap gap-2">
+                  {presetNames.map((name: string) => (
+                    <Button
+                      key={name}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="rounded-full"
+                      onClick={() => applyPreset?.(name)}
+                    >
+                      {name}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
             <Alert className="flex shrink-0 items-center justify-between overflow-hidden rounded-xl border-border p-3!">
               <div className="space-y-1">
                 <AlertTitle className="leading-none">

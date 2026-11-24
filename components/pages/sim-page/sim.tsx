@@ -1331,7 +1331,6 @@ export default function SimPageClientView() {
     downloadCSV("lkmc-batch-results.csv", [header, ...rows])
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const PRESETS: Record<
     string,
     {
@@ -1342,9 +1341,6 @@ export default function SimPageClientView() {
       freeAttFreq: number
       depAttFreq: number
       passAttFreq: number
-      ePass: number
-      depassAttFreq: number
-      eDepass: number
     }
   > = {
     "Dense growth": {
@@ -1360,9 +1356,6 @@ export default function SimPageClientView() {
       // of exposed sites. Keep this near-negligible so dense growth stays
       // dominated by deposition.
       passAttFreq: 80,
-      ePass: 0.5,
-      depassAttFreq: 1e5,
-      eDepass: 0.7,
     },
     "Sparse / dendritic": {
       temp: 200,
@@ -1372,9 +1365,6 @@ export default function SimPageClientView() {
       freeAttFreq: 2e9,
       depAttFreq: 2e9,
       passAttFreq: 80,
-      ePass: 0.45,
-      depassAttFreq: 1e5,
-      eDepass: 0.65,
     },
     "SEI-heavy": {
       temp: 300,
@@ -1387,10 +1377,34 @@ export default function SimPageClientView() {
       // so this preset visibly contrasts with the other two -- this one
       // is supposed to look SEI-dominated.
       passAttFreq: 50000,
-      ePass: 0.2,
-      depassAttFreq: 1e6,
-      eDepass: 0.35,
     },
+    // Needs vertical (90°) graphite so gap columns exist. With the
+    // lithium-kmc intercalation barrier (#79), d0=1e4 shows gallery
+    // plating + surface Li; default d0=1e3 stays intercalation-dominated.
+    "Graphite plating": {
+      temp: 300,
+      dropRate: 10000,
+      bondedEnergy: -0.28,
+      atomSubstrate: -0.5,
+      freeAttFreq: 5e9,
+      depAttFreq: 5e9,
+      passAttFreq: 80,
+    },
+  }
+
+  const applyPreset = (name: string) => {
+    const preset = PRESETS[name]
+    if (!preset) return
+    setTemp(preset.temp)
+    setDropRate(preset.dropRate)
+    setBondedEnergy(preset.bondedEnergy)
+    setAtomSubstrate(preset.atomSubstrate)
+    setFreeAttFreq(preset.freeAttFreq)
+    setDepAttFreq(preset.depAttFreq)
+    setPassAttFreq(preset.passAttFreq)
+    if (name === "Graphite plating") {
+      setGraphiteAngle("90")
+    }
   }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -1570,6 +1584,8 @@ export default function SimPageClientView() {
                 setDepAttFreq={setDepAttFreq}
                 passAttFreq={passAttFreq}
                 setPassAttFreq={setPassAttFreq}
+                presetNames={Object.keys(PRESETS)}
+                applyPreset={applyPreset}
                 wasmModule={wasmModule}
                 isPaused={isPaused}
                 handleResumeSim={handleResumeSim}
