@@ -113,7 +113,7 @@ Import as `@/components/ui/button`, `@/lib/utils`, etc.
 
 2. **WASM loading:** Only runs in browser. The dynamic import uses `/* @vite-ignore */ /* webpackIgnore: true */` comments to prevent bundler processing.
 
-3. **Simulator params persisted:** `localStorage` key `lkmc-sim-params-v4` — version bump clears old params.
+3. **Simulator params persisted:** `localStorage` key `lkmc-sim-params-v5` — version bump clears old params. v5 picks up the softer graphite carbon bond (−0.35 eV) from lithium-kmc.
 
 4. **Grid dimensions:** Controlled by `width`/`height` inputs → `gridDimensions` state. Changing them before first run resizes the preview lattice live.
 
