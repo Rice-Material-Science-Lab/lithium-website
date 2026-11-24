@@ -392,7 +392,7 @@ export default function SimPageClientView() {
         if (typeof saved.depAttFreq === "number")
           setDepAttFreq(clamp(saved.depAttFreq, 1e8, 1e10))
         if (typeof saved.passAttFreq === "number")
-          setPassAttFreq(clamp(saved.passAttFreq, 1e1, 1e6))
+          setPassAttFreq(clamp(saved.passAttFreq, 0, 1e6))
         if (typeof saved.carbonEnergy === "number")
           setCarbonEnergy(clamp(saved.carbonEnergy, -2.0, 0))
         if (typeof saved.stepsToRun === "string")
