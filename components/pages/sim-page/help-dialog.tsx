@@ -225,6 +225,20 @@ export default function HelpDialog({
                 growth regimes &mdash; a fast way to explore the model without
                 hand-tuning every slider.
               </p>
+              <p className="mt-2 text-muted-foreground">
+                <span className="font-medium text-foreground">
+                  Graphite plating
+                </span>{" "}
+                sets the drop rate to 10,000, the carbon bond to &minus;0.35 eV,
+                and places a vertical (90&deg;) graphite lattice 15 atoms tall.
+                Temperature, the lithium bond energies, and the attempt
+                frequencies stay at their page defaults. On a 24&times;16
+                lattice with columns 8 atoms tall (gallery capacity 96), that
+                carbon bond together with a 0.30 eV gallery barrier left about
+                65&ndash;70% of the lithium outside the galleries at this drop
+                rate, and the galleries were far from full. The barrier is part
+                of the simulation engine.
+              </p>
             </section>
 
             <section>
