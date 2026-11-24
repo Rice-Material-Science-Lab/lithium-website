@@ -238,7 +238,7 @@ export default function SimPageClientView() {
   const [graphiteSites, setGraphiteSites] = useState<Set<string>>(new Set())
   const [graphiteSpec, setGraphiteSpec] = useState<GraphiteSpec | null>(null)
   const CARBON_SPECIES_COLORS = ["var(--lattice-carbon)"]
-  const [carbonEnergy, setCarbonEnergy] = useState(-0.6)
+  const [carbonEnergy, setCarbonEnergy] = useState(-0.35)
   const [selectedCell, setSelectedCell] = useState<CellInfo | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
 
@@ -366,7 +366,7 @@ export default function SimPageClientView() {
     }[]
   >([])
 
-  const STORAGE_KEY = "lkmc-sim-params-v4"
+  const STORAGE_KEY = "lkmc-sim-params-v5"
 
   // Restore saved params on mount (skip grid size -- covered separately
   // by width/height inputs which already default sensibly).
