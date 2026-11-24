@@ -42,6 +42,9 @@ function lkmcWasmProvenance(): { status: string; commit: string } {
 const provenance = lkmcWasmProvenance()
 
 const nextConfig: NextConfig = {
+  experimental: {
+    agentUpgrade: "security",
+  },
   env: {
     LKMC_WASM_VERSION: lkmcWasmVersion(),
     LKMC_WASM_PROVENANCE: provenance.status,
