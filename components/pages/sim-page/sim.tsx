@@ -1765,7 +1765,7 @@ export default function SimPageClientView() {
                       if (value === "intercalation") refreshIntercalation()
                     }}
                   >
-                    <TabsList className="max-w-full overflow-x-auto">
+                    <TabsList className="max-w-full justify-start overflow-x-auto overflow-y-hidden">
                       <TabsTrigger value="atom-counts">Atom Counts</TabsTrigger>
                       <TabsTrigger value="intercalation">
                         Intercalation
