@@ -165,6 +165,12 @@ function applyCarbonOverlay(
 export type GraphiteAngle = "60" | "30" | "90"
 export type GraphiteSpec = { height: number; angle: GraphiteAngle }
 
+// Carbon bond merged in lithium-website PR 59. Column height is the page
+// default that PR left in place. The 0.30 eV gallery barrier is the engine
+// default in lithium-kmc PR 83; this page cannot set it.
+const DEFAULT_CARBON_ENERGY = -0.35
+const DEFAULT_GRAPHITE_HEIGHT = 15
+
 function graphiteKeys(nx: number, ny: number, spec: GraphiteSpec): string[] {
   const h = Math.min(Math.max(1, Math.floor(spec.height)), Math.max(1, ny - 3))
   const extra = spec.angle === "30" ? 1 : 0
@@ -238,7 +244,7 @@ export default function SimPageClientView() {
   const [graphiteSites, setGraphiteSites] = useState<Set<string>>(new Set())
   const [graphiteSpec, setGraphiteSpec] = useState<GraphiteSpec | null>(null)
   const CARBON_SPECIES_COLORS = ["var(--lattice-carbon)"]
-  const [carbonEnergy, setCarbonEnergy] = useState(-0.35)
+  const [carbonEnergy, setCarbonEnergy] = useState(DEFAULT_CARBON_ENERGY)
   const [selectedCell, setSelectedCell] = useState<CellInfo | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
 
@@ -1078,29 +1084,45 @@ export default function SimPageClientView() {
     setGraphiteSpec(null)
   }
 
-  const [graphiteHeight, setGraphiteHeight] = useState("15")
+  const [graphiteHeight, setGraphiteHeight] = useState(
+    String(DEFAULT_GRAPHITE_HEIGHT)
+  )
   const [graphiteAngle, setGraphiteAngle] = useState<GraphiteAngle>("60")
 
   // Fixed graphite lattice of straight columns (see graphiteKeys). Replaces
   // any previous lattice (hand-drawn cells are kept) and resets the sim, so
   // the lattice always takes priority over whatever atoms were there.
-  const addGraphiteLattice = () => {
-    if (!confirmReset("Drawing the graphite lattice")) return
+  // Returns false when a running simulation is left in place.
+  const placeGraphiteLattice = (spec: GraphiteSpec) => {
+    if (!confirmReset("Drawing the graphite lattice")) return false
     const [nx, ny] = gridDimensions
-    const spec: GraphiteSpec = {
-      height: Math.max(1, Math.floor(Number(graphiteHeight) || 15)),
-      angle: graphiteAngle,
+    const fitted: GraphiteSpec = {
+      height: Math.max(1, Math.floor(spec.height) || DEFAULT_GRAPHITE_HEIGHT),
+      angle: spec.angle,
     }
     const base = currentCarbon()
     const next = new Set<string>(base.sites)
     for (const key of base.graphite) next.delete(key)
-    const nextGraphite = new Set<string>(graphiteKeys(nx, ny, spec))
+    const nextGraphite = new Set<string>(graphiteKeys(nx, ny, fitted))
     for (const key of nextGraphite) next.add(key)
 
     pushCarbonUndo()
     setCarbonSites(next)
     setGraphiteSites(nextGraphite)
-    setGraphiteSpec(spec)
+    setGraphiteSpec(fitted)
+    setGraphiteHeight(String(fitted.height))
+    setGraphiteAngle(fitted.angle)
+    return true
+  }
+
+  const addGraphiteLattice = () => {
+    placeGraphiteLattice({
+      height: Math.max(
+        1,
+        Math.floor(Number(graphiteHeight) || DEFAULT_GRAPHITE_HEIGHT)
+      ),
+      angle: graphiteAngle,
+    })
   }
 
   // Continue the current run for N more steps (after it finished or while
@@ -1378,9 +1400,10 @@ export default function SimPageClientView() {
       // is supposed to look SEI-dominated.
       passAttFreq: 50000,
     },
-    // Needs vertical (90°) graphite so gap columns exist. With the
-    // lithium-kmc intercalation barrier (#79), d0=1e4 shows gallery
-    // plating + surface Li; default d0=1e3 stays intercalation-dominated.
+    // Drop rate from the headless sweep where, after carbon −0.35 eV and a
+    // 0.30 eV gallery barrier, about 65–70% of Li stayed outside the
+    // galleries (24×16, column height 8, capacity 96). Other knobs stay at
+    // the page defaults. Needs lab check.
     "Graphite plating": {
       temp: 300,
       dropRate: 10000,
@@ -1388,13 +1411,22 @@ export default function SimPageClientView() {
       atomSubstrate: -0.5,
       freeAttFreq: 5e9,
       depAttFreq: 5e9,
-      passAttFreq: 80,
+      passAttFreq: 1000,
     },
   }
 
   const applyPreset = (name: string) => {
     const preset = PRESETS[name]
     if (!preset) return
+    if (
+      name === "Graphite plating" &&
+      !placeGraphiteLattice({
+        height: DEFAULT_GRAPHITE_HEIGHT,
+        angle: "90",
+      })
+    ) {
+      return
+    }
     setTemp(preset.temp)
     setDropRate(preset.dropRate)
     setBondedEnergy(preset.bondedEnergy)
@@ -1403,7 +1435,7 @@ export default function SimPageClientView() {
     setDepAttFreq(preset.depAttFreq)
     setPassAttFreq(preset.passAttFreq)
     if (name === "Graphite plating") {
-      setGraphiteAngle("90")
+      setCarbonEnergy(DEFAULT_CARBON_ENERGY)
     }
   }
 

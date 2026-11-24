@@ -219,18 +219,25 @@ export default function HelpDialog({
                 <span className="font-medium text-foreground">
                   Sparse / dendritic
                 </span>
-                ,{" "}
-                <span className="font-medium text-foreground">SEI-heavy</span>,
-                and{" "}
+                , and{" "}
+                <span className="font-medium text-foreground">SEI-heavy</span>{" "}
+                are ready-made parameter sets that produce visually distinct
+                growth regimes &mdash; a fast way to explore the model without
+                hand-tuning every slider.
+              </p>
+              <p className="mt-2 text-muted-foreground">
                 <span className="font-medium text-foreground">
                   Graphite plating
                 </span>{" "}
-                are ready-made parameter sets that produce visually distinct
-                growth regimes &mdash; a fast way to explore the model without
-                hand-tuning every slider. Graphite plating raises drop rate and
-                switches the lattice angle to 90&deg; so gap columns exist; add
-                a graphite lattice, then Run, and watch the Intercalation tab
-                for plating above capacity.
+                sets the drop rate to 10,000, the carbon bond to &minus;0.35 eV,
+                and places a vertical (90&deg;) graphite lattice 15 atoms tall.
+                Temperature, the lithium bond energies, and the attempt
+                frequencies stay at their page defaults. On a 24&times;16
+                lattice with columns 8 atoms tall (gallery capacity 96), that
+                carbon bond together with a 0.30 eV gallery barrier left about
+                65&ndash;70% of the lithium outside the galleries at this drop
+                rate, and the galleries were far from full. The barrier is part
+                of the simulation engine.
               </p>
             </section>
 
